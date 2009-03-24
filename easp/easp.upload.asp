@@ -221,6 +221,22 @@ Class EasyAsp_upload
 		Set oFileStream = Nothing
 	End Sub
 	
+	Function SaveFile(ByVal sItem, ByVal sPath)
+		Dim fileStream, sName
+		Set fileStream = Server.CreateObject("ADODB.Stream")
+		With fileStream
+			.Type = 1
+			.Mode = 3
+			.Open
+			o_strm.Position = File(sItem).Start
+			o_strm.CopyTo fileStream, File(sItem).Size
+			.Position = 0
+			'.SaveToFile sFileName, 2   '暂时不保存文件
+			.Close
+		End With
+		Set fileStream = Nothing
+	End Function
+	
 	Function CheckFile()
 		CheckFile = True : i_filecount = 0
 		If File.Count > 0 Then
@@ -246,8 +262,9 @@ Class EasyAsp_upload
 			ErrMsg "获取文件失败！", "表单控件("""&sItem&""")不存在"
 			CheckOneFile = False : Exit Function
 		End If
+		Dim cp : cp = File(sItem).ClientPath
 		If File(sItem).Size < 1 Then
-			ErrMsg "上传文件失败！", "上传文件不能为空("&File(sItem).ClientPath&")"
+			ErrMsg "上传文件失败！", "上传文件不能为空("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
 			ErrMsg "上传文件失败！", "文件大小超过了限制("&File(sItem).ClientPath&")"
@@ -273,6 +290,10 @@ Class EasyAsp_upload
 		Else
 			isAllowed = Easp_Test(sExt,"^("&s_allowed&")$")
 		End If
+	End Function
+	
+	Private Function GetRandomName()
+		GetRandomName = ""
 	End Function
 	
 	Private Function GetNewFileName()
