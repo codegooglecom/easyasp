@@ -160,7 +160,7 @@ Class EasyAsp_upload
 			sFormName	= Mid(sFormHeader, nPosStart, nPosEnd - nPosStart)
 			
 			If InStr(45, sFormHeader, " filename=", 1) > 0 Then
-				Set File(sFormName)	= New FileInfo
+				Set File(sFormName)	= New Easp_upload_FileInfo
 				File(sFormName).FormName = sFormName
 				File(sFormName).Start = nFormEnd
 				File(sFormName).Size = nFormStart - nFormEnd - 2
@@ -312,7 +312,7 @@ Class EasyAsp_upload
 	End Function
 End Class
 
-Class FileInfo
+Class Easp_upload_FileInfo
 	Public FormName, ClientPath, Path, Name, Ext, Content, Size, MIME, Start
 End Class
 %>
