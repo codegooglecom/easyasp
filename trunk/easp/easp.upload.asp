@@ -191,6 +191,7 @@ Class EasyAsp_upload
 		Loop
 		oTotalData = ""
 		Set oFormStream = Nothing
+		'CheckFile()
 	End Sub
 	
 	Public Sub SaveAs(sItem, sFileName)
@@ -222,6 +223,8 @@ Class EasyAsp_upload
 	End Sub
 	
 	Function SaveFile(ByVal sItem, ByVal sPath)
+		On Error Resume Next
+		SaveFile = True
 		Dim fileStream, sName
 		Set fileStream = Server.CreateObject("ADODB.Stream")
 		With fileStream
@@ -231,10 +234,15 @@ Class EasyAsp_upload
 			o_strm.Position = File(sItem).Start
 			o_strm.CopyTo fileStream, File(sItem).Size
 			.Position = 0
-			'.SaveToFile sFileName, 2   '暂时不保存文件
+			.SaveToFile sPath, 2
 			.Close
 		End With
 		Set fileStream = Nothing
+		If Err.Number<>0 Then
+			ErrMsg "上传文件失败！", Err.Description
+			SaveFile = False
+		End If
+		Err.Clear
 	End Function
 	
 	Function CheckFile()
@@ -292,8 +300,8 @@ Class EasyAsp_upload
 		End If
 	End Function
 	
-	Private Function GetRandomName()
-		GetRandomName = ""
+	Private Function GetRandomName(ByVal sItem)
+		GetRandomName = Easp.DateTime(Now(),"yymmddhhiiss") & Easp.Rand(10000,99999)' & "." & File(sItem).Ext
 	End Function
 	
 	Private Function GetNewFileName()
