@@ -3,40 +3,30 @@
 '##	easp.asp
 '##	--------------------------------------------------------------------
 '##	Feature		:	EasyAsp Class
-'##	Version		:	v2.0
+'##	Version		:	v2.1
 '##	Author		:	Coldstone(coldstone[在]qq.com)
-'##	Update Date	:	2009-02-12
+'##	Update Date	:	2009-03-25
 '##	Description	:	EasyAsp类
 '##
 '#################################################################################
 Dim Easp : Set Easp = New EasyASP
 
 Dim EasyAsp_s_html
-Class EasyAsp_obj : End Class
 Class EasyAsp
 
-	Public db,fso,upload,tpl
+	Public db
 	Private s_path, s_fsoName
-	Private o_md5
 	
 	Private Sub Class_Initialize()
 		'On Error Resume Next
 		s_path		= "/easp/"							'Easp类文件的路径
 		s_fsoName	= "Scripting.FilesyStemObject"		'默认FSO组件名称
 		Set db		= New EasyAsp_db
-		Set o_md5	= New EasyAsp_obj
-		Set fso		= New EasyAsp_obj
-		Set upload	= New EasyAsp_obj
-		Set tpl		= New EasyAsp_obj
 	End Sub
 	
 	Private Sub Class_Terminate()
 		'On Error Resume Next
 		Set db 		= Nothing
-		Set o_md5	= Nothing
-		Set fso		= Nothing
-		Set upload	= Nothing
-		Set tpl		= Nothing
 	End Sub
 	
 	Public Property Let basePath(ByVal path)
@@ -663,7 +653,7 @@ Function getInclude(ByVal filePath)
 	getInclude = EasyAsp_s_html
 End Function
 '读取文件内容
-Function Read(ByVal filePath)
+Private Function Read(ByVal filePath)
 	Dim Fso, p, f, tmpStr
 	p = filePath
 	If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
@@ -680,7 +670,7 @@ Function Read(ByVal filePath)
 	Read = tmpStr
 End Function
 '读取包含文件内容（无限级）
-Function IncRead(ByVal filePath)
+Private Function IncRead(ByVal filePath)
 	Dim content, rule, inc, incFile, incStr
 	content = Read(filePath)
 	If isN(content) Then Exit Function
@@ -703,7 +693,7 @@ Function IncRead(ByVal filePath)
 	IncRead = content
 End Function
 '将包含文件转换为ASP代码
-Function GetIncCode(ByVal filePath, ByVal getHtml)
+Private Function GetIncCode(ByVal filePath, ByVal getHtml)
 	Dim content,tmpStr,code,tmpCode,s_code,a,b
 	content = IncRead(filePath)
 	code = "" : a = 1 : b = Instr(content,"<%") + 2
@@ -734,25 +724,6 @@ Function GetIncCode(ByVal filePath, ByVal getHtml)
 	End If
 	If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
 	GetIncCode = Replace(code,vbCrLf&vbCrLf,vbCrLf)
-End Function
-'加载引用EasyAsp库类
-Sub Use(ByVal sType)
-	Dim p, o, t : o = sType
-	p = "easp." & Lcase(o) & ".asp"
-	If LCase(o) = "md5" Then o = "o_md5"
-	t = Eval("LCase(TypeName("&o&"))")
-	If t = "easyasp_obj" Then
-		Include(s_path & p)
-		Execute("Set "&o&" = New EasyAsp_"&sType)
-		Select Case Lcase(sType)
-			Case "fso"
-				fso.fsoName = s_fsoName
-		End Select
-	End If
-End Sub
-'Md5加密字符串
-Function Md5(ByVal Str)
-	Use("Md5") : Md5 = o_md5.md5(Str)
 End Function
 End Class
 '***** 数据库操作类 *****
@@ -977,18 +948,26 @@ Class EasyAsp_db
 		wGR = wGetRecord(TableName, Condition, OrderField)
 	End Function
 	'根据sql语句返回记录集
-	Public Function GetRecordBySQL(ByVal strSelect)
+	Public Function GetRecordBySQL(ByVal str)
 		On Error Resume Next
+'		Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
+'		With cmd
+'			.ActiveConnection = idbConn
+'			.CommandText = str
+'			Set GetRecordBySQL = .Execute
+'		End With
+'		Set cmd = Nothing
 		Dim rs : Set rs = Server.CreateObject("Adodb.Recordset")
 		With rs
 			.ActiveConnection = idbConn
 			.CursorType = 1
 			.LockType = 1
-			.Source = strSelect
+			.Source = str
 			.Open
-			If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & strSelect
 		End With
 		Set GetRecordBySQL = rs
+		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & str
+		Err.Clear
 	End Function
 	Public Function GRS(ByVal strSelect)
 		Set GRS = GetRecordBySQL(strSelect)
@@ -1076,20 +1055,64 @@ Class EasyAsp_db
 	Public Function GRD(ByVal TableName,ByVal Condition)
 		Set GRD = GetRecordDetail(TableName, Condition)
 	End Function
+	'取指定数量的随机记录
+	Public Function GetRandRecord(ByVal TableName,ByVal Condition)
+		Dim sql,o,p,fi,IdField,showN,where
+		o = Easp_Param(TableName)
+		If Not Easp_isN(o(1)) Then
+			TableName = o(0)
+			p = Easp_Param(o(1))
+			If Easp_isN(p(1)) Then
+				ErrMsg "获取随机记录失败！", "请输入要取的记录数量"
+				Exit Function
+			Else
+				fi = p(0) : showN = p(1)
+				If Instr(fi,",")>0 Then
+					IdField = Trim(Left(fi,Instr(fi,",")-1))
+				Else
+					IdField = fi : fi = "*"
+				End If
+			End If
+		Else
+			ErrMsg "获取随机记录失败！", "请在表名后输入:ID字段的名称"
+			Exit Function
+		End If
+		Condition = Easp_IIF(Easp_isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
+		sql = "Select Top " & showN & " " & fi & " From ["&TableName&"]" & Condition
+		Select Case idbType
+			Case "ACCESS" : Randomize
+				sql = sql & " Order By Rnd(-(" & IdField & "+" & Rnd() & "))"
+			Case "MSSQL"
+				sql = sql & " Order By newid()"
+			Case "MYSQL"
+				sql = "Select " & fi & " From ["&TableName&"]" & Condition & " Order By rand() limit " & showN
+			Case "ORACLE"
+				sql = "Select " & fi & " From (Select " & fi & " From ["&TableName&"] Order By dbms_random.value) " & Easp_IIF(Easp_isN(Condition),"Where",Condition & " And") & " rownum < " & Int(showN)+1
+		End Select
+		Set GetRandRecord = GRS(sql)
+	End Function
+	Public Function GRR(ByVal TableName,ByVal Condition)
+		Set GRR = GetRandRecord(TableName,Condition)
+	End Function
 	'添加一个新的纪录
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
 		On Error Resume Next
+		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		DoExecute wAddRecord(TableName,ValueList)
 		If Err.number <> 0 Then
-			'DoExecute "ROLLBACK TRAN Tran_Insert"	'如果存在添加事务（事务滚回）
 			ErrMsg "向数据库添加记录出错！", Err.Description
 			AddRecord = 0
 			Exit Function
 		End If
-		AddRecord = AutoID(TableName)-1
+		If Not Easp_isN(o(1)) Then
+			AddRecord = AutoID(o(0)&":"&o(1))-1
+		Else
+			AddRecord = 1
+		End If
 	End Function
 	Public Function wAddRecord(ByVal TableName,ByVal ValueList)
-		Dim TempSQL, TempFiled, TempValue
+		Dim TempSQL, TempFiled, TempValue, o
+		o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		TempFiled = ValueToSql(TableName,ValueList,2)
 		TempValue = ValueToSql(TableName,ValueList,3)
 		TempSQL = "Insert Into [" & TableName & "] (" & TempFiled & ") Values (" & TempValue & ")"
@@ -1106,7 +1129,6 @@ Class EasyAsp_db
 		On Error Resume Next
 		DoExecute wUpdateRecord(TableName,Condition,ValueList)
 		If Err.number <> 0 Then
-			'DoExecute "ROLLBACK TRAN Tran_Update"	'如果存在更新事务（事务滚回）
 			ErrMsg "更新数据库记录出错！", Err.Description
 			UpdateRecord = 0
 			Exit Function
@@ -1131,7 +1153,6 @@ Class EasyAsp_db
 		On Error Resume Next
 		DoExecute wDeleteRecord(TableName,Condition)
 		If Err.number <> 0 Then
-			'DoExecute "ROLLBACK TRAN Tran_Delete"	'如果存在事务（事务滚回）
 			ErrMsg "从数据库删除数据出错！", Err.Description
 			DeleteRecord = 0
 			Exit Function
@@ -1180,7 +1201,7 @@ Class EasyAsp_db
 			End If
 		End If
 		If Err.number <> 0 Then ErrMsg "从数据库获取数据出错！", Err.Description
-		rs.close() : Set rs = Nothing
+		rs.close() : Set rs = Nothing : Err.Clear
 		ReadTable = TempStr
 	End Function
 	Public Function RT(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
@@ -1248,6 +1269,7 @@ Class EasyAsp_db
 			End If
 		If Err.number <> 0 Then ErrMsg "调用存储过程出错！", Err.Description
 		Set cmd = Nothing
+		Err.Clear
 	End Function
 	'释放记录集对象
 	Public Function C(ByRef ObjRs)
@@ -1255,41 +1277,45 @@ Class EasyAsp_db
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
+	'执行指定的SQL语句
+	Public Function Exec(ByVal str)
+		On Error Resume Next
+		Exec = 1 : DoExecute(str)
+		If Err.number <> 0 Then
+			Exec = 0
+			ErrMsg "执行SQL语句出错！", Err.Description
+		End If
+		Err.Clear
+	End Function
+	
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
 		On Error Resume Next
 		Dim StrTemp : StrTemp = ValueList
 		If IsArray(ValueList) Then
 			StrTemp = ""
 			Dim rsTemp, CurrentField, CurrentValue, i
-			Set rsTemp = Server.CreateObject("Adodb.Recordset")
-			With rsTemp
-				.ActiveConnection = idbConn
-				.CursorType = 1
-				.LockType = 1
-				.Source = "Select * From [" & TableName & "] Where 1 = -1"
-				.Open
-				For i = 0 to Ubound(ValueList)
-					CurrentField = Easp_Param(ValueList(i))(0)
-					CurrentValue = Easp_Param(ValueList(i))(1)
-					If i <> 0 Then StrTemp = StrTemp & Easp_IIF(sType=1, " And ", ", ")
-					If sType = 2 Then
-						StrTemp = StrTemp & "[" & CurrentField & "]"
-					Else
-						Select Case .Fields(CurrentField).Type
-							Case 7,8,129,130,133,134,135,200,201,202,203
-								StrTemp = StrTemp & Easp_IIF(sType=3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
-							Case 11
-								Dim tmpTF
-								tmpTF = Easp_IIF(UCase(cstr(Trim(CurrentValue)))="TRUE", Easp_IIF(idbType="1" Or idbType="ACCESS","True","1"), Easp_IIF(idbType="1" Or idbType="ACCESS","False","0"))
-								StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
-							Case Else
-								StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
-						End Select
-					End If
-				Next
-			End With
+			Set rsTemp = GRS("Select * From [" & TableName & "] Where 1 = -1")
+			For i = 0 to Ubound(ValueList)
+				CurrentField = Easp_Param(ValueList(i))(0)
+				CurrentValue = Easp_Param(ValueList(i))(1)
+				If i <> 0 Then StrTemp = StrTemp & Easp_IIF(sType=1, " And ", ", ")
+				If sType = 2 Then
+					StrTemp = StrTemp & "[" & CurrentField & "]"
+				Else
+					Select Case rsTemp.Fields(CurrentField).Type
+						Case 7,8,129,130,133,134,135,200,201,202,203
+							StrTemp = StrTemp & Easp_IIF(sType=3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
+						Case 11
+							Dim tmpTF
+							tmpTF = Easp_IIF(UCase(cstr(Trim(CurrentValue)))="TRUE", Easp_IIF(idbType="1" Or idbType="ACCESS","True","1"), Easp_IIF(idbType="1" Or idbType="ACCESS","False","0"))
+							StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
+						Case Else
+							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
+					End Select
+				End If
+			Next
 			If Err.number <> 0 Then ErrMsg "生成SQL语句出错！", Err.Description
-			rsTemp.Close() : Set rsTemp = Nothing
+			rsTemp.Close() : Set rsTemp = Nothing : Err.Clear
 		End If
 		ValueToSql = StrTemp
 	End Function
