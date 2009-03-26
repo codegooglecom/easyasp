@@ -3,12 +3,79 @@
 '##	easp.asp
 '##	--------------------------------------------------------------------
 '##	Feature		:	EasyAsp Class
-'##	Version		:	v2.1
+'##	Version		:	v2.1 beta
 '##	Author		:	Coldstone(coldstone[在]qq.com)
-'##	Update Date	:	2009-03-25
+'##	Update Date	:	2009-03-26
 '##	Description	:	EasyAsp类
 '##
 '#################################################################################
+'
+'# 帮助手册还没有编写完成，请先阅读下面的更新说明。EasyAsp的总体架构已经很稳定，各个
+'   方法不会有大的改动，所以用EasyASP开发的ASP程序在升级EasyAsp版本时并不会受到影响。
+'   如果某个方法有改动会影响到以前版本，在更新说明中会明确提及，请根据说明进行修正。
+'
+'## EasyAsp V2.1 正式版发布的时候会同时推出官方网站：http://easp.ambox.cn，敬请留意。
+'
+'EasyAsp V2.1 beta 更新说明 [2009-03-26, By Coldstone]
+'
+'【新增功能】
+'
+'1、新增Easp.regReplaceM方法，用于正则替换的多行模式。
+'
+'2、新增Easp.regMatch方法，用于正则匹配的编组捕获。
+'   此方法返回一个Match对象，可用For...Each...Next对其进行循环读取。
+'   例：Set M = Easp.regMatch(str,"(type|t)=(\d+)")
+'       For Each match In M
+'           Easp.WN match.SubMatches(0) & " = " & match.SubMatches(1)
+'       Next
+'
+'3、新增Easp.isInstall方法，用于检测系统是否安装了某个组件。
+'   例：If Easp.isInstall("w3Image.Image") Then
+'          Set imageobj = Server.CreateObject("w3Image.Image")
+'       Else
+'          Easp.w "不支持w3图像组件"
+'       End If
+'
+'4、新增Easp.Include方法，完美实现了ASP的动态包含，且支持ASP源码中无限级层次的<!--#i
+'   nclude...-->包含，file和virtual路径均可自动识别包含。
+'   此方法支持相对路径和以“/”开头的绝对路径。被包含的文件中可以有<@Language=...>这样
+'   的内容和Option Explicit这样的语句，均会被自动过滤。
+'   例：Easp.Include "/function.asp"
+'
+'5、新增Easp.getInclude方法，用于获取ASP文件运行的结果或获取html文件等文本文件的源码。
+'   说明：如果获取的是Asp文件，会自动执行其中的Asp语句。！预告：EasyAsp V2.2中的模板
+'         类就用到了这个方法。
+'   例：html_head = Easp.getInclude("head.html")
+'       html_head = Replace(html_head,"{{$title}}","模板替换标题")
+'       Easp.WC html_head
+'
+'6、新增Easp.db.QueryType属性，可设置用RecordSet还是Command方式获取记录集。
+'   设置为 0 或 "recordset" 为用RecordSet方式，1 或 "command" 为Command方式，默认为0。
+'   如果使用MSSQL数据库，建议设置为1，获取大量数据时效果明显。
+'   例：Easp.db.QueryType = 1
+'
+'7、新增Easp.db.GetRandRecord方法，用于取得随机数量的记录集。
+'   此方法用法和Easp.db.GetRecord类似，只是没有GetRecord方法的第三个排序参数，而且第
+'   一个参数中必须同时指定ID字段的名称和取得记录的数量。
+'   例：Set rs = Easp.db.GetRandRecord("Table:IDField:20","isActive>0")
+'
+'8、新增Easp.db.Exec方法，用于执行SQL语句或者返回Command方式查询的记录集。
+'   例：Easp.db.Exec "Delete From [Table] Where [isDelete] = 1"
+'       或 Set rs = Easp.db.Exec("Select * From [Table]")
+'
+'【其它更新】
+'
+'9、优化Easp.DateTime方法，格式化为时间差时的显示更人性化。
+'   如果第二个参数为空时，则输出类似Discuz论坛的只显示2个星期内的时间差。
+'
+'10、优化Easp.db.AddRecord方法，现在仅当指定了ID字段的名称时才返回新增的记录ID号。(影响上一版本)
+'    现在只有这样的用法才会返回新增的ID号：Easp.db.AddRecord("Table:IDField",Array(...))
+'    而用原来的方式则新增成功后返回1。
+'
+'11、修正EasyAsp V2.0中分页下拉框中页面数量小于jumplong配置时出现负数的Bug。
+
+'#################################################################################
+
 Dim Easp : Set Easp = New EasyASP
 
 Dim EasyAsp_s_html
@@ -18,14 +85,12 @@ Class EasyAsp
 	Private s_path, s_fsoName
 	
 	Private Sub Class_Initialize()
-		'On Error Resume Next
-		s_path		= "/easp/"							'Easp类文件的路径
-		s_fsoName	= "Scripting.FilesyStemObject"		'默认FSO组件名称
+		s_path		= "/easp/"						'Easp类文件的路径
+		s_fsoName	= "Scripting.FilesyStemObject"	'默认FSO组件名称
 		Set db		= New EasyAsp_db
 	End Sub
 	
 	Private Sub Class_Terminate()
-		'On Error Resume Next
 		Set db 		= Nothing
 	End Sub
 	
@@ -109,7 +174,7 @@ Function DateTime(ByVal iTime, ByVal iFormat)
 	iiDay = right("0"&Day(iTime),2) : iiHour = right("0"&Hour(iTime),2)
 	iiMinute = right("0"&Minute(iTime),2) : iiSecond = right("0"&Second(iTime),2)
 	tWeek = Weekday(iTime)-1 : iWeek = Array("日","一","二","三","四","五","六")
-	If isDate(iFormat) or isN(iFormat) Then '格式化为时间差
+	If isDate(iFormat) or isN(iFormat) Then
 		If isN(iFormat) Then : iFormat = Now() : pastTime = true : End If
 		dire = "后" : If DateDiff("s",iFormat,iTime)<0 Then : dire = "前" : before = True : End If
 		diffs = Abs(DateDiff("s",iFormat,iTime))
@@ -313,7 +378,7 @@ Function CutString(ByVal str, ByVal strlen)
 			CutString = str
 		End If
 	Next
-	CutString = Replace(CutString,chr(10),"")
+	CutString = Replace(CutString,vbCrLf,"")
 End Function
 '获取当前文件的地址
 Function GetUrl(param)
@@ -694,28 +759,28 @@ Private Function IncRead(ByVal filePath)
 End Function
 '将包含文件转换为ASP代码
 Private Function GetIncCode(ByVal filePath, ByVal getHtml)
-	Dim content,tmpStr,code,tmpCode,s_code,a,b
+	Dim content,tmpStr,code,tmpCode,s_code,st,en
 	content = IncRead(filePath)
-	code = "" : a = 1 : b = Instr(content,"<%") + 2
+	code = "" : st = 1 : en = Instr(content,"<%") + 2
 	s_code = IIF(getHtml=1,"EasyAsp_s_html = EasyAsp_s_html & ","Response.Write ")
-	While b > a + 1
-		tmpStr = Mid(content,a,b-a-2)
-		a = Instr(b,content,"%"&">") + 2
+	While en > st + 1
+		tmpStr = Mid(content,st,en-st-2)
+		st = Instr(en,content,"%"&">") + 2
 		If Not isN(tmpStr) Then
 			tmpStr = Replace(tmpStr,"""","""""")
 			tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
 			tmpStr = Replace(tmpStr,vbCrLf,"""&vbCrLf&""")
 			code = code & s_code & """" & tmpStr & """" & vbCrLf
 		End If
-		tmpStr = Mid(content,b,a-b-2)
+		tmpStr = Mid(content,en,st-en-2)
 		tmpCode = regReplace(tmpStr,"^\s*=\s*",s_code) & vbCrLf
 		If getHtml = 1 Then
 			tmpCode = regReplaceM(tmpCode,"^(\s*)response\.write","$1" & s_code) & vbCrLf
 		End If
 		code = code & Replace(tmpCode,vbCrLf&vbCrLf,vbCrLf)
-		b = Instr(a,content,"<%") + 2
+		en = Instr(st,content,"<%") + 2
 	Wend
-	tmpStr = Mid(content,a)
+	tmpStr = Mid(content,st)
 	If Not isN(tmpStr) Then
 		tmpStr = Replace(tmpStr,"""","""""")
 		tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
@@ -728,7 +793,7 @@ End Function
 End Class
 '***** 数据库操作类 *****
 Class EasyAsp_db
-	Private idbConn, idbType, idebug, idbErr
+	Private idbConn, idbType, idebug, idbErr, iQueryType
 	Private iPageParam, iPageIndex, iPageSize, iPageSpName, iPageCount, iRecordCount, iPageDic
 
 	Private Sub Class_Initialize()
@@ -736,6 +801,7 @@ Class EasyAsp_db
 		idbType = ""
 		idebug = False
 		idbErr = ""
+		iQueryType = 0
 		If TypeName(Conn) = "Connection" Then
 			Set idbConn = Conn : idbType = GetDataType(Conn)
 		End If
@@ -755,7 +821,7 @@ Class EasyAsp_db
 		Set iPageDic = Nothing
 	End Sub
 	'属性：定义数据库连接
-	Public Property Let dbConn(pdbConn)
+	Public Property Let dbConn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
 			Set idbConn = pdbConn
 			idbType = GetDataType(pdbConn)
@@ -771,7 +837,7 @@ Class EasyAsp_db
 		DatabaseType = idbType
 	End Property
 	'属性：设置是否开启调试模式
-	Public Property Let Debug(bool)
+	Public Property Let Debug(ByVal bool)
 		idebug = bool
 	End Property
 	Public Property Get Debug()
@@ -781,8 +847,17 @@ Class EasyAsp_db
 	Public Property Get dbErr()
 		dbErr = idbErr
 	End Property
+	'属性：设置获取记录集的方式
+	Public Property Let QueryType(ByVal str)
+		str = Lcase(str)
+		If str = "1" or str = "command" Then
+			iQueryType = 1
+		Else
+			iQueryType = 0
+		End If
+	End Property
 	'属性：设置分页数量
-	Public Property Let PageSize(num)
+	Public Property Let PageSize(ByVal num)
 		iPageSize = num
 	End Property
 	'属性：返回分页数量
@@ -802,11 +877,11 @@ Class EasyAsp_db
 		PageRecordCount = iRecordCount
 	End Property
 	'属性：设置获取分页参数
-	Public Property Let PageParam(str)
+	Public Property Let PageParam(ByVal str)
 		iPageParam = str
 	End Property
 	'属性：设置分页存储过程名
-	Public Property Let PageSpName(str)
+	Public Property Let PageSpName(ByVal str)
 		iPageSpName = str
 	End Property
 	Private Sub ErrMsg(e,d)
@@ -950,22 +1025,25 @@ Class EasyAsp_db
 	'根据sql语句返回记录集
 	Public Function GetRecordBySQL(ByVal str)
 		On Error Resume Next
-'		Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
-'		With cmd
-'			.ActiveConnection = idbConn
-'			.CommandText = str
-'			Set GetRecordBySQL = .Execute
-'		End With
-'		Set cmd = Nothing
-		Dim rs : Set rs = Server.CreateObject("Adodb.Recordset")
-		With rs
-			.ActiveConnection = idbConn
-			.CursorType = 1
-			.LockType = 1
-			.Source = str
-			.Open
-		End With
-		Set GetRecordBySQL = rs
+		If iQueryType = 1 Then
+			Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
+			With cmd
+				.ActiveConnection = idbConn
+				.CommandText = str
+				Set GetRecordBySQL = .Execute
+			End With
+			Set cmd = Nothing
+		Else
+			Dim rs : Set rs = Server.CreateObject("Adodb.Recordset")
+			With rs
+				.ActiveConnection = idbConn
+				.CursorType = 1
+				.LockType = 1
+				.Source = str
+				.Open
+			End With
+			Set GetRecordBySQL = rs
+		End If
 		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & str
 		Err.Clear
 	End Function
@@ -1277,12 +1355,19 @@ Class EasyAsp_db
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
-	'执行指定的SQL语句
+	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal str)
 		On Error Resume Next
-		Exec = 1 : DoExecute(str)
+		If Lcase(Left(str,6)) = "select" Then
+			Dim i : i = iQueryType
+			iQueryType = 1
+			Set Exec = GRS(str)
+			iQueryType = i
+		Else
+			Exec = 1 : DoExecute(str)
+			If Err.number <> 0 Then Exec = 0
+		End If
 		If Err.number <> 0 Then
-			Exec = 0
 			ErrMsg "执行SQL语句出错！", Err.Description
 		End If
 		Err.Clear
