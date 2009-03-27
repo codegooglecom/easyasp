@@ -271,15 +271,15 @@ Class EasyAsp_upload
 			CheckOneFile = False : Exit Function
 		End If
 		Dim cp : cp = File(sItem).ClientPath
+		If Not isAllowed(File(sItem).Ext) Then
+			ErrMsg "上传文件失败！", "不允许上传此类型的文件("&File(sItem).ClientPath&")"
+			CheckOneFile = False : Exit Function
+		End If
 		If File(sItem).Size < 1 Then
 			ErrMsg "上传文件失败！", "上传文件不能为空("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
 			ErrMsg "上传文件失败！", "文件大小超过了限制("&File(sItem).ClientPath&")"
-			CheckOneFile = False : Exit Function
-		End If
-		If Not isAllowed(File(sItem).Ext) Then
-			ErrMsg "上传文件失败！", "不允许上传此类型的文件("&File(sItem).ClientPath&")"
 			CheckOneFile = False : Exit Function
 		End If
 	End Function

@@ -3,95 +3,38 @@
 '##	easp.asp
 '##	--------------------------------------------------------------------
 '##	Feature		:	EasyAsp Class
-'##	Version		:	v2.1 beta
+'##	Version		:	v2.2
 '##	Author		:	Coldstone(coldstone[在]qq.com)
-'##	Update Date	:	2009-03-26
+'##	Update Date	:	2009-03-26  16:50<MM:EndLock>
 '##	Description	:	EasyAsp类
 '##
 '#################################################################################
-'
-'# 帮助手册还没有编写完成，请先阅读下面的更新说明。EasyAsp的总体架构已经很稳定，各个
-'   方法不会有大的改动，所以用EasyASP开发的ASP程序在升级EasyAsp版本时并不会受到影响。
-'   如果某个方法有改动会影响到以前版本，在更新说明中会明确提及，请根据说明进行修正。
-'
-'## EasyAsp V2.1 正式版发布的时候会同时推出官方网站：http://easp.ambox.cn，敬请留意。
-'
-'EasyAsp V2.1 beta 更新说明 [2009-03-26, By Coldstone]
-'
-'【新增功能】
-'
-'1、新增Easp.regReplaceM方法，用于正则替换的多行模式。
-'
-'2、新增Easp.regMatch方法，用于正则匹配的编组捕获。
-'   此方法返回一个Match对象，可用For...Each...Next对其进行循环读取。
-'   例：Set M = Easp.regMatch(str,"(type|t)=(\d+)")
-'       For Each match In M
-'           Easp.WN match.SubMatches(0) & " = " & match.SubMatches(1)
-'       Next
-'
-'3、新增Easp.isInstall方法，用于检测系统是否安装了某个组件。
-'   例：If Easp.isInstall("w3Image.Image") Then
-'          Set imageobj = Server.CreateObject("w3Image.Image")
-'       Else
-'          Easp.w "不支持w3图像组件"
-'       End If
-'
-'4、新增Easp.Include方法，完美实现了ASP的动态包含，且支持ASP源码中无限级层次的<!--#i
-'   nclude...-->包含，file和virtual路径均可自动识别包含。
-'   此方法支持相对路径和以“/”开头的绝对路径。被包含的文件中可以有<@Language=...>这样
-'   的内容和Option Explicit这样的语句，均会被自动过滤。
-'   例：Easp.Include "/function.asp"
-'
-'5、新增Easp.getInclude方法，用于获取ASP文件运行的结果或获取html文件等文本文件的源码。
-'   说明：如果获取的是Asp文件，会自动执行其中的Asp语句。！预告：EasyAsp V2.2中的模板
-'         类就用到了这个方法。
-'   例：html_head = Easp.getInclude("head.html")
-'       html_head = Replace(html_head,"{{$title}}","模板替换标题")
-'       Easp.WC html_head
-'
-'6、新增Easp.db.QueryType属性，可设置用RecordSet还是Command方式获取记录集。
-'   设置为 0 或 "recordset" 为用RecordSet方式，1 或 "command" 为Command方式，默认为0。
-'   如果使用MSSQL数据库，建议设置为1，获取大量数据时效果明显。
-'   例：Easp.db.QueryType = 1
-'
-'7、新增Easp.db.GetRandRecord方法，用于取得随机数量的记录集。
-'   此方法用法和Easp.db.GetRecord类似，只是没有GetRecord方法的第三个排序参数，而且第
-'   一个参数中必须同时指定ID字段的名称和取得记录的数量。
-'   例：Set rs = Easp.db.GetRandRecord("Table:IDField:20","isActive>0")
-'
-'8、新增Easp.db.Exec方法，用于执行SQL语句或者返回Command方式查询的记录集。
-'   例：Easp.db.Exec "Delete From [Table] Where [isDelete] = 1"
-'       或 Set rs = Easp.db.Exec("Select * From [Table]")
-'
-'【其它更新】
-'
-'9、优化Easp.DateTime方法，格式化为时间差时的显示更人性化。
-'   如果第二个参数为空时，则输出类似Discuz论坛的只显示2个星期内的时间差。
-'
-'10、优化Easp.db.AddRecord方法，现在仅当指定了ID字段的名称时才返回新增的记录ID号。(影响上一版本)
-'    现在只有这样的用法才会返回新增的ID号：Easp.db.AddRecord("Table:IDField",Array(...))
-'    而用原来的方式则新增成功后返回1。
-'
-'11、修正EasyAsp V2.0中分页下拉框中页面数量小于jumplong配置时出现负数的Bug。
-
-'#################################################################################
-
 Dim Easp : Set Easp = New EasyASP
 
 Dim EasyAsp_s_html
+Class EasyAsp_obj : End Class
 Class EasyAsp
 
-	Public db
+	Public db,fso,upload,tpl
 	Private s_path, s_fsoName
+	Private o_md5
 	
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"						'Easp类文件的路径
 		s_fsoName	= "Scripting.FilesyStemObject"	'默认FSO组件名称
 		Set db		= New EasyAsp_db
+		Set o_md5	= New EasyAsp_obj
+		Set fso		= New EasyAsp_obj
+		Set upload	= New EasyAsp_obj
+		Set tpl		= New EasyAsp_obj
 	End Sub
 	
 	Private Sub Class_Terminate()
 		Set db 		= Nothing
+		Set o_md5	= Nothing
+		Set fso		= Nothing
+		Set upload	= Nothing
+		Set tpl		= Nothing
 	End Sub
 	
 	Public Property Let basePath(ByVal path)
@@ -790,6 +733,25 @@ Private Function GetIncCode(ByVal filePath, ByVal getHtml)
 	If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
 	GetIncCode = Replace(code,vbCrLf&vbCrLf,vbCrLf)
 End Function
+'加载引用EasyAsp库类
+Sub Use(ByVal sType)
+	Dim p, o, t : o = sType
+	p = "easp." & Lcase(o) & ".asp"
+	If LCase(o) = "md5" Then o = "o_md5"
+	t = Eval("LCase(TypeName("&o&"))")
+	If t = "easyasp_obj" Then
+		Include(s_path & p)
+		Execute("Set "&o&" = New EasyAsp_"&sType)
+		Select Case Lcase(sType)
+			Case "fso"
+				fso.fsoName = s_fsoName
+		End Select
+	End If
+End Sub
+'Md5加密字符串
+Function Md5(ByVal Str)
+	Use("Md5") : Md5 = o_md5.md5(Str)
+End Function
 End Class
 '***** 数据库操作类 *****
 Class EasyAsp_db
@@ -797,7 +759,7 @@ Class EasyAsp_db
 	Private iPageParam, iPageIndex, iPageSize, iPageSpName, iPageCount, iRecordCount, iPageDic
 
 	Private Sub Class_Initialize()
-		'On Error Resume Next
+		On Error Resume Next
 		idbType = ""
 		idebug = False
 		idbErr = ""
