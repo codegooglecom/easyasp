@@ -1683,7 +1683,7 @@ Private Function Easp_isN(ByVal str)
 	End Select
 End Function
 Private Function Easp_JsEncode(ByVal str)
-	If Not isN(str) Then
+	If Not Easp_isN(str) Then
 		str = Replace(str,Chr(92),"\\")
 		str = Replace(str,Chr(34),"\""")
 		str = Replace(str,Chr(39),"\'")
