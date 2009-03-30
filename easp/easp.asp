@@ -5,7 +5,7 @@
 '##	Feature		:	EasyAsp Class
 '##	Version		:	v2.2
 '##	Author		:	Coldstone(coldstone[‘⁄]qq.com)
-'##	Update Date	:	2009-03-26  16:50<MM:EndLock>
+'##	Update Date	:	2009-03-26  16:50
 '##	Description	:	EasyAsp¿‡
 '##
 '#################################################################################
@@ -1736,7 +1736,7 @@ Private Function Easp_RandStr(ByVal length)
 	Dim allowStr, i, p
 	allowStr = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	p = Easp_Param(length)
-	If Not isN(p(1)) Then : allowStr = p(1) : length = p(0) : p = "" : End If
+	If Not Easp_isN(p(1)) Then : allowStr = p(1) : length = p(0) : p = "" : End If
 	For i = 1 To length
 		Randomize() : Easp_RandStr = Easp_RandStr & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
 	Next
