@@ -4,9 +4,9 @@
 '##	--------------------------------------------------------------------
 '##	Feature		:	EasyAsp Class
 '##	Version		:	v2.2
-'##	Author		:	Coldstone(coldstone[ÔÚ]qq.com)
+'##	Author		:	Coldstone(coldstone[åœ¨]qq.com)
 '##	Update Date	:	2009-03-26  16:50
-'##	Description	:	EasyAspÀà
+'##	Description	:	EasyAspç±»
 '##
 '#################################################################################
 Dim Easp : Set Easp = New EasyASP
@@ -20,8 +20,8 @@ Class EasyAsp
 	Private o_md5
 	
 	Private Sub Class_Initialize()
-		s_path		= "/easp/"						'EaspÀàÎÄ¼şµÄÂ·¾¶
-		s_fsoName	= "Scripting.FilesyStemObject"	'Ä¬ÈÏFSO×é¼şÃû³Æ
+		s_path		= "/easp/"						'Easpç±»æ–‡ä»¶çš„è·¯å¾„
+		s_fsoName	= "Scripting.FilesyStemObject"	'é»˜è®¤FSOç»„ä»¶åç§°
 		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
@@ -43,8 +43,8 @@ Class EasyAsp
 	Public Property Let fsoName(ByVal str)
 		s_fsoName = str
 	End Property
-'***** Easp¹«¹²º¯Êı¼¯ *****
-'Êä³ö×Ö·û´®(¼òÒ×¶Ïµãµ÷ÊÔ)
+'***** Easpå…¬å…±å‡½æ•°é›† *****
+'è¾“å‡ºå­—ç¬¦ä¸²(ç®€æ˜“æ–­ç‚¹è°ƒè¯•)
 Sub W(ByVal str)
 	Response.Write(str)
 End Sub
@@ -58,51 +58,51 @@ Sub WE(ByVal str)
 	Response.Write(str)
 	Response.End()
 End Sub
-'·şÎñÆ÷¶ËÌø×ª
+'æœåŠ¡å™¨ç«¯è·³è½¬
 Sub RR(ByVal str)
 	Response.Redirect(str)
 End Sub
-'ÅĞ¶ÏÊÇ·ñÎª¿ÕÖµ
+'åˆ¤æ–­æ˜¯å¦ä¸ºç©ºå€¼
 Function isN(ByVal str)
 	isN = Easp_isN(str)
 End Function
-'ÅĞ¶ÏÈıÔª±í´ïÊ½
+'åˆ¤æ–­ä¸‰å…ƒè¡¨è¾¾å¼
 Function IIF(ByVal Cn, ByVal T, ByVal F)
 	IIF = Easp_IIF(Cn,T,F)
 End Function
 Function IfThen(ByVal Cn, ByVal T, ByVal F)
 	IfThen = Easp_IIF(Cn,T,F)
 End Function
-'·şÎñÆ÷¶ËÊä³öjavascript
+'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascript
 Sub Js(ByVal Str)
 	Response.Write("<sc" & "ript type=""text/javascript"">" & VbCrLf)
 	Response.Write(VbTab & Str & VbCrLf)
 	Response.Write("</scr" & "ipt>" & VbCrLf)
 End Sub
-'·şÎñÆ÷¶ËÊä³öjavascriptµ¯³öÏûÏ¢¿ò²¢·µ»ØÇ°Ò³
+'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascriptå¼¹å‡ºæ¶ˆæ¯æ¡†å¹¶è¿”å›å‰é¡µ
 Sub Alert(ByVal str)
 	Response.Write("<sc" & "ript type=""text/javascript"">alert('" & JsEncode(str) & "\t\t');history.go(-1);</sc" & "ript>"&VbCrLf)
 	Response.End()
 End Sub
-'·şÎñÆ÷¶ËÊä³öjavascriptµ¯³öÏûÏ¢¿ò²¢×ªµ½URL
+'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascriptå¼¹å‡ºæ¶ˆæ¯æ¡†å¹¶è½¬åˆ°URL
 Sub AlertUrl(ByVal str, ByVal url)
 	Response.Write("<sc" & "ript type=""text/javascript"">"&VbCrLf)
 	Response.Write(VbTab&"alert('" & JsEncode(str) & "\t\t');location.href='" & url & "';"&VbCrLf)
 	Response.Write("</sc" & "ript>"&VbCrLf)
 End Sub
-'´¦Àí×Ö·û´®ÖĞµÄJavascriptÌØÊâ×Ö·û
+'å¤„ç†å­—ç¬¦ä¸²ä¸­çš„Javascriptç‰¹æ®Šå­—ç¬¦
 Function JsEncode(ByVal str)
 	JsEncode = Easp_JsEncode(str)
 End Function
-'ÌØÊâ×Ö·û±àÂë
+'ç‰¹æ®Šå­—ç¬¦ç¼–ç 
 Function Escape(ByVal str)
 	Escape = Easp_Escape(str)
 End Function
-'ÌØÊâ×Ö·û½âÂë
+'ç‰¹æ®Šå­—ç¬¦è§£ç 
 Function UnEscape(ByVal str)
 	UnEscape = Easp_UnEscape(str)
 End Function
-'¸ñÊ½»¯ÈÕÆÚÊ±¼ä
+'æ ¼å¼åŒ–æ—¥æœŸæ—¶é—´
 Function DateTime(ByVal iTime, ByVal iFormat)
 	If Not IsDate(iTime) Then DateTime = "Date Error" : Exit Function
 	If Instr(",0,1,2,3,4,",","&iFormat&",")>0 Then DateTime = FormatDateTime(iTime,iFormat) : Exit Function
@@ -116,43 +116,43 @@ Function DateTime(ByVal iTime, ByVal iFormat)
 	iiYear = Year(iTime) : iiMonth = right("0"&Month(iTime),2)
 	iiDay = right("0"&Day(iTime),2) : iiHour = right("0"&Hour(iTime),2)
 	iiMinute = right("0"&Minute(iTime),2) : iiSecond = right("0"&Second(iTime),2)
-	tWeek = Weekday(iTime)-1 : iWeek = Array("ÈÕ","Ò»","¶ş","Èı","ËÄ","Îå","Áù")
+	tWeek = Weekday(iTime)-1 : iWeek = Array("æ—¥","ä¸€","äºŒ","ä¸‰","å››","äº”","å…­")
 	If isDate(iFormat) or isN(iFormat) Then
 		If isN(iFormat) Then : iFormat = Now() : pastTime = true : End If
-		dire = "ºó" : If DateDiff("s",iFormat,iTime)<0 Then : dire = "Ç°" : before = True : End If
+		dire = "å" : If DateDiff("s",iFormat,iTime)<0 Then : dire = "å‰" : before = True : End If
 		diffs = Abs(DateDiff("s",iFormat,iTime))
 		diffd = Abs(DateDiff("d",iFormat,iTime))
 		diffw = Abs(DateDiff("ww",iFormat,iTime))
 		diffm = Abs(DateDiff("m",iFormat,iTime))
 		diffy = Abs(DateDiff("yyyy",iFormat,iTime))
-		If diffs < 60 Then DateTime = "¸Õ¸Õ" : Exit Function
-		If diffs < 1800 Then DateTime = Int(diffs\60) & "·ÖÖÓ" & dire : Exit Function
-		If diffs < 2400 Then DateTime = "°ëĞ¡Ê±"  & dire : Exit Function
-		If diffs < 3600 Then DateTime = Int(diffs\60) & "·ÖÖÓ" & dire : Exit Function
+		If diffs < 60 Then DateTime = "åˆšåˆš" : Exit Function
+		If diffs < 1800 Then DateTime = Int(diffs\60) & "åˆ†é’Ÿ" & dire : Exit Function
+		If diffs < 2400 Then DateTime = "åŠå°æ—¶"  & dire : Exit Function
+		If diffs < 3600 Then DateTime = Int(diffs\60) & "åˆ†é’Ÿ" & dire : Exit Function
 		If diffs < 259200 Then
-			If diffd = 3 Then DateTime = "3Ìì" & dire & " " & iiHour & ":" & iiMinute : Exit Function
-			If diffd = 2 Then DateTime = IIF(before,"Ç°Ìì ","ºóÌì ") & iiHour & ":" & iiMinute : Exit Function
-			If diffd = 1 Then DateTime = IIF(before,"×òÌì ","Ã÷Ìì ") & iiHour & ":" & iiMinute : Exit Function
-			DateTime = Int(diffs\3600) & "Ğ¡Ê±" & dire : Exit Function
+			If diffd = 3 Then DateTime = "3å¤©" & dire & " " & iiHour & ":" & iiMinute : Exit Function
+			If diffd = 2 Then DateTime = IIF(before,"å‰å¤© ","åå¤© ") & iiHour & ":" & iiMinute : Exit Function
+			If diffd = 1 Then DateTime = IIF(before,"æ˜¨å¤© ","æ˜å¤© ") & iiHour & ":" & iiMinute : Exit Function
+			DateTime = Int(diffs\3600) & "å°æ—¶" & dire : Exit Function
 		End If
-		If diffd < 7 Then DateTime = diffd & "Ìì" & dire & " " & iiHour & ":" & iiMinute : Exit Function
+		If diffd < 7 Then DateTime = diffd & "å¤©" & dire & " " & iiHour & ":" & iiMinute : Exit Function
 		If diffd < 14 Then
-			If diffw = 1 Then DateTime = IIF(before,"ÉÏĞÇÆÚ","ÏÂĞÇÆÚ") & iWeek(tWeek) & " " & iiHour & ":" & iiMinute : Exit Function
-			If Not pastTime Then DateTime = diffd & "Ìì" & dire : Exit Function
+			If diffw = 1 Then DateTime = IIF(before,"ä¸Šæ˜ŸæœŸ","ä¸‹æ˜ŸæœŸ") & iWeek(tWeek) & " " & iiHour & ":" & iiMinute : Exit Function
+			If Not pastTime Then DateTime = diffd & "å¤©" & dire : Exit Function
 		End If
 		If Not pastTime Then
 			If diffd < 31 Then
-				If diffm = 2 Then DateTime = "2¸öÔÂ" & dire : Exit Function
-				If diffm = 1 Then DateTime = IIF(before,"ÉÏ¸öÔÂ","ÏÂ¸öÔÂ") & iDay & "ÈÕ" : Exit Function
-				DateTime = diffw & "ĞÇÆÚ" & dire : Exit Function
+				If diffm = 2 Then DateTime = "2ä¸ªæœˆ" & dire : Exit Function
+				If diffm = 1 Then DateTime = IIF(before,"ä¸Šä¸ªæœˆ","ä¸‹ä¸ªæœˆ") & iDay & "æ—¥" : Exit Function
+				DateTime = diffw & "æ˜ŸæœŸ" & dire : Exit Function
 			End If
 			If diffm < 36 Then
-				If diffy = 3 Then DateTime = "3Äê" & dire : Exit Function
-				If diffy = 2 Then DateTime = IIF(before,"Ç°Äê","ºóÄê") & iMonth & "ÔÂ" : Exit Function
-				If diffy = 1 Then DateTime = IIF(before,"È¥Äê","Ã÷Äê") & iMonth & "ÔÂ" : Exit Function
-				DateTime = diffm & "¸öÔÂ" & dire : Exit Function
+				If diffy = 3 Then DateTime = "3å¹´" & dire : Exit Function
+				If diffy = 2 Then DateTime = IIF(before,"å‰å¹´","åå¹´") & iMonth & "æœˆ" : Exit Function
+				If diffy = 1 Then DateTime = IIF(before,"å»å¹´","æ˜å¹´") & iMonth & "æœˆ" : Exit Function
+				DateTime = diffm & "ä¸ªæœˆ" & dire : Exit Function
 			End If
-			DateTime = diffy & "Äê" & dire : Exit Function
+			DateTime = diffy & "å¹´" & dire : Exit Function
 		Else
 			iFormat = "yyyy-mm-dd hh:ii"
 		End If
@@ -177,7 +177,7 @@ Function DateTime(ByVal iTime, ByVal iFormat)
 	For i = 0 To 6 : t = Replace(t, SpecialTextRe(i),SpecialText(i)) : Next
 	DateTime = t
 End Function
-'°²È«»ñÈ¡Öµ
+'å®‰å…¨è·å–å€¼
 Function R(ByVal Str, ByVal RType)
 	R = SafeData("R", Str, RType)
 End Function
@@ -202,7 +202,7 @@ End Function
 Function RHa(ByVal Str, ByVal RType)
 	RHa = SafeData("RHa", Str, RType)
 End Function
-'°²È«»ñÈ¡ÖµÔ­Ê¼·½·¨
+'å®‰å…¨è·å–å€¼åŸå§‹æ–¹æ³•
 Function SafeData(fn, ByVal Str, ByVal RType)
 	Dim TempStr, fna
 	Dim RDefault,RSplit
@@ -250,12 +250,12 @@ Function SafeData(fn, ByVal Str, ByVal RType)
 	End Select
 	SafeData = TempStr
 End Function
-'ÁÙÊ±ÑéÖ¤ÊÇ·ñÎªÊı×Ö
+'ä¸´æ—¶éªŒè¯æ˜¯å¦ä¸ºæ•°å­—
 Private Function IsNumber(Str, iType)
 	If Not IsN(Str) Then
 		If not isNumeric(Str) Then
 			If iType = 0 Then
-				Alert "Êı¾İÀàĞÍ²»ÕıÈ·£¡"
+				Alert "æ•°æ®ç±»å‹ä¸æ­£ç¡®ï¼"
 			Else
 				IsNumber = ""
 			End If
@@ -264,7 +264,7 @@ Private Function IsNumber(Str, iType)
 		End if
 	End If
 End Function
-'¼ì²éÌá½»Êı¾İÀ´Ô´
+'æ£€æŸ¥æäº¤æ•°æ®æ¥æº
 Function CheckDataFrom()
 	CheckDataFrom = True
 	server_v1=Cstr(Request.ServerVariables("HTTP_REFERER"))
@@ -274,9 +274,9 @@ Function CheckDataFrom()
 	end if
 end Function
 Sub CheckDataFromA()
-	If Not CheckDataFrom Then alert "½ûÖ¹´ÓÕ¾µãÍâ²¿Ìá½»Êı¾İ£¡"
+	If Not CheckDataFrom Then alert "ç¦æ­¢ä»ç«™ç‚¹å¤–éƒ¨æäº¤æ•°æ®ï¼"
 end Sub
-'·ÀSQL×¢ÈëÇ¿¼ì²â
+'é˜²SQLæ³¨å…¥å¼ºæ£€æµ‹
 Function CheckSql()
 	Dim noSQLStr, noSQL, StrGet, StrPost, i, j
 	noSQLStr = " and, or, insert, exec, select, delete, update, count, chr, mid, master, truncate, char, declare"
@@ -304,12 +304,12 @@ Function CheckSql()
 	CheckSql = True
 End Function
 Sub CheckSqlA()
-	If Not CheckSql Then alert "Êı¾İÖĞº¬ÓĞ·Ç·¨×Ö·û£¡"
+	If Not CheckSql Then alert "æ•°æ®ä¸­å«æœ‰éæ³•å­—ç¬¦ï¼"
 End Sub
-'½ØÈ¡³¤×Ö·û´®×ó±ß²¿·Ö²¢ÒÔÌØÊâ·ûºÅ´úÌæ
+'æˆªå–é•¿å­—ç¬¦ä¸²å·¦è¾¹éƒ¨åˆ†å¹¶ä»¥ç‰¹æ®Šç¬¦å·ä»£æ›¿
 Function CutString(ByVal str, ByVal strlen)
 	Dim l,t,c,i,d,f
-	l = len(str) : t = 0 : d = "¡­" : f = Easp_Param(strlen)
+	l = len(str) : t = 0 : d = "â€¦" : f = Easp_Param(strlen)
 	If Not isN(f(1)) Then : strlen = Int(f(0)) : d = f(1) : f = "" : End If
 	For i = 1 to l
 		c = Abs(Ascw(Mid(str,i,1)))
@@ -323,7 +323,7 @@ Function CutString(ByVal str, ByVal strlen)
 	Next
 	CutString = Replace(CutString,vbCrLf,"")
 End Function
-'»ñÈ¡µ±Ç°ÎÄ¼şµÄµØÖ·
+'è·å–å½“å‰æ–‡ä»¶çš„åœ°å€
 Function GetUrl(param)
 	Dim script_name,url,dir
 	Dim out,qitem,qtemp,i,hasQS,qstring
@@ -372,7 +372,7 @@ Function GetUrl(param)
 	End If
 	GetUrl = url
 End Function
-'»ñÈ¡±¾Ò³URLµØÖ·²¢´øÉÏĞÂµÄURL²ÎÊı
+'è·å–æœ¬é¡µURLåœ°å€å¹¶å¸¦ä¸Šæ–°çš„URLå‚æ•°
 Function GetUrlWith(ByVal urlParam, ByVal ParamAndValue)
 	Dim u,s
 	u = GetUrl(urlParam)
@@ -380,7 +380,7 @@ Function GetUrlWith(ByVal urlParam, ByVal ParamAndValue)
 	If Left(urlParam,1)=":" Then s = Left(u,InstrRev(u,"/"))
 	GetUrlWith = u & IIF(isN(Mid(u,len(s)+1)),"?","&") & paramAndValue
 End Function
-'»ñÈ¡ÓÃ»§IPµØÖ·
+'è·å–ç”¨æˆ·IPåœ°å€
 Function GetIP()
 	Dim addr, x, y
 	x = Request.ServerVariables("HTTP_X_FORWARDED_FOR")
@@ -389,15 +389,15 @@ Function GetIP()
 	If InStr(addr,".")=0 Then addr = "0.0.0.0"
 	GetIP = addr
 End Function
-'·µ»ØÒ»¸öÈÕÆÚÊ±¼ä±äÁ¿ºÍÏÖÔÚÏà±ÈÏà²îµÄĞ¡Ê±Êı
+'è¿”å›ä¸€ä¸ªæ—¥æœŸæ—¶é—´å˜é‡å’Œç°åœ¨ç›¸æ¯”ç›¸å·®çš„å°æ—¶æ•°
 Function DiffHour(theDate)
 	DiffHour=DateDiff("h",Now,theDate)
 End Function
-'·µ»ØÒ»¸öÈÕÆÚÊ±¼ä±äÁ¿ºÍÏÖÔÚÏà±ÈÏà²îµÄÌìÊı
+'è¿”å›ä¸€ä¸ªæ—¥æœŸæ—¶é—´å˜é‡å’Œç°åœ¨ç›¸æ¯”ç›¸å·®çš„å¤©æ•°
 Function DiffDay(theDate)
 	DiffDay=DateDiff("d",Now,theDate)
 End Function
-'HTML¼ÓÂëº¯Êı
+'HTMLåŠ ç å‡½æ•°
 Function HtmlEncode(ByVal str)
 	If Not IsN(str) Then
 		str = Replace(str, Chr(38), "&#38;")
@@ -412,7 +412,7 @@ Function HtmlEncode(ByVal str)
 	End If
 	HtmlEncode = str
 End Function
-'HTML½âÂëº¯Êı
+'HTMLè§£ç å‡½æ•°
 Function HtmlDecode(ByVal str)
 	If Not IsN(str) Then
 		str = Replace(str, "<br/>", Chr(13)&Chr(10))
@@ -430,43 +430,43 @@ Function HtmlDecode(ByVal str)
 		HtmlDecode = str
 	End If
 End Function
-'¹ıÂËHTML±êÇ©
+'è¿‡æ»¤HTMLæ ‡ç­¾
 Function HtmlFilter(ByVal str)
 	str = regReplace(str,"<[^>]+>|</[^>]+>","")
 	str = Replace(str, ">", "&gt;")
 	str = Replace(str, "<", "&lt;")
 	HtmlFilter = str
 End Function
-'¾«È·µ½ºÁÃëµÄ½Å±¾Ö´ĞĞÊ±¼ä
+'ç²¾ç¡®åˆ°æ¯«ç§’çš„è„šæœ¬æ‰§è¡Œæ—¶é—´
 Function GetScriptTime(StartTimer)
 	GetScriptTime = FormatNumber((Timer()-StartTimer)*1000, 2, -1)
 End Function
-'È¡Ö¸¶¨³¤¶ÈµÄËæ»ú×Ö·û´®
+'å–æŒ‡å®šé•¿åº¦çš„éšæœºå­—ç¬¦ä¸²
 Function RandStr(ByVal length)
 	RandStr = Easp_RandStr(length)
 End Function
-'È¡Ò»¸öËæ»úÊı
+'å–ä¸€ä¸ªéšæœºæ•°
 Function Rand(ByVal min, ByVal max)
     Rand = Easp_Rand(min,max)
 End Function
-'¸ñÊ½»¯Êı×Ö
+'æ ¼å¼åŒ–æ•°å­—
 Function toNumber(ByVal num, ByVal d)
 	toNumber = FormatNumber(num,d,-1)
 End Function
-'½«Êı×Ö×ª»»Îª»õ±Ò¸ñÊ½
+'å°†æ•°å­—è½¬æ¢ä¸ºè´§å¸æ ¼å¼
 Function toPrice(ByVal num)
 	toPrice = FormatCurrency(num,2,-1,0,-1)
 End Function
-'½«Êı×Ö×ª»»Îª°Ù·Ö±È¸ñÊ½
+'å°†æ•°å­—è½¬æ¢ä¸ºç™¾åˆ†æ¯”æ ¼å¼
 Function toPercent(ByVal num)
 	toPercent = FormatPercent(num,2,-1)
 End Function
-'¹Ø±Õ¶ÔÏó²¢ÊÍ·Å×ÊÔ´
+'å…³é—­å¯¹è±¡å¹¶é‡Šæ”¾èµ„æº
 Sub C(ByRef obj)
 	On Error Resume Next
 	obj.Close() : Set obj = Nothing
 End Sub
-'²»»º´æÒ³ÃæĞÅÏ¢
+'ä¸ç¼“å­˜é¡µé¢ä¿¡æ¯
 Sub noCache()
 	Response.Buffer = True
 	Response.Expires = 0
@@ -476,7 +476,7 @@ Sub noCache()
 	Response.AddHeader "Pragma","no-cache"
 	Response.AddHeader "Cache-Control","private, no-cache, must-revalidate"
 End Sub
-'ÉèÖÃÒ»¸öCookiesÖµ
+'è®¾ç½®ä¸€ä¸ªCookieså€¼
 Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
 	Dim n,i,cExp,cDomain,cPath,cSecure
 	If isArray(cooCfg) Then
@@ -519,7 +519,7 @@ Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
 	If Not isN(cPath) Then Response.Cookies(n(0)).Path = cPath
 	If Not isN(cSecure) Then Response.Cookies(n(0)).Secure = cSecure
 End Sub
-'»ñÈ¡Ò»¸öCookiesÖµ
+'è·å–ä¸€ä¸ªCookieså€¼
 Function GetCookie(ByVal cooName)
 	Dim n : n = Easp_Param(cooName)
 	If Response.Cookies(n(0)).HasKeys And Not isN(n(1)) Then
@@ -529,7 +529,7 @@ Function GetCookie(ByVal cooName)
 	End If
 	If IsN(GetCookie) Then GetCookie = ""
 End Function
-'É¾³ıÒ»¸öCookiesÖµ
+'åˆ é™¤ä¸€ä¸ªCookieså€¼
 Sub RemoveCookie(ByVal cooName)
 	Dim n : n = Easp_Param(cooName)
 	If Response.Cookies(n(0)).HasKeys And Not isN(n(1)) Then
@@ -539,24 +539,24 @@ Sub RemoveCookie(ByVal cooName)
 		Response.Cookies(n(0)).Expires = Now()
 	End If
 End Sub
-'ÉèÖÃ»º´æ¼ÇÂ¼
+'è®¾ç½®ç¼“å­˜è®°å½•
 Sub SetApp(AppName,AppData)
 	Application.Lock
 	Application.Contents.Item(AppName) = AppData
 	Application.UnLock
 End Sub
-'»ñÈ¡Ò»¸ö»º´æ¼ÇÂ¼
+'è·å–ä¸€ä¸ªç¼“å­˜è®°å½•
 Function GetApp(AppName)
 	If IsN(GetApp) Then GetApp = "" : Exit Function
 	GetApp = Application.Contents.Item(AppName)
 End Function
-'É¾³ıÒ»¸ö»º´æ¼ÇÂ¼
+'åˆ é™¤ä¸€ä¸ªç¼“å­˜è®°å½•
 Sub RemoveApp(AppName)
 	Application.Lock
 	Application.Contents.Remove(AppName)
 	Application.UnLock
 End Sub
-'ÑéÖ¤Éí·İÖ¤ºÅÂë
+'éªŒè¯èº«ä»½è¯å·ç 
 Private Function isIDCard(ByVal str)
 	Dim Ai, BirthDay, arrVerifyCode, Wi, i, AiPlusWi, modValue, strVerifyCode
 	isIDCard = False
@@ -581,11 +581,11 @@ Private Function isIDCard(ByVal str)
 	If Len(str) = 18 And LCase(str) <> Ai Then Exit Function
 	isIDCard = True
 End Function
-'¼òÒ×µÄ·şÎñ¶Ë¼ì²é±íµ¥
+'ç®€æ˜“çš„æœåŠ¡ç«¯æ£€æŸ¥è¡¨å•
 Function CheckForm(ByVal Str, ByVal Rule, ByVal Require, ByVal ErrMsg)
 	Dim tmpMsg, Msg
 	tmpMsg = Replace(ErrMsg,"\:",chr(0))
-	Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("ÓĞÏîÄ¿²»ÄÜÎª¿Õ",tmpMsg))
+	Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("æœ‰é¡¹ç›®ä¸èƒ½ä¸ºç©º",tmpMsg))
 	If Require = 1 And IsN(Str) Then
 		If Instr(tmpMsg,":")>0 Then
 			alert Replace(Msg(0),chr(0),":") : Exit Function
@@ -607,7 +607,7 @@ Function CheckForm(ByVal Str, ByVal Rule, ByVal Require, ByVal ErrMsg)
 	End If
 	CheckForm = Str
 End Function
-'·µ»ØÕıÔòÑéÖ¤½á¹û
+'è¿”å›æ­£åˆ™éªŒè¯ç»“æœ
 Function Test(ByVal Str, ByVal Pattern)
 	Dim Pa
 	Select Case Lcase(Pattern)
@@ -632,19 +632,19 @@ Function Test(ByVal Str, ByVal Pattern)
 	End Select
 	Test = Easp_Test(CStr(Str),Pa)
 End Function
-'ÕıÔòÌæ»»
+'æ­£åˆ™æ›¿æ¢
 Function regReplace(ByVal Str, ByVal rule, Byval Result)
 	regReplace = Easp_Replace(Str,rule,Result,0)
 End Function
-'ÕıÔòÌæ»»¶àĞĞÄ£Ê½
+'æ­£åˆ™æ›¿æ¢å¤šè¡Œæ¨¡å¼
 Function regReplaceM(ByVal Str, ByVal rule, Byval Result)
 	regReplaceM = Easp_Replace(Str,rule,Result,1)
 End Function
-'ÕıÔòÆ¥Åä²¶»ñ
+'æ­£åˆ™åŒ¹é…æ•è·
 Function regMatch(ByVal Str, ByVal rule)
 	Set regMatch =  Easp_Match(Str,rule)
 End Function
-'¼ì²â×é¼şÊÇ·ñ°²×°
+'æ£€æµ‹ç»„ä»¶æ˜¯å¦å®‰è£…
 Function isInstall(Byval Str)
 	On Error Resume Next : Err.Clear()
 	isInstall = False
@@ -652,7 +652,7 @@ Function isInstall(Byval Str)
 	If Err.Number = 0 Then isInstall = True
 	Set obj = Nothing : Err.Clear()
 End Function
-'¶¯Ì¬ÔØÈëÎÄ¼ş
+'åŠ¨æ€è½½å…¥æ–‡ä»¶
 Sub Include(ByVal filePath)
 	ExecuteGlobal GetIncCode(filePath,0)
 End Sub
@@ -660,24 +660,39 @@ Function getInclude(ByVal filePath)
 	ExecuteGlobal GetIncCode(filePath,1)
 	getInclude = EasyAsp_s_html
 End Function
-'¶ÁÈ¡ÎÄ¼şÄÚÈİ
+'è¯»å–æ–‡ä»¶å†…å®¹
 Private Function Read(ByVal filePath)
-	Dim Fso, p, f, tmpStr
+	Dim Fso, p, f, tmpStr,objStream
 	p = filePath
 	If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
 	Set Fso = Server.CreateObject(s_fsoName)
 	If  Fso.FileExists(p) Then
 		Set f = Fso.OpenTextFile(p)
-		tmpStr = f.ReadAll
+		tmpStr = Escape(f.ReadAll)
+'		
+'		Set objStream = Server.CreateObject("ADODB.Stream")
+'		With objStream
+'			.Type = 1
+'			.Mode = 1
+'			.Charset = "utf-8"
+'			.Open
+'			.LoadFromFile(p)
+''			.Position = 0
+'			.WriteText tmpStr
+'			tmpStr = .ReadText
+'			.Close
+'		End With
+'		Set objStream = Nothing
+'		
 		f.Close()
 		Set f = Nothing
 	Else
-		tmpStr = "ÎÄ¼şÎ´ÕÒµ½:" & filePath
+		tmpStr = "æ–‡ä»¶æœªæ‰¾åˆ°:" & filePath
 	End If
 	Set Fso = Nothing
 	Read = tmpStr
 End Function
-'¶ÁÈ¡°üº¬ÎÄ¼şÄÚÈİ£¨ÎŞÏŞ¼¶£©
+'è¯»å–åŒ…å«æ–‡ä»¶å†…å®¹ï¼ˆæ— é™çº§ï¼‰
 Private Function IncRead(ByVal filePath)
 	Dim content, rule, inc, incFile, incStr
 	content = Read(filePath)
@@ -700,7 +715,7 @@ Private Function IncRead(ByVal filePath)
 	End If
 	IncRead = content
 End Function
-'½«°üº¬ÎÄ¼ş×ª»»ÎªASP´úÂë
+'å°†åŒ…å«æ–‡ä»¶è½¬æ¢ä¸ºASPä»£ç 
 Private Function GetIncCode(ByVal filePath, ByVal getHtml)
 	Dim content,tmpStr,code,tmpCode,s_code,st,en
 	content = IncRead(filePath)
@@ -733,7 +748,7 @@ Private Function GetIncCode(ByVal filePath, ByVal getHtml)
 	If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
 	GetIncCode = Replace(code,vbCrLf&vbCrLf,vbCrLf)
 End Function
-'¼ÓÔØÒıÓÃEasyAsp¿âÀà
+'åŠ è½½å¼•ç”¨EasyAspåº“ç±»
 Sub Use(ByVal sType)
 	Dim p, o, t : o = sType
 	p = "easp." & Lcase(o) & ".asp"
@@ -748,12 +763,12 @@ Sub Use(ByVal sType)
 		End Select
 	End If
 End Sub
-'Md5¼ÓÃÜ×Ö·û´®
+'Md5åŠ å¯†å­—ç¬¦ä¸²
 Function Md5(ByVal Str)
 	Use("Md5") : Md5 = o_md5.md5(Str)
 End Function
 End Class
-'***** Êı¾İ¿â²Ù×÷Àà *****
+'***** æ•°æ®åº“æ“ä½œç±» *****
 Class EasyAsp_db
 	Private idbConn, idbType, idebug, idbErr, iQueryType
 	Private iPageParam, iPageIndex, iPageSize, iPageSpName, iPageCount, iRecordCount, iPageDic
@@ -767,12 +782,12 @@ Class EasyAsp_db
 		If TypeName(Conn) = "Connection" Then
 			Set idbConn = Conn : idbType = GetDataType(Conn)
 		End If
-		iPageParam = "page"							'Ä¬ÈÏÒ³ÂëURL²ÎÊıÃû
-		iPageSize = 20								'Ä¬ÈÏÃ¿Ò³¼ÇÂ¼Êı
-		iPageSpName = "easp_sp_pager"				'Ä¬ÈÏMSSQL·ÖÒ³´æ´¢¹ı³ÌÃû
+		iPageParam = "page"							'é»˜è®¤é¡µç URLå‚æ•°å
+		iPageSize = 20								'é»˜è®¤æ¯é¡µè®°å½•æ•°
+		iPageSpName = "easp_sp_pager"				'é»˜è®¤MSSQLåˆ†é¡µå­˜å‚¨è¿‡ç¨‹å
 		Set iPageDic = Server.CreateObject("Scripting.Dictionary")
-		'Ä¬ÈÏ·ÖÒ³µ¼º½ÑùÊ½
-		iPageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} Ìø×ªµ½{jump}Ò³</div>"
+		'é»˜è®¤åˆ†é¡µå¯¼èˆªæ ·å¼
+		iPageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} è·³è½¬åˆ°{jump}é¡µ</div>"
 		iPageDic("default_config") = ""
 	End Sub
 	Private Sub Class_Terminate()
@@ -782,34 +797,34 @@ Class EasyAsp_db
 		End If
 		Set iPageDic = Nothing
 	End Sub
-	'ÊôĞÔ£º¶¨ÒåÊı¾İ¿âÁ¬½Ó
+	'å±æ€§ï¼šå®šä¹‰æ•°æ®åº“è¿æ¥
 	Public Property Let dbConn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
 			Set idbConn = pdbConn
 			idbType = GetDataType(pdbConn)
 		Else
-			ErrMsg "ÎŞĞ§µÄÊı¾İ¿âÁ¬½Ó", Err.Description
+			ErrMsg "æ— æ•ˆçš„æ•°æ®åº“è¿æ¥", Err.Description
 		End If
 	End Property
 	Public Property Get dbConn()
 		Set dbConn = idbConn
 	End Property
-	'ÊôĞÔ£ºµ±Ç°Êı¾İ¿âÀàĞÍ
+	'å±æ€§ï¼šå½“å‰æ•°æ®åº“ç±»å‹
 	Public Property Get DatabaseType()
 		DatabaseType = idbType
 	End Property
-	'ÊôĞÔ£ºÉèÖÃÊÇ·ñ¿ªÆôµ÷ÊÔÄ£Ê½
+	'å±æ€§ï¼šè®¾ç½®æ˜¯å¦å¼€å¯è°ƒè¯•æ¨¡å¼
 	Public Property Let Debug(ByVal bool)
 		idebug = bool
 	End Property
 	Public Property Get Debug()
 		Debug = idebug
 	End Property
-	'ÊôĞÔ£º·µ»Ø´íÎóĞÅÏ¢
+	'å±æ€§ï¼šè¿”å›é”™è¯¯ä¿¡æ¯
 	Public Property Get dbErr()
 		dbErr = idbErr
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ»ñÈ¡¼ÇÂ¼¼¯µÄ·½Ê½
+	'å±æ€§ï¼šè®¾ç½®è·å–è®°å½•é›†çš„æ–¹å¼
 	Public Property Let QueryType(ByVal str)
 		str = Lcase(str)
 		If str = "1" or str = "command" Then
@@ -818,44 +833,44 @@ Class EasyAsp_db
 			iQueryType = 0
 		End If
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ·ÖÒ³ÊıÁ¿
+	'å±æ€§ï¼šè®¾ç½®åˆ†é¡µæ•°é‡
 	Public Property Let PageSize(ByVal num)
 		iPageSize = num
 	End Property
-	'ÊôĞÔ£º·µ»Ø·ÖÒ³ÊıÁ¿
+	'å±æ€§ï¼šè¿”å›åˆ†é¡µæ•°é‡
 	Public Property Get PageSize()
 		PageSize = iPageSize
 	End Property
-	'ÊôĞÔ£º·µ»Ø×ÜÒ³Êı
+	'å±æ€§ï¼šè¿”å›æ€»é¡µæ•°
 	Public Property Get PageCount()
 		PageCount = iPageCount
 	End Property
-	'ÊôĞÔ£º·µ»Øµ±Ç°Ò³Âë
+	'å±æ€§ï¼šè¿”å›å½“å‰é¡µç 
 	Public Property Get PageIndex()
 		PageIndex = Easp_IIF(Easp_isN(iPageIndex),GetCurrentPage,iPageIndex)
 	End Property
-	'ÊôĞÔ£º·µ»Ø×Ü¼ÇÂ¼Êı
+	'å±æ€§ï¼šè¿”å›æ€»è®°å½•æ•°
 	Public Property Get PageRecordCount()
 		PageRecordCount = iRecordCount
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ»ñÈ¡·ÖÒ³²ÎÊı
+	'å±æ€§ï¼šè®¾ç½®è·å–åˆ†é¡µå‚æ•°
 	Public Property Let PageParam(ByVal str)
 		iPageParam = str
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ·ÖÒ³´æ´¢¹ı³ÌÃû
+	'å±æ€§ï¼šè®¾ç½®åˆ†é¡µå­˜å‚¨è¿‡ç¨‹å
 	Public Property Let PageSpName(ByVal str)
 		iPageSpName = str
 	End Property
 	Private Sub ErrMsg(e,d)
 		idbErr = "<div id=""easp_db_err"">" & e
-		If d<>"" Then idbErr = idbErr & "<br/>´íÎóĞÅÏ¢£º" & d
+		If d<>"" Then idbErr = idbErr & "<br/>é”™è¯¯ä¿¡æ¯ï¼š" & d
 		idbErr = idbErr & "</div>"
 		If idebug Then
 			Response.Write idbErr
 			Response.End()
 		End If
 	End Sub
-	'Éú³ÉÊı¾İ¿âÁ¬½Ó×Ö·û´®
+	'ç”Ÿæˆæ•°æ®åº“è¿æ¥å­—ç¬¦ä¸²
 	Public Function OpenConn(ByVal dbType, ByVal strDB, ByVal strServer)
 		Dim TempStr, objConn, s, u, p, port
 		s = "" : u = "" : p = "" : port = ""
@@ -887,13 +902,13 @@ Class EasyAsp_db
 		End Select
 		Set OpenConn = CreatConn(TempStr)
 	End Function
-	'½¨Á¢Êı¾İ¿âÁ¬½Ó¶ÔÏó
+	'å»ºç«‹æ•°æ®åº“è¿æ¥å¯¹è±¡
 	Public Function CreatConn(ByVal ConnStr)
 		On Error Resume Next
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
-			ErrMsg "Êı¾İ¿â·şÎñÆ÷¶ËÁ¬½Ó´íÎó£¬Çë¼ì²éÊı¾İ¿âÁ¬½Ó¡£", Err.Description
+			ErrMsg "æ•°æ®åº“æœåŠ¡å™¨ç«¯è¿æ¥é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ•°æ®åº“è¿æ¥ã€‚", Err.Description
 			objConn.Close
 			Set objConn = Nothing
 		End If
@@ -925,7 +940,7 @@ Class EasyAsp_db
 			End If
 		Next
 	End Function
-	'×Ô¶¯»ñÈ¡Î¨Ò»ĞòÁĞºÅ£¨×Ô¶¯±àºÅ£©
+	'è‡ªåŠ¨è·å–å”¯ä¸€åºåˆ—å·ï¼ˆè‡ªåŠ¨ç¼–å·ï¼‰
 	Public Function AutoID(ByVal TableName)
 		On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
@@ -945,11 +960,11 @@ Class EasyAsp_db
 				newRs.Close() : Set newRs = Nothing
 			End If
 		End If
-		If Err.number <> 0 Then ErrMsg "ÎŞĞ§µÄ²éÑ¯Ìõ¼ş£¬ÎŞ·¨»ñÈ¡ĞÂµÄIDºÅ£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "æ— æ•ˆçš„æŸ¥è¯¢æ¡ä»¶ï¼Œæ— æ³•è·å–æ–°çš„IDå·ï¼", Err.Description
 		rs.Close() : Set rs = Nothing
 		AutoID = tmpID
 	End Function
-	'È¡µÃ·ûºÏÌõ¼şµÄ¼ÍÂ¼ÁĞ±í
+	'å–å¾—ç¬¦åˆæ¡ä»¶çš„çºªå½•åˆ—è¡¨
 	Public Function GetRecord(ByVal TableName,ByVal Condition,ByVal OrderField)
 		Set GetRecord = GRS(wGetRecord(TableName,Condition,OrderField))
 	End Function
@@ -984,7 +999,7 @@ Class EasyAsp_db
 	Public Function wGR(ByVal TableName,ByVal Condition,ByVal OrderField)
 		wGR = wGetRecord(TableName, Condition, OrderField)
 	End Function
-	'¸ù¾İsqlÓï¾ä·µ»Ø¼ÇÂ¼¼¯
+	'æ ¹æ®sqlè¯­å¥è¿”å›è®°å½•é›†
 	Public Function GetRecordBySQL(ByVal str)
 		On Error Resume Next
 		If iQueryType = 1 Then
@@ -1006,13 +1021,13 @@ Class EasyAsp_db
 			End With
 			Set GetRecordBySQL = rs
 		End If
-		If Err.number <> 0 Then ErrMsg "ÎŞĞ§µÄ²éÑ¯Ìõ¼ş£¬ÎŞ·¨»ñÈ¡¼ÇÂ¼¼¯£¡", Err.Description & "<br/>SQL£º" & str
+		If Err.number <> 0 Then ErrMsg "æ— æ•ˆçš„æŸ¥è¯¢æ¡ä»¶ï¼Œæ— æ³•è·å–è®°å½•é›†ï¼", Err.Description & "<br/>SQLï¼š" & str
 		Err.Clear
 	End Function
 	Public Function GRS(ByVal strSelect)
 		Set GRS = GetRecordBySQL(strSelect)
 	End Function
-	'¸ù¾İ¼ÇÂ¼¼¯Éú³ÉJson¸ñÊ½´úÂë
+	'æ ¹æ®è®°å½•é›†ç”ŸæˆJsonæ ¼å¼ä»£ç 
 	Public Function Json(ByVal jRs, ByVal jName)
 		On Error Resume Next
 		Dim tmpStr, rs, fi, i, j, o, isE,tName,tValue : i = 0
@@ -1044,11 +1059,11 @@ Class EasyAsp_db
 			Wend
 		End If
 		tmpStr = tmpStr & "]}"
-		If Err.number <> 0 Then ErrMsg "Éú³ÉJson¸ñÊ½´úÂë³ö´í£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "ç”ŸæˆJsonæ ¼å¼ä»£ç å‡ºé”™ï¼", Err.Description
 		rs.Close() : Set rs = Nothing
 		Json = tmpStr
 	End Function
-	'Éú³ÉÖ¸¶¨³¤¶ÈµÄ²»ÖØ¸´µÄ×Ö·û´®
+	'ç”ŸæˆæŒ‡å®šé•¿åº¦çš„ä¸é‡å¤çš„å­—ç¬¦ä¸²
 	Public Function RandStr(length,TableField)
 		On Error Resume Next
 		Dim tb, fi, tmpStr, rs
@@ -1065,9 +1080,9 @@ Class EasyAsp_db
 			End If
 			C(rs)
 		Loop
-		If Err.number <> 0 Then ErrMsg "Éú³É²»ÖØ¸´µÄËæ»ú×Ö·û´®³ö´í£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "ç”Ÿæˆä¸é‡å¤çš„éšæœºå­—ç¬¦ä¸²å‡ºé”™ï¼", Err.Description
 	End Function
-	'Éú³ÉÒ»¸ö²»ÖØ¸´µÄËæ»úÊı
+	'ç”Ÿæˆä¸€ä¸ªä¸é‡å¤çš„éšæœºæ•°
 	Public Function Rand(min,max,TableField)
 		On Error Resume Next
 		Dim tb, fi, tmpInt, rs
@@ -1084,9 +1099,9 @@ Class EasyAsp_db
 			End If
 			C(rs)
 		Loop
-		If Err.number <> 0 Then ErrMsg "Éú³É²»ÖØ¸´µÄËæ»úÊı³ö´í£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "ç”Ÿæˆä¸é‡å¤çš„éšæœºæ•°å‡ºé”™ï¼", Err.Description
 	End Function
-	'È¡µÃÄ³Ò»Ö¸¶¨¼ÍÂ¼µÄÏêÏ¸×ÊÁÏ
+	'å–å¾—æŸä¸€æŒ‡å®šçºªå½•çš„è¯¦ç»†èµ„æ–™
 	Public Function GetRecordDetail(ByVal TableName,ByVal Condition)
 		Dim strSelect
 		strSelect = "Select * From [" & TableName & "] Where " & ValueToSql(TableName,Condition,1)
@@ -1095,7 +1110,7 @@ Class EasyAsp_db
 	Public Function GRD(ByVal TableName,ByVal Condition)
 		Set GRD = GetRecordDetail(TableName, Condition)
 	End Function
-	'È¡Ö¸¶¨ÊıÁ¿µÄËæ»ú¼ÇÂ¼
+	'å–æŒ‡å®šæ•°é‡çš„éšæœºè®°å½•
 	Public Function GetRandRecord(ByVal TableName,ByVal Condition)
 		Dim sql,o,p,fi,IdField,showN,where
 		o = Easp_Param(TableName)
@@ -1103,7 +1118,7 @@ Class EasyAsp_db
 			TableName = o(0)
 			p = Easp_Param(o(1))
 			If Easp_isN(p(1)) Then
-				ErrMsg "»ñÈ¡Ëæ»ú¼ÇÂ¼Ê§°Ü£¡", "ÇëÊäÈëÒªÈ¡µÄ¼ÇÂ¼ÊıÁ¿"
+				ErrMsg "è·å–éšæœºè®°å½•å¤±è´¥ï¼", "è¯·è¾“å…¥è¦å–çš„è®°å½•æ•°é‡"
 				Exit Function
 			Else
 				fi = p(0) : showN = p(1)
@@ -1114,7 +1129,7 @@ Class EasyAsp_db
 				End If
 			End If
 		Else
-			ErrMsg "»ñÈ¡Ëæ»ú¼ÇÂ¼Ê§°Ü£¡", "ÇëÔÚ±íÃûºóÊäÈë:ID×Ö¶ÎµÄÃû³Æ"
+			ErrMsg "è·å–éšæœºè®°å½•å¤±è´¥ï¼", "è¯·åœ¨è¡¨ååè¾“å…¥:IDå­—æ®µçš„åç§°"
 			Exit Function
 		End If
 		Condition = Easp_IIF(Easp_isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
@@ -1134,13 +1149,13 @@ Class EasyAsp_db
 	Public Function GRR(ByVal TableName,ByVal Condition)
 		Set GRR = GetRandRecord(TableName,Condition)
 	End Function
-	'Ìí¼ÓÒ»¸öĞÂµÄ¼ÍÂ¼
+	'æ·»åŠ ä¸€ä¸ªæ–°çš„çºªå½•
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
 		On Error Resume Next
 		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		DoExecute wAddRecord(TableName,ValueList)
 		If Err.number <> 0 Then
-			ErrMsg "ÏòÊı¾İ¿âÌí¼Ó¼ÇÂ¼³ö´í£¡", Err.Description
+			ErrMsg "å‘æ•°æ®åº“æ·»åŠ è®°å½•å‡ºé”™ï¼", Err.Description
 			AddRecord = 0
 			Exit Function
 		End If
@@ -1164,12 +1179,12 @@ Class EasyAsp_db
 	Public Function wAR(ByVal TableName,ByVal ValueList)
 		wAR = wAddRecord(TableName,ValueList)
 	End Function
-	'ĞŞ¸ÄÄ³Ò»¼ÍÂ¼
+	'ä¿®æ”¹æŸä¸€çºªå½•
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
 		On Error Resume Next
 		DoExecute wUpdateRecord(TableName,Condition,ValueList)
 		If Err.number <> 0 Then
-			ErrMsg "¸üĞÂÊı¾İ¿â¼ÇÂ¼³ö´í£¡", Err.Description
+			ErrMsg "æ›´æ–°æ•°æ®åº“è®°å½•å‡ºé”™ï¼", Err.Description
 			UpdateRecord = 0
 			Exit Function
 		End If
@@ -1188,12 +1203,12 @@ Class EasyAsp_db
 	Public Function wUR(ByVal TableName,ByVal Condition,ByVal ValueList)
 		wUR = wUpdateRecord(TableName, Condition, ValueList)
 	End Function
-	'É¾³ıÖ¸¶¨µÄ¼ÍÂ¼
+	'åˆ é™¤æŒ‡å®šçš„çºªå½•
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
 		On Error Resume Next
 		DoExecute wDeleteRecord(TableName,Condition)
 		If Err.number <> 0 Then
-			ErrMsg "´ÓÊı¾İ¿âÉ¾³ıÊı¾İ³ö´í£¡", Err.Description
+			ErrMsg "ä»æ•°æ®åº“åˆ é™¤æ•°æ®å‡ºé”™ï¼", Err.Description
 			DeleteRecord = 0
 			Exit Function
 		End If
@@ -1221,7 +1236,7 @@ Class EasyAsp_db
 	Public Function wDR(ByVal TableName,ByVal Condition)
 		wDR = wDeleteRecord(TableName, Condition)
 	End Function
-	'´ÓÄ³Ò»±íÖĞ£¬¸ù¾İÒ»¸öÌõ¼ş»ñÈ¡Ò»Ìõ¼ÇÂ¼µÄÆäËû×Ö¶ÎµÄÖµ
+	'ä»æŸä¸€è¡¨ä¸­ï¼Œæ ¹æ®ä¸€ä¸ªæ¡ä»¶è·å–ä¸€æ¡è®°å½•çš„å…¶ä»–å­—æ®µçš„å€¼
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
@@ -1240,19 +1255,19 @@ Class EasyAsp_db
 				TempStr = rs.Fields.Item(0).Value
 			End If
 		End If
-		If Err.number <> 0 Then ErrMsg "´ÓÊı¾İ¿â»ñÈ¡Êı¾İ³ö´í£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "ä»æ•°æ®åº“è·å–æ•°æ®å‡ºé”™ï¼", Err.Description
 		rs.close() : Set rs = Nothing : Err.Clear
 		ReadTable = TempStr
 	End Function
 	Public Function RT(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		RT = ReadTable(TableName, Condition, GetFieldNames)
 	End Function
-	'µ÷ÓÃ´æ´¢¹ı³Ì
+	'è°ƒç”¨å­˜å‚¨è¿‡ç¨‹
 	Public Function doSP(ByVal spName, ByVal spParam)
 		On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
 		If Not idbType="0" And Not idbType="MSSQL" Then
-			MsgErr "½öÖ§³Ö´ÓMS SQL ServerÊı¾İ¿âµ÷ÓÃ´æ´¢¹ı³Ì£¡",""
+			MsgErr "ä»…æ”¯æŒä»MS SQL Serveræ•°æ®åº“è°ƒç”¨å­˜å‚¨è¿‡ç¨‹ï¼",""
 			Exit Function
 		End If
 		p = Easp_Param(spName)
@@ -1307,17 +1322,17 @@ Class EasyAsp_db
 			Else
 				cmd.Execute : doSP = cmd(0)
 			End If
-		If Err.number <> 0 Then ErrMsg "µ÷ÓÃ´æ´¢¹ı³Ì³ö´í£¡", Err.Description
+		If Err.number <> 0 Then ErrMsg "è°ƒç”¨å­˜å‚¨è¿‡ç¨‹å‡ºé”™ï¼", Err.Description
 		Set cmd = Nothing
 		Err.Clear
 	End Function
-	'ÊÍ·Å¼ÇÂ¼¼¯¶ÔÏó
+	'é‡Šæ”¾è®°å½•é›†å¯¹è±¡
 	Public Function C(ByRef ObjRs)
 		On Error Resume Next
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
-	'Ö´ĞĞÖ¸¶¨µÄSQLÓï¾ä,¿É·µ»Ø¼ÇÂ¼¼¯
+	'æ‰§è¡ŒæŒ‡å®šçš„SQLè¯­å¥,å¯è¿”å›è®°å½•é›†
 	Public Function Exec(ByVal str)
 		On Error Resume Next
 		If Lcase(Left(str,6)) = "select" Then
@@ -1330,7 +1345,7 @@ Class EasyAsp_db
 			If Err.number <> 0 Then Exec = 0
 		End If
 		If Err.number <> 0 Then
-			ErrMsg "Ö´ĞĞSQLÓï¾ä³ö´í£¡", Err.Description
+			ErrMsg "æ‰§è¡ŒSQLè¯­å¥å‡ºé”™ï¼", Err.Description
 		End If
 		Err.Clear
 	End Function
@@ -1361,7 +1376,7 @@ Class EasyAsp_db
 					End Select
 				End If
 			Next
-			If Err.number <> 0 Then ErrMsg "Éú³ÉSQLÓï¾ä³ö´í£¡", Err.Description
+			If Err.number <> 0 Then ErrMsg "ç”ŸæˆSQLè¯­å¥å‡ºé”™ï¼", Err.Description
 			rsTemp.Close() : Set rsTemp = Nothing : Err.Clear
 		End If
 		ValueToSql = StrTemp
@@ -1375,8 +1390,8 @@ Class EasyAsp_db
 		End With
 		Set ExecuteCmd = Nothing
 	End Function
-	'ÒÔÏÂÊÇ·ÖÒ³³ÌĞò²¿·Ö
-	'»ñÈ¡·ÖÒ³ºóµÄ¼ÇÂ¼¼¯
+	'ä»¥ä¸‹æ˜¯åˆ†é¡µç¨‹åºéƒ¨åˆ†
+	'è·å–åˆ†é¡µåçš„è®°å½•é›†
 	Public Function GetPageRecord(ByVal PageSetup, ByVal Condition)
 		On Error Resume Next
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
@@ -1426,7 +1441,7 @@ Class EasyAsp_db
 						If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 						Sql = Sql & " Limit " & iPageSize*(iPageIndex-1) & ", " & iPageSize
 					Else
-						If Ubound(Condition)<>3 Then ErrMsg "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¡", "Êı×é±ØĞëÊÇ4¸öÔªËØ£¨±ØĞëÌá¹©Êı¾İ¿â±íµÄÖ÷¼ü£©£¡"
+						If Ubound(Condition)<>3 Then ErrMsg "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼", "æ•°ç»„å¿…é¡»æ˜¯4ä¸ªå…ƒç´ ï¼ˆå¿…é¡»æä¾›æ•°æ®åº“è¡¨çš„ä¸»é”®ï¼‰ï¼"
 						Sql = "Select Top " & iPageSize & " " & fi
 						Sql = Sql & " From [" & Table & "]"
 						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
@@ -1441,7 +1456,7 @@ Class EasyAsp_db
 					End If
 					Set GetPageRecord = GRS(Sql)
 				Else
-					ErrMsg "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¡", "Ê¹ÓÃÊı×éÌõ¼ş»ñÈ¡·ÖÒ³Êı¾İÊ±Ìõ¼ş²ÎÊı±ØĞëÎªÊı×é£¡"
+					ErrMsg "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼", "ä½¿ç”¨æ•°ç»„æ¡ä»¶è·å–åˆ†é¡µæ•°æ®æ—¶æ¡ä»¶å‚æ•°å¿…é¡»ä¸ºæ•°ç»„ï¼"
 				End If
 			Case "sql","1" Set rs = GRS(Condition)
 			Case "rs","2" Set rs = Condition
@@ -1449,10 +1464,10 @@ Class EasyAsp_db
 				If isArray(Condition) Then
 					If pType = "" Then pType = iPageSpName
 					Select Case pType
-						Case "easp_sp_pager"	'Ê¹ÓÃ×Ô´ø·ÖÒ³´æ´¢¹ı³Ì·ÖÒ³
-							If Ubound(Condition)<>5 Then ErrMsg "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¡", "Ê¹ÓÃ×Ô´ø·ÖÒ³´æ´¢¹ı³ÌÊ±Ìõ¼şÊı×é²ÎÊı±ØĞëÎª6¸öÔªËØ£¡"
+						Case "easp_sp_pager"	'ä½¿ç”¨è‡ªå¸¦åˆ†é¡µå­˜å‚¨è¿‡ç¨‹åˆ†é¡µ
+							If Ubound(Condition)<>5 Then ErrMsg "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼", "ä½¿ç”¨è‡ªå¸¦åˆ†é¡µå­˜å‚¨è¿‡ç¨‹æ—¶æ¡ä»¶æ•°ç»„å‚æ•°å¿…é¡»ä¸º6ä¸ªå…ƒç´ ï¼"
 							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&iPageSize,"@PageIndex:"&iPageIndex,"@@RecordCount","@@PageCount"))
-						Case Else	'Ê¹ÓÃ×Ô¶¨Òå·ÖÒ³´æ´¢¹ı³Ì
+						Case Else	'ä½¿ç”¨è‡ªå®šä¹‰åˆ†é¡µå­˜å‚¨è¿‡ç¨‹
 							spReturn = Array(False,False)
 							For i = 0 To Ubound(Condition)
 								If LCase(Condition(i)) = "@@recordcount" Then spReturn(0) = True
@@ -1462,7 +1477,7 @@ Class EasyAsp_db
 							If spReturn(0) And spReturn(1) Then
 								spResult = doSP(pType&":3",Condition)
 							Else
-								ErrMsg "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¡", "Ê¹ÓÃ×Ô¶¨Òå·ÖÒ³´æ´¢¹ı³ÌÊ±±ØĞë°üº¬@@RecordCountºÍ@@PageCountÊä³ö²ÎÊı£¡"
+								ErrMsg "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼", "ä½¿ç”¨è‡ªå®šä¹‰åˆ†é¡µå­˜å‚¨è¿‡ç¨‹æ—¶å¿…é¡»åŒ…å«@@RecordCountå’Œ@@PageCountè¾“å‡ºå‚æ•°ï¼"
 							End If
 					End Select
 					Set GetPageRecord = spResult(0)
@@ -1470,7 +1485,7 @@ Class EasyAsp_db
 					iPageCount = int(spResult(1)("@@PageCount"))
 					iPageIndex = Easp_IIF(iPageIndex > iPageCount, iPageCount, iPageIndex)
 				Else
-					ErrMsg "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¡", "Ê¹ÓÃ´æ´¢¹ı³Ì»ñÈ¡·ÖÒ³Êı¾İÊ±Ìõ¼ş²ÎÊı±ØĞëÎªÊı×é£¡"
+					ErrMsg "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼", "ä½¿ç”¨å­˜å‚¨è¿‡ç¨‹è·å–åˆ†é¡µæ•°æ®æ—¶æ¡ä»¶å‚æ•°å¿…é¡»ä¸ºæ•°ç»„ï¼"
 				End If
 		End Select
 		If Instr(",sql,rs,1,2,", "," & pType & ",")>0 Then
@@ -1485,7 +1500,7 @@ Class EasyAsp_db
 	Public Function GPR(ByVal PageSetup, ByVal Condition)
 		Set GPR = GetPageRecord(PageSetup, Condition)
 	End Function
-	'Éú³É·ÖÒ³µ¼º½Á´½Ó
+	'ç”Ÿæˆåˆ†é¡µå¯¼èˆªé“¾æ¥
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
 		On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
@@ -1580,7 +1595,7 @@ Class EasyAsp_db
 		Select Case LCase(cfg("jump"))
 			Case "input"
 				pJumpValue = "this.value"
-				pJump = "<input type=""text"" size=""3"" title=""ÇëÊäÈëÒªÌø×ªµ½µÄÒ³Êı²¢»Ø³µ""" & Easp_IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
+				pJump = "<input type=""text"" size=""3"" title=""è¯·è¾“å…¥è¦è·³è½¬åˆ°çš„é¡µæ•°å¹¶å›è½¦""" & Easp_IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
 				pJump = pJump & " onkeydown=""javascript:if(event.charCode==13||event.keyCode==13){if(!isNaN(" & pJumpValue & ")){"
 				pJump = pJump & Easp_IIF(cfg("jumpaction")="",Easp_IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*", pJumpValue))
 				pJump = pJump & "}return false;}"" />"
@@ -1588,7 +1603,7 @@ Class EasyAsp_db
 				pJumpValue = "this.options[this.selectedIndex].value"
 				pJump = "<select" & Easp_IIF(cfg("jumpplus")="",""," "&cfg("jumpplus")) & " onchange=""javascript:"
 				pJump = pJump & Easp_IIF(cfg("jumpaction")="",Easp_IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*",pJumpValue))
-				pJump = pJump & """ title=""ÇëÑ¡ÔñÒªÌø×ªµ½µÄÒ³Êı""> "
+				pJump = pJump & """ title=""è¯·é€‰æ‹©è¦è·³è½¬åˆ°çš„é¡µæ•°""> "
 				If cfg("jumplong")=0 Then
 					For i = 1 To cfg("pagecount")
 						pJump = pJump & "<option value=""" & i & """" & Easp_IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
@@ -1626,18 +1641,18 @@ Class EasyAsp_db
 		Set cfg = Nothing
 		Pager = vbCrLf & tmpStr & vbCrLf
 	End Function
-	'ÅäÖÃ·ÖÒ³ÑùÊ½
+	'é…ç½®åˆ†é¡µæ ·å¼
 	Public Sub SetPager(ByVal PagerName, ByVal PagerHtml, ByRef PagerConfig)
 		If PagerName = "" Then PagerName = "default"
 		If Not Easp_isN(PagerHtml) Then iPageDic.item(PagerName&"_html") = PagerHtml
 		If Not Easp_isN(PagerConfig) Then iPageDic.item(PagerName&"_config") = PagerConfig
 	End Sub
-	'µ÷ÓÃ·ÖÒ³ÑùÊ½
+	'è°ƒç”¨åˆ†é¡µæ ·å¼
 	Public Function GetPager(ByVal PagerName)
 		If PagerName = "" Then PagerName = "default"
 		GetPager = Pager(iPageDic(PagerName&"_html"),iPageDic(PagerName&"_config"))
 	End Function
-	'È¡µÃµ±Ç°Ò³Âë
+	'å–å¾—å½“å‰é¡µç 
 	Private Function GetCurrentPage()
 		Dim rqParam, thisPage : thisPage = 1
 		rqParam = Request.QueryString(iPageParam)
@@ -1646,7 +1661,7 @@ Class EasyAsp_db
 		End If
 		GetCurrentPage = thisPage
 	End Function
-	'·µ»Ø³ıÈ¥Ò³ÂëµÄµ±Ç°URL²ÎÊı
+	'è¿”å›é™¤å»é¡µç çš„å½“å‰URLå‚æ•°
 	Private Function GetRQ(pageNumer)
 		Dim tmpStr,rq : tmpStr = ""
 		For Each rq In Request.QueryString()
@@ -1656,7 +1671,7 @@ Class EasyAsp_db
 	End Function
 End Class
 
-'EasyASP¼°×ÓÀàÍ¨ÓÃº¯Êı²¿·Ö
+'EasyASPåŠå­ç±»é€šç”¨å‡½æ•°éƒ¨åˆ†
 Private Function Easp_IIF(ByVal Cn, ByVal T, ByVal F)
 	If Cn Then Easp_IIF = T Else Easp_IIF = F End If
 End Function
@@ -1767,7 +1782,7 @@ Private Function Easp_Replace(ByVal Str, ByVal rule, Byval Result, ByVal isM)
 	End If
 	Easp_Replace = tmpStr
 End Function
-'ÕıÔòÆ¥Åä
+'æ­£åˆ™åŒ¹é…
 Private Function Easp_Match(ByVal Str, ByVal rule)
 	Dim Reg
 	Set Reg = New Regexp
