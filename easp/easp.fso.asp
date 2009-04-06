@@ -2,13 +2,14 @@
 Class EasyASP_Fso
 	Public oFso
 	Private Fso
-	Private s_fsoName,s_err,s_sizeformat
+	Private s_fsoName,s_err,s_sizeformat,s_charset
 	Private b_debug,b_force,b_overwrite
 	
 	Private Sub Class_Initialize
 		s_fsoName 	= "Scripting.FilesyStemObject"
+		s_charset	= "UTF-8"
 		Set Fso 	= Server.CreateObject(s_fsoName)
-		Set oFso 	= Fso		'FSOÔ­ĞÍ½Ó¿Ú
+		Set oFso 	= Fso		'FSOåŸå‹æ¥å£
 		b_debug		= False
 		b_force		= True
 		b_overwrite	= True
@@ -19,92 +20,125 @@ Class EasyASP_Fso
 		Set Fso 	= Nothing
 		Set oFso 	= Nothing
 	End Sub
-	'ÊôĞÔ£ºFSO×é¼şÃû³Æ
+	'å±æ€§ï¼šFSOç»„ä»¶åç§°
 	Public Property Let fsoName(Byval str)
 		s_fsoName = str
 		Set Fso = Server.CreateObject(s_fsoName)
 		Set oFso = Fso
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñ¿ªÆôµ÷ÊÔ×´Ì¬
+	'å±æ€§ï¼šæ–‡ä»¶ç¼–ç 
+	Public Property Let CharSet(Byval str)
+		s_charset = Ucase(str)
+	End Property
+	'å±æ€§ï¼šæ˜¯å¦å¼€å¯è°ƒè¯•çŠ¶æ€
 	Public Property Let Debug(Byval bool)
 		b_debug = bool
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñÉ¾³ıÖ»¶ÁÎÄ¼ş
+	'å±æ€§ï¼šæ˜¯å¦åˆ é™¤åªè¯»æ–‡ä»¶
 	Public Property Let Force(Byval bool)
 		b_force = bool
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñ¸²¸ÇÔ­ÓĞÎÄ¼ş
+	'å±æ€§ï¼šæ˜¯å¦è¦†ç›–åŸæœ‰æ–‡ä»¶
 	Public Property Let OverWrite(Byval bool)
 		b_overwrite = bool
 	End Property
-	'ÊôĞÔ£ºÎÄ¼ş´óĞ¡ÏÔÊ¾¸ñÊ½(G,M,K,b,auto)
+	'å±æ€§ï¼šæ–‡ä»¶å¤§å°æ˜¾ç¤ºæ ¼å¼(G,M,K,b,auto)
 	Public Property Let SizeFormat(Byval str)
 		s_sizeformat = str
 	End Property
-	'ÊôĞÔ£ºÏÔÊ¾´íÎóĞÅÏ¢
+	'å±æ€§ï¼šæ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 	Public Property Get ShowErr()
 		ShowErr = s_err
 	End Property
 	
-	'ÎÄ¼ş»òÎÄ¼ş¼ĞÊÇ·ñ´æÔÚ
+	'æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹æ˜¯å¦å­˜åœ¨
 	Public Function isExists(ByVal path)
 		path = absPath(path) : isExists = False
 		If Fso.FileExists(path) or Fso.FolderExists(path) Then isExists = True			
 	End Function
-	'ÎÄ¼şÊÇ·ñ´æÔÚ
+	'æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 	Public Function isFile(ByVal filePath)
 		filePath = absPath(filePath) : isFile = False
 		If Fso.FileExists(filePath) Then isFile = True
 	End Function
-	'¶ÁÈ¡ÎÄ¼şÄÚÈİ
+	'è¯»å–æ–‡ä»¶å†…å®¹
 	Public Function Read(ByVal filePath)
-		Dim p, f, tmpStr : p = absPath(filePath)
+		Dim p, f, o_strm, tmpStr : p = absPath(filePath)
 		If isFile(p) Then
-			Set f = Fso.OpenTextFile(p)
-			tmpStr = f.ReadAll
-			f.Close()
-			Set f = Nothing
+			If s_charset = "GB2312" Then
+				Set f = Fso.OpenTextFile(p)
+				tmpStr = f.ReadAll
+				f.Close()
+				Set f = Nothing
+			Else
+				Set o_strm = Server.CreateObject("ADODB.Stream")
+				With o_strm
+					.Type = 2
+					.Mode = 3
+					.Open
+					.LoadFromFile p
+					.Charset = s_charset
+					.Position = 2
+					tmpStr = .ReadText
+					.Close
+				End With
+				Set o_strm = Nothing
+			End If
 		Else
 			tmpStr = ""
-			ErrMsg "¶ÁÈ¡ÎÄ¼ş´íÎó£¡", "ÎÄ¼şÎ´ÕÒµ½(" & filePath & ")"
+			ErrMsg "è¯»å–æ–‡ä»¶é”™è¯¯ï¼", "æ–‡ä»¶æœªæ‰¾åˆ°(" & filePath & ")"
 		End If
 		Read = tmpStr
 	End Function
-	'´´½¨ÎÄ¼ş²¢Ğ´ÈëÄÚÈİ
+	'åˆ›å»ºæ–‡ä»¶å¹¶å†™å…¥å†…å®¹
 	Public Function CreateFile(ByVal filePath, ByVal fileContent)
 		On Error Resume Next
 		Dim f,p,t : p = absPath(filePath)
 		CreateFile = MD(Left(p,InstrRev(p,"\")-1))
 		If CreateFile Then
-			Set f = Fso.CreateTextFile(p,b_overwrite)
-			f.Write fileContent
-			f.Close()
-			Set f =Nothing
+			If s_charset = "GB2312" Then
+				Set f = Fso.CreateTextFile(p,b_overwrite)
+				f.Write fileContent
+				f.Close()
+				Set f =Nothing
+			Else
+				Set o_strm = Server.CreateObject("ADODB.Stream")
+				With o_strm
+					.Type = 2
+					.Open
+					.Charset = s_charset
+					.Position = o_strm.Size
+					.WriteText = fileContent
+					.SaveToFile p,Easp_IIF(b_overwrite,2,1)
+					.Close
+				End With
+				Set o_strm = Nothing
+			End If
 		End If
 		If Err.Number<>0 Then
 			CreateFile = False
-			ErrMsg "Ğ´ÈëÎÄ¼ş´íÎó£¡", Err.Description & "("&filePath&")"
+			ErrMsg "å†™å…¥æ–‡ä»¶é”™è¯¯ï¼", Err.Description & "("&filePath&")"
 		End If
 		Err.Clear()
 	End Function
-	'°´ÕıÔò±í´ïÊ½¸üĞÂÎÄ¼şÄÚÈİ
+	'æŒ‰æ­£åˆ™è¡¨è¾¾å¼æ›´æ–°æ–‡ä»¶å†…å®¹
 	Public Function UpdateFile(ByVal filePath, ByVal rule, ByVal result)
 		Dim tmpStr : filePath = absPath(filePath)
 		tmpStr = Easp_Replace(Read(filePath),rule,result,0)
 		UpdateFile = CreateFile(filePath,tmpStr)
 	End Function
-	'×·¼ÓÎÄ¼şÄÚÈİ
+	'è¿½åŠ æ–‡ä»¶å†…å®¹
 	Public Function AppendFile(ByVal filePath, ByVal fileContent)
 		Dim tmpStr : filePath = absPath(filePath)
 		tmpStr = Read(filePath) & fileContent
 		AppendFile = CreateFile(filePath,tmpStr)
 	End Function
-	'ÎÄ¼ş¼ĞÊÇ·ñ´æÔÚ
+	'æ–‡ä»¶å¤¹æ˜¯å¦å­˜åœ¨
 	Public Function isFolder(ByVal folderPath)
 		folderPath = absPath(folderPath) : isFolder = False
 		If Fso.FolderExists(folderPath) Then isFolder = True
 	End Function
-	'´´½¨ÎÄ¼ş¼Ğ MD
+	'åˆ›å»ºæ–‡ä»¶å¤¹ MD
 	Public Function CreateFolder(ByVal folderPath)
 		On Error Resume Next
 		Dim p,arrP,i : CreateFolder = True
@@ -116,18 +150,18 @@ Class EasyASP_Fso
 		Next
 		If Err.Number<>0 Then
 			CreateFolder = False
-			ErrMsg "´´½¨ÎÄ¼ş¼Ğ´íÎó£¡", Err.Description & "("&folderPath&")"
+			ErrMsg "åˆ›å»ºæ–‡ä»¶å¤¹é”™è¯¯ï¼", Err.Description & "("&folderPath&")"
 		End If
 		Err.Clear()
 	End Function
 	Public Function MD(ByVal folderPath)
 		MD = CreateFolder(folderPath)
 	End Function
-	'ÁĞ³öÎÄ¼ş¼ĞÏÂµÄËùÓĞÎÄ¼ş¼Ğ¡¢ÎÄ¼ş
+	'åˆ—å‡ºæ–‡ä»¶å¤¹ä¸‹çš„æ‰€æœ‰æ–‡ä»¶å¤¹ã€æ–‡ä»¶
 	Public Function Dir(ByVal folderPath)
 		Dir = List(folderPath,0)
 	End Function
-	'ÁĞ³öÎÄ¼ş¼ĞÏÂµÄËùÓĞÎÄ¼ş¼Ğ»òÎÄ¼ş
+	'åˆ—å‡ºæ–‡ä»¶å¤¹ä¸‹çš„æ‰€æœ‰æ–‡ä»¶å¤¹æˆ–æ–‡ä»¶
 	Public Function List(ByVal folderPath, ByVal fileType)
 		On Error Resume Next
 		Dim f,fs,k,arr(),i,l
@@ -167,16 +201,16 @@ Class EasyASP_Fso
 		Set f = Nothing
 		List = arr
 		If Err.Number<>0 Then
-			ErrMsg "¶ÁÈ¡ÎÄ¼şÁĞ±íÊ§°Ü£¡", Err.Description & "("&folderPath&")"
+			ErrMsg "è¯»å–æ–‡ä»¶åˆ—è¡¨å¤±è´¥ï¼", Err.Description & "("&folderPath&")"
 		End If
 		Err.Clear()
 	End Function
-	'ÉèÖÃÎÄ¼ş»òÎÄ¼ş¼ĞÊôĞÔ
+	'è®¾ç½®æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹å±æ€§
 	Public Function Attr(ByVal path, ByVal attrType)
 		On Error Resume Next
 		Dim p,a,i,n,f,at : p = absPath(path) : n = 0 : Attr = True
 		If not isExists(p) Then
-			Attr = False : ErrMsg "ÉèÖÃÊôĞÔÊ§°Ü£¡", "ÎÄ¼ş²»´æÔÚ("&path&")" : Exit Function
+			Attr = False : ErrMsg "è®¾ç½®å±æ€§å¤±è´¥ï¼", "æ–‡ä»¶ä¸å­˜åœ¨("&path&")" : Exit Function
 		End If
 		If isFile(p) Then
 			Set f = Fso.GetFile(p)
@@ -212,11 +246,11 @@ Class EasyASP_Fso
 		Set f = Nothing
 		If Err.Number<>0 Then
 			Attr = False
-			ErrMsg "ÉèÖÃÊôĞÔÊ§°Ü£¡", Err.Description & "("&path&")"
+			ErrMsg "è®¾ç½®å±æ€§å¤±è´¥ï¼", Err.Description & "("&path&")"
 		End If
 		Err.Clear()
 	End Function
-	'»ñÈ¡ÎÄ¼ş»òÎÄ¼ş¼ĞÊôĞÔ
+	'è·å–æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹å±æ€§
 	Public Function getAttr(ByVal path, ByVal attrType)
 		Dim f,s : p = absPath(path)
 		If isFile(p) Then
@@ -224,7 +258,7 @@ Class EasyASP_Fso
 		ElseIf isFolder(p) Then
 			Set f = Fso.GetFolder(p)
 		Else
-			getAttr = "" : ErrMsg "»ñÈ¡ÊôĞÔÊ§°Ü£¡", "ÎÄ¼ş²»´æÔÚ("&path&")"
+			getAttr = "" : ErrMsg "è·å–å±æ€§å¤±è´¥ï¼", "æ–‡ä»¶ä¸å­˜åœ¨("&path&")"
 			Exit Function
 		End If
 		Select Case LCase(attrType)
@@ -240,15 +274,15 @@ Class EasyASP_Fso
 		Set f = Nothing
 		getAttr = s
 	End Function
-	'¸´ÖÆÎÄ¼ş(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'å¤åˆ¶æ–‡ä»¶(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function CopyFile(ByVal fromPath, ByVal toPath)
 		CopyFile = FOFO(fromPath,toPath,0,0)
 	End Function
-	'¸´ÖÆÎÄ¼ş¼Ğ(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'å¤åˆ¶æ–‡ä»¶å¤¹(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function CopyFolder(ByVal fromPath, ByVal toPath)
 		CopyFolder = FOFO(fromPath,toPath,1,0)
 	End Function
-	'¸´ÖÆÎÄ¼ş»òÎÄ¼ş¼Ğ
+	'å¤åˆ¶æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹
 	Public Function Copy(ByVal fromPath, ByVal toPath)
 		Dim ff,tf : ff = absPath(fromPath) : tf = absPath(toPath)
 		If isFile(ff) Then
@@ -256,18 +290,18 @@ Class EasyASP_Fso
 		ElseIf isFolder(ff) Then
 			Copy = CopyFolder(fromPath,toPath)
 		Else
-			Copy = False : ErrMsg "¸´ÖÆÊ§°Ü£¡","Ô´ÎÄ¼ş²»´æÔÚ("&fromPath&")"
+			Copy = False : ErrMsg "å¤åˆ¶å¤±è´¥ï¼","æºæ–‡ä»¶ä¸å­˜åœ¨("&fromPath&")"
 		End If
 	End Function
-	'ÒÆ¶¯ÎÄ¼ş(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'ç§»åŠ¨æ–‡ä»¶(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function MoveFile(ByVal fromPath, ByVal toPath)
 		MoveFile = FOFO(fromPath,toPath,0,1)
 	End Function
-	'ÒÆ¶¯ÎÄ¼ş¼Ğ(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'ç§»åŠ¨æ–‡ä»¶å¤¹(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function MoveFolder(ByVal fromPath, ByVal toPath)
 		MoveFolder = FOFO(fromPath,toPath,1,1)
 	End Function
-	'ÒÆ¶¯ÎÄ¼ş»òÎÄ¼ş¼Ğ
+	'ç§»åŠ¨æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹
 	Public Function Move(ByVal fromPath, ByVal toPath)
 		Dim ff,tf : ff = absPath(fromPath) : tf = absPath(toPath)
 		If isFile(ff) Then
@@ -275,21 +309,21 @@ Class EasyASP_Fso
 		ElseIf isFolder(ff) Then
 			Move = MoveFolder(fromPath,toPath)
 		Else
-			Move = False : ErrMsg "ÒÆ¶¯Ê§°Ü£¡","Ô´ÎÄ¼ş²»´æÔÚ("&fromPath&")"
+			Move = False : ErrMsg "ç§»åŠ¨å¤±è´¥ï¼","æºæ–‡ä»¶ä¸å­˜åœ¨("&fromPath&")"
 		End If
 	End Function
-	'É¾³ıÎÄ¼ş(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'åˆ é™¤æ–‡ä»¶(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function DelFile(ByVal path)
 		DelFile = FOFO(path,"",0,2)
 	End Function
-	'É¾³ıÎÄ¼ş¼Ğ(Ö§³ÖÍ¨Åä·û*ºÍ?)
+	'åˆ é™¤æ–‡ä»¶å¤¹(æ”¯æŒé€šé…ç¬¦*å’Œ?)
 	Public Function DelFolder(ByVal path)
 		DelFolder = FOFO(path,"",1,2)
 	End Function
 	Public Function RD(ByVal path)
 		RD = DelFolder(path)
 	End Function
-	'É¾³ıÎÄ¼ş»òÎÄ¼ş¼Ğ
+	'åˆ é™¤æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹
 	Public Function Del(ByVal path)
 		Dim p : p = absPath(path)
 		If isFile(p) Then
@@ -297,20 +331,20 @@ Class EasyASP_Fso
 		ElseIf isFolder(p) Then
 			Del = DelFolder(path)
 		Else
-			Del = False : ErrMsg "É¾³ıÊ§°Ü£¡", "ÎÄ¼ş²»´æÔÚ" & "("&path&")"
+			Del = False : ErrMsg "åˆ é™¤å¤±è´¥ï¼", "æ–‡ä»¶ä¸å­˜åœ¨" & "("&path&")"
 		End If
 		Err.Clear()
 	End Function
-	'ÎÄ¼ş»òÎÄ¼ş¼Ğ¸üÃû
+	'æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹æ›´å
 	Public Function Rename(ByVal path, ByVal newname)
 		Dim p,n : p = absPath(path) : Rename = True
 		n = Left(p,InstrRev(p,"\")) & newname
 		If Not isExists(p) Then
-			Rename = False : ErrMsg "ÖØÃüÃûÊ§°Ü£¡","Ô´ÎÄ¼ş²»´æÔÚ("&path&")"
+			Rename = False : ErrMsg "é‡å‘½åå¤±è´¥ï¼","æºæ–‡ä»¶ä¸å­˜åœ¨("&path&")"
 			Exit Function
 		End If
 		If isExists(n) Then
-			Rename = False : ErrMsg "ÖØÃüÃûÊ§°Ü£¡","ÒÑ´æÔÚÍ¬ÃûÎÄ¼ş("&newname&")"
+			Rename = False : ErrMsg "é‡å‘½åå¤±è´¥ï¼","å·²å­˜åœ¨åŒåæ–‡ä»¶("&newname&")"
 			Exit Function
 		End If
 		Copy p,n : Del p
@@ -318,35 +352,35 @@ Class EasyASP_Fso
 	Public Function Ren(ByVal path, ByVal newname)
 		Ren = Rename(path,newname)
 	End Function
-	'===Ë½ÓĞ·½·¨===
-	'È¡ÎÄ¼ş¼Ğ¾ø¶ÔÂ·¾¶
+	'===ç§æœ‰æ–¹æ³•===
+	'å–æ–‡ä»¶å¤¹ç»å¯¹è·¯å¾„
 	Private Function absPath(ByVal path)
 		Dim p : p = path
 		If Instr(p,":") = 0 Then p = Server.MapPath(p)
 		If Right(p,1) = "\" Then p = Left(p,Len(p)-1)
 		absPath = p
 	End Function
-	'Â·¾¶ÊÇ·ñ°üº¬Í¨Åä·û
+	'è·¯å¾„æ˜¯å¦åŒ…å«é€šé…ç¬¦
 	Private Function isWildcards(ByVal path)
 		isWildcards = False
 		If Instr(path,"*")>0 Or Instr(path,"?")>0 Then isWildcards = True
 	End Function
-	'ÎÄ¼ş»òÎÄ¼ş¼Ğ²Ù×÷Ô­ĞÍ
+	'æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹æ“ä½œåŸå‹
 	Private Function FOFO(ByVal fromPath, ByVal toPath, ByVal FOF, ByVal MOC)
 		On Error Resume Next
 		Dim ff,tf,oc,of,oi,ot,os
 		ff = absPath(fromPath) : tf = absPath(toPath)
 		If FOF = 0 Then
-			oc = isFile(ff) : of = "File" : oi = "ÎÄ¼ş"
+			oc = isFile(ff) : of = "File" : oi = "æ–‡ä»¶"
 		ElseIf FOF = 1 Then
-			oc = isFolder(ff) : of = "Folder" : oi = "ÎÄ¼ş¼Ğ"
+			oc = isFolder(ff) : of = "Folder" : oi = "æ–‡ä»¶å¤¹"
 		End If
 		If MOC = 0 Then
-			ot = "Copy" : os = "¸´ÖÆ"
+			ot = "Copy" : os = "å¤åˆ¶"
 		ElseIf MOC = 1 Then
-			ot = "Move" : os = "ÒÆ¶¯"
+			ot = "Move" : os = "ç§»åŠ¨"
 		ElseIf MOC = 2 Then
-			ot = "Delete" : os = "É¾³ı"
+			ot = "Delete" : os = "åˆ é™¤"
 		End If
 		If oc Then
 			If MOC<>2 Then
@@ -365,12 +399,12 @@ Class EasyASP_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				ErrMsg os&oi&"Ê§°Ü£¡", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"µ½ "&toPath)&" )"
+				ErrMsg os&oi&"å¤±è´¥ï¼", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"åˆ° "&toPath)&" )"
 			End If
 		ElseIf isWildcards(ff) Then
 			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
 				FOFO = False
-				ErrMsg os&oi&"Ê§°Ü£¡", Easp_IIF(MOC=2,"","Ô´")&oi&"²»´æÔÚ( "&frompath&" )"
+				ErrMsg os&oi&"å¤±è´¥ï¼", Easp_IIF(MOC=2,"","æº")&oi&"ä¸å­˜åœ¨( "&frompath&" )"
 			End If
 			If MOC<>2 Then
 				FOFO = MD(tf)
@@ -380,15 +414,15 @@ Class EasyASP_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				ErrMsg os&oi&"Ê§°Ü£¡", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"µ½ "&toPath)&" )"
+				ErrMsg os&oi&"å¤±è´¥ï¼", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"åˆ° "&toPath)&" )"
 			End If
 		Else
 			FOFO = False
-			ErrMsg os&oi&"Ê§°Ü£¡", Easp_IIF(MOC=2,"","Ô´")&oi&"²»´æÔÚ( "&frompath&" )"
+			ErrMsg os&oi&"å¤±è´¥ï¼", Easp_IIF(MOC=2,"","æº")&oi&"ä¸å­˜åœ¨( "&frompath&" )"
 		End If
 		Err.Clear()
 	End Function
-	'¸ñÊ½»¯ÎÄ¼ş´óĞ¡
+	'æ ¼å¼åŒ–æ–‡ä»¶å¤§å°
 	Private Function formatSize(Byval fileSize, ByVal level)
 		Dim s : s = Int(fileSize) : level = UCase(level)
 		formatSize = Easp_IIF(s/(1073741824)>0.01,FormatNumber(s/(1073741824),2,-1,0,-1),"0.01") & " GB"
@@ -406,7 +440,7 @@ Class EasyASP_Fso
 			formatSize = s
 		End If
 	End Function
-	'¸ñÊ½»¯ÎÄ¼şÊôĞÔ
+	'æ ¼å¼åŒ–æ–‡ä»¶å±æ€§
 	Private Function Attr2Str(ByVal attrib)
 		Dim a,s : a = Int(attrib)
 		If a>=2048 Then a = a - 2048
@@ -419,10 +453,10 @@ Class EasyASP_Fso
 		If a>=1 Then : s = "R" & s : a = a- 1 : End If
 		Attr2Str = s
 	End Function
-	'Êä³ö´íÎóĞÅÏ¢
+	'è¾“å‡ºé”™è¯¯ä¿¡æ¯
 	Private Sub ErrMsg(e,d)
 		s_err = "<div id=""easp_err"">" & e
-		If Not Easp_isN(d) Then s_err = s_err & "<br/>´íÎóĞÅÏ¢:" & d
+		If Not Easp_isN(d) Then s_err = s_err & "<br/>é”™è¯¯ä¿¡æ¯:" & d
 		s_err = s_err & "</div>"
 		If b_debug Then
 			Response.Write s_err

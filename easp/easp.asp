@@ -20,7 +20,7 @@ Class EasyAsp
 	Private o_md5
 	
 	Private Sub Class_Initialize()
-		s_path		= "/easp/"						'Easp类文件的路径
+		s_path		= "/easp/"						'Easp类文件的站点路径
 		s_fsoName	= "Scripting.FilesyStemObject"	'默认FSO组件名称
 		s_charset	= "UTF-8"						'默认文件编码
 		Set db		= New EasyAsp_db
@@ -770,6 +770,7 @@ Sub Use(ByVal sType)
 		Select Case Lcase(sType)
 			Case "fso"
 				fso.fsoName = s_fsoName
+				fso.CharSet = s_charset
 			Case "upload"
 				upload.CharSet = s_charset
 		End Select

@@ -10,7 +10,7 @@ Class EasyAsp_upload
 		i_totalmaxsize	= 0
 		i_maxsize	= 0
 		i_filecount = 0
-		s_charset	= "gb2312"
+		s_charset	= "GB2312"
 		s_allowed	= ""
 		s_denied	= ""
 		s_filename	= ""
@@ -37,57 +37,61 @@ Class EasyAsp_upload
 		o_strm.Close
 		Set o_strm = Nothing
 	End Sub
-	'ÊôĞÔ£º³ÌĞò°æ±¾
+	'å±æ€§ï¼šç¨‹åºç‰ˆæœ¬
 	Public Property Get Version
 		Version = "EasyASp V2.2 Upload Class By ColdStone."
 	End Property
-	'ÊôĞÔ£ºµ¥¸öÎÄ¼ş×î´ó³ß´ç
+	'å±æ€§ï¼šæ–‡ä»¶ç¼–ç 
+	Public Property Let CharSet(ByVal str)
+		s_charset = UCase(str)
+	End Property
+	'å±æ€§ï¼šå•ä¸ªæ–‡ä»¶æœ€å¤§å°ºå¯¸
 	Public Property Let MaxSize(ByVal n)
 		i_maxsize = n
 	End Property
-	'ÊôĞÔ£ºËùÓĞÎÄ¼ş×î´ó×Ü³ß´ç
+	'å±æ€§ï¼šæ‰€æœ‰æ–‡ä»¶æœ€å¤§æ€»å°ºå¯¸
 	Public Property Let TotalMaxSize(ByVal n)
 		i_totalmaxsize = n
 	End Property
-	'ÊôĞÔ£ºÔÊĞíÉÏ´«µÄÎÄ¼şÀàĞÍ
+	'å±æ€§ï¼šå…è®¸ä¸Šä¼ çš„æ–‡ä»¶ç±»å‹
 	Public Property Let Allowed(ByVal str)
 		s_allowed = str
 	End Property
-	'ÊôĞÔ£º½ûÖ¹ÉÏ´«µÄÎÄ¼şÀàĞÍ
+	'å±æ€§ï¼šç¦æ­¢ä¸Šä¼ çš„æ–‡ä»¶ç±»å‹
 	Public Property Let Denied(ByVal str)
 		s_denied = str
 	End Property
-	'ÊôĞÔ£ºÎÄ¼şÉÏ´«ºó±£´æµÄÂ·¾¶(Ïà¶Ô»ò¾ø¶Ô)
+	'å±æ€§ï¼šæ–‡ä»¶ä¸Šä¼ åä¿å­˜çš„è·¯å¾„(ç›¸å¯¹æˆ–ç»å¯¹)
 	Public Property Let SavePath(ByVal str)
 		s_savepath = str
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñ×Ô¶¯´´½¨²»´æÔÚµÄÎÄ¼ş¼Ğ
+	'å±æ€§ï¼šæ˜¯å¦è‡ªåŠ¨åˆ›å»ºä¸å­˜åœ¨çš„æ–‡ä»¶å¤¹
 	Public Property Let AutoMD(ByVal bool)
 		b_automd = bool
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñÖØÃüÃûÉÏ´«ÎÄ¼şÎªËæ»úÎÄ¼şÃû
+	'å±æ€§ï¼šæ˜¯å¦é‡å‘½åä¸Šä¼ æ–‡ä»¶ä¸ºéšæœºæ–‡ä»¶å
 	Public Property Let Random(ByVal bool)
 		b_random = bool
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñ¿ªÆôµ÷ÊÔ×´Ì¬
+	'å±æ€§ï¼šæ˜¯å¦å¼€å¯è°ƒè¯•çŠ¶æ€
 	Public Property Let Debug(ByVal bool)
 		b_debug = bool
 	End Property
 	
-	'ÊôĞÔ£ºÏÔÊ¾ÉÏ´«³É¹¦µÄÎÄ¼şÊı
+	'å±æ€§ï¼šæ˜¾ç¤ºä¸Šä¼ æˆåŠŸçš„æ–‡ä»¶æ•°
 	Public Property Get FileCount()
 		FileCount = i_filecount
 	End Property
 	
-	'ÊôĞÔ£ºÏÔÊ¾´íÎóĞÅÏ¢
+	'å±æ€§ï¼šæ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 	Public Property Get ShowErr()
 		ShowErr = s_err
 	End Property
 	
-	'Êä³ö´íÎóĞÅÏ¢
+	'è¾“å‡ºé”™è¯¯ä¿¡æ¯
 	Private Sub ErrMsg(e,d)
 		s_err = "<div id=""easp_err"">" & e
-		If Not Easp_isN(d) Then s_err = s_err & "<br/>´íÎóĞÅÏ¢:" & d
+		If Not Easp_isN(d) Then s_err = s_err & "<br/>é”™è¯¯ä¿¡æ¯:" & d
 		s_err = s_err & "</div>"
 		If b_debug Then
 			Response.Write s_err
@@ -113,16 +117,16 @@ Class EasyAsp_upload
 	Public Sub StartUpload
 		Dim aCType : aCType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
 		If LCase(aCType(0)) <> "multipart/form-data" Then
-			ErrMsg "±íµ¥ÀàĞÍ´íÎó£¡", "±íµ¥Ö»ÄÜÊÇ""multipart/form-data""ÀàĞÍ"
+			ErrMsg "è¡¨å•ç±»å‹é”™è¯¯ï¼", "è¡¨å•åªèƒ½æ˜¯""multipart/form-data""ç±»å‹"
 			Exit Sub
 		End If
 		Dim nTotalSize : nTotalSize	= Request.TotalBytes
 		If nTotalSize < 1 Then
-			ErrMsg "ÉÏ´«ÎÄ¼ş²»ÄÜÎª¿Õ£¡", "ÖÁÉÙÒªÉÏ´«Ò»¸öÎÄ¼ş£¡"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶ä¸èƒ½ä¸ºç©ºï¼", "è‡³å°‘è¦ä¸Šä¼ ä¸€ä¸ªæ–‡ä»¶ï¼"
 			Exit Sub
 		End If
 		If i_totalmaxsize > 0 And nTotalSize > i_totalmaxsize Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "ÉÏ´«ÎÄ¼ş×Ü´óĞ¡³¬¹ıÁËÏŞÖÆ£¡"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "ä¸Šä¼ æ–‡ä»¶æ€»å¤§å°è¶…è¿‡äº†é™åˆ¶ï¼"
 			Exit Sub
 		End If
 		o_strm.Write Request.BinaryRead(nTotalSize)
@@ -196,14 +200,14 @@ Class EasyAsp_upload
 	
 	Public Sub SaveAs(sItem, sFileName)
 		If File(sItem).Size < 1 Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "ÉÏ´«ÎÄ¼ş²»ÄÜÎª¿Õ"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "ä¸Šä¼ æ–‡ä»¶ä¸èƒ½ä¸ºç©º"
 			Exit Sub
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "ÎÄ¼ş´óĞ¡³¬¹ıÁËÏŞÖÆ"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "æ–‡ä»¶å¤§å°è¶…è¿‡äº†é™åˆ¶"
 			Exit Sub
 		End If
 		If Not isAllowed(File(sItem).Ext) Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "²»ÔÊĞíÉÏ´«´ËÀàĞÍµÄÎÄ¼ş"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "ä¸å…è®¸ä¸Šä¼ æ­¤ç±»å‹çš„æ–‡ä»¶"
 			Exit Sub
 		End If
 		
@@ -216,7 +220,7 @@ Class EasyAsp_upload
 			o_strm.Position = File(sItem).Start
 			o_strm.CopyTo oFileStream, File(sItem).Size
 			.Position	= 0
-			'.SaveToFile sFileName, 2   'ÔİÊ±²»±£´æÎÄ¼ş
+			'.SaveToFile sFileName, 2   'æš‚æ—¶ä¸ä¿å­˜æ–‡ä»¶
 			.Close
 		End With
 		Set oFileStream = Nothing
@@ -239,7 +243,7 @@ Class EasyAsp_upload
 		End With
 		Set fileStream = Nothing
 		If Err.Number<>0 Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", Err.Description
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", Err.Description
 			SaveFile = False
 		End If
 		Err.Clear
@@ -267,24 +271,24 @@ Class EasyAsp_upload
 	Function CheckOneFile(ByVal sItem)
 		CheckOneFile = True
 		If Not File.Exists(sItem) Then
-			ErrMsg "»ñÈ¡ÎÄ¼şÊ§°Ü£¡", "±íµ¥¿Ø¼ş("""&sItem&""")²»´æÔÚ"
+			ErrMsg "è·å–æ–‡ä»¶å¤±è´¥ï¼", "è¡¨å•æ§ä»¶("""&sItem&""")ä¸å­˜åœ¨"
 			CheckOneFile = False : Exit Function
 		End If
 		Dim cp : cp = File(sItem).ClientPath
 		If Not isAllowed(File(sItem).Ext) Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "²»ÔÊĞíÉÏ´«´ËÀàĞÍµÄÎÄ¼ş("&File(sItem).ClientPath&")"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "ä¸å…è®¸ä¸Šä¼ æ­¤ç±»å‹çš„æ–‡ä»¶("&File(sItem).ClientPath&")"
 			CheckOneFile = False : Exit Function
 		End If
 		If File(sItem).Size < 1 Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "ÉÏ´«ÎÄ¼ş²»ÄÜÎª¿Õ("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "ä¸Šä¼ æ–‡ä»¶ä¸èƒ½ä¸ºç©º("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
-			ErrMsg "ÉÏ´«ÎÄ¼şÊ§°Ü£¡", "ÎÄ¼ş´óĞ¡³¬¹ıÁËÏŞÖÆ("&File(sItem).ClientPath&")"
+			ErrMsg "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼", "æ–‡ä»¶å¤§å°è¶…è¿‡äº†é™åˆ¶("&File(sItem).ClientPath&")"
 			CheckOneFile = False : Exit Function
 		End If
 	End Function
 	
-	'È¡ÎÄ¼ş¼Ğ¾ø¶ÔÂ·¾¶
+	'å–æ–‡ä»¶å¤¹ç»å¯¹è·¯å¾„
 	Private Function absPath(ByVal path)
 		Dim p : p = path
 		If Instr(p,":") = 0 Then p = Server.MapPath(p)
