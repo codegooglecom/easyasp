@@ -16,12 +16,13 @@ Class EasyAsp_obj : End Class
 Class EasyAsp
 
 	Public db,fso,upload,tpl
-	Private s_path, s_fsoName
+	Private s_path, s_fsoName, s_charset
 	Private o_md5
 	
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"						'Easp类文件的路径
 		s_fsoName	= "Scripting.FilesyStemObject"	'默认FSO组件名称
+		s_charset	= "UTF-8"						'默认文件编码
 		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
@@ -42,6 +43,9 @@ Class EasyAsp
 	End Property
 	Public Property Let fsoName(ByVal str)
 		s_fsoName = str
+	End Property
+	Public Property Let CharSet(ByVal str)
+		s_charset = Ucase(str)
 	End Property
 '***** Easp公共函数集 *****
 '输出字符串(简易断点调试)
@@ -89,6 +93,7 @@ Sub AlertUrl(ByVal str, ByVal url)
 	Response.Write("<sc" & "ript type=""text/javascript"">"&VbCrLf)
 	Response.Write(VbTab&"alert('" & JsEncode(str) & "\t\t');location.href='" & url & "';"&VbCrLf)
 	Response.Write("</sc" & "ript>"&VbCrLf)
+	Response.End()
 End Sub
 '处理字符串中的Javascript特殊字符
 Function JsEncode(ByVal str)
@@ -330,7 +335,7 @@ Function GetUrl(param)
 	script_name = Request.ServerVariables("SCRIPT_NAME")
 	url = script_name
 	dir  = Left(script_name,InstrRev(script_name,"/"))
-	If isN(param) Then
+	If isN(param) or param = "-1" Then
 		Dim ustart,uport
 		With Request
 			If .ServerVariables("HTTPS")="on" Then
@@ -340,7 +345,12 @@ Function GetUrl(param)
 				ustart = "http://"
 				uport = IIF(Int(.ServerVariables("SERVER_PORT"))=80,"",":"&.ServerVariables("SERVER_PORT"))
 			End If
-			url = ustart & .ServerVariables("SERVER_NAME") & uport & script_name
+			url = ustart & .ServerVariables("SERVER_NAME") & uport
+			If isN(param) Then
+				url = url & script_name
+			Else
+				GetUrl = url : Exit Function
+			End If
 			If Not IsN(.QueryString()) Then url = url & "?" & .QueryString()
 			GetUrl = url : Exit Function
 		End With
@@ -662,30 +672,30 @@ Function getInclude(ByVal filePath)
 End Function
 '读取文件内容
 Private Function Read(ByVal filePath)
-	Dim Fso, p, f, tmpStr,objStream
+	Dim Fso, p, f, tmpStr,o_strm
 	p = filePath
 	If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
 	Set Fso = Server.CreateObject(s_fsoName)
 	If  Fso.FileExists(p) Then
-		Set f = Fso.OpenTextFile(p)
-		tmpStr = Escape(f.ReadAll)
-'		
-'		Set objStream = Server.CreateObject("ADODB.Stream")
-'		With objStream
-'			.Type = 1
-'			.Mode = 1
-'			.Charset = "utf-8"
-'			.Open
-'			.LoadFromFile(p)
-''			.Position = 0
-'			.WriteText tmpStr
-'			tmpStr = .ReadText
-'			.Close
-'		End With
-'		Set objStream = Nothing
-'		
-		f.Close()
-		Set f = Nothing
+		If s_charset = "GB2312" Then
+			Set f = Fso.OpenTextFile(p)
+			tmpStr = f.ReadAll
+			f.Close()
+			Set f = Nothing
+		Else
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 2
+				.Mode = 3
+				.Open
+				.LoadFromFile p
+				.Charset = s_charset
+				.Position = 2
+				tmpStr = .ReadText
+				.Close
+			End With
+			Set o_strm = Nothing
+		End If
 	Else
 		tmpStr = "文件未找到:" & filePath
 	End If
@@ -760,6 +770,8 @@ Sub Use(ByVal sType)
 		Select Case Lcase(sType)
 			Case "fso"
 				fso.fsoName = s_fsoName
+			Case "upload"
+				upload.CharSet = s_charset
 		End Select
 	End If
 End Sub
