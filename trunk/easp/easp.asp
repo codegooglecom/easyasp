@@ -550,18 +550,18 @@ Sub RemoveCookie(ByVal cooName)
 	End If
 End Sub
 '设置缓存记录
-Sub SetApp(AppName,AppData)
+Sub SetApp(ByVal AppName, ByVal AppData)
 	Application.Lock
 	Application.Contents.Item(AppName) = AppData
 	Application.UnLock
 End Sub
 '获取一个缓存记录
-Function GetApp(AppName)
-	If IsN(GetApp) Then GetApp = "" : Exit Function
+Function GetApp(ByVal AppName)
+	If IsN(AppName) Then GetApp = "" : Exit Function
 	GetApp = Application.Contents.Item(AppName)
 End Function
 '删除一个缓存记录
-Sub RemoveApp(AppName)
+Sub RemoveApp(ByVal AppName)
 	Application.Lock
 	Application.Contents.Remove(AppName)
 	Application.UnLock
