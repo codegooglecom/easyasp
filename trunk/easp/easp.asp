@@ -1386,6 +1386,7 @@ Class EasyAsp_db
 							tmpTF = Easp_IIF(UCase(cstr(Trim(CurrentValue)))="TRUE", Easp_IIF(idbType="1" Or idbType="ACCESS","True","1"), Easp_IIF(idbType="1" Or idbType="ACCESS","False","0"))
 							StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
 						Case Else
+							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL",CurrentValue)
 							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
 					End Select
 				End If
