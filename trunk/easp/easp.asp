@@ -18,7 +18,7 @@ Class EasyAsp
 	Public db,fso,upload,tpl
 	Private s_path, s_fsoName, s_charset
 	Private o_md5
-	
+
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"						'Easp类文件的站点路径
 		s_fsoName	= "Scripting.FilesyStemObject"	'默认FSO组件名称
@@ -29,7 +29,7 @@ Class EasyAsp
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
 	End Sub
-	
+
 	Private Sub Class_Terminate()
 		Set db 		= Nothing
 		Set o_md5	= Nothing
@@ -37,7 +37,7 @@ Class EasyAsp
 		Set upload	= Nothing
 		Set tpl		= Nothing
 	End Sub
-	
+
 	Public Property Let basePath(ByVal path)
 		s_path = path
 	End Property
@@ -903,7 +903,8 @@ Class EasyAsp_db
 		idbType = UCase(Cstr(dbType))
 		Select Case idbType
 			Case "0","MSSQL"
-				TempStr = "driver={sql server};server="&s&";uid="&u&";pwd="&p&";database="&strDB
+				If port = "" Then port = "1433"
+				TempStr = "Provider=sqloledb;Data Source="&s&","&port&";Initial Catalog="&strDB&";User Id="&u&";Password="&p&";"
 			Case "1","ACCESS"
 				Dim tDb : If Instr(strDB,":")>0 Then : tDb = strDB : Else : tDb = Server.MapPath(strDB) : End If
 				TempStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="&tDb&";Jet OLEDB:Database Password="&p&";"
@@ -911,7 +912,7 @@ Class EasyAsp_db
 				If port = "" Then port = "3306"
 				TempStr = "Driver={mySQL};Server="&s&";Port="&port&";Option=131072;Stmt=;Database="&strDB&";Uid="&u&";Pwd="&p&";"
 			Case "3","ORACLE"
-				TempStr = "Driver={Microsoft ODBC for Oracle};Server="&s&";Uid="&u&";Pwd="&p&";"
+				TempStr = "Provider=msdaora;Data Source="&s&";User Id="&u&";Password="&p&";"
 		End Select
 		Set OpenConn = CreatConn(TempStr)
 	End Function
@@ -1362,7 +1363,7 @@ Class EasyAsp_db
 		End If
 		Err.Clear
 	End Function
-	
+
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
 		On Error Resume Next
 		Dim StrTemp : StrTemp = ValueList
