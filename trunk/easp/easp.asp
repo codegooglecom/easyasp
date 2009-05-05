@@ -95,6 +95,13 @@ Sub AlertUrl(ByVal str, ByVal url)
 	Response.Write("</sc" & "ript>"&VbCrLf)
 	Response.End()
 End Sub
+'服务器端输出javascript确认消息框并根据选择转到URL
+Sub ConfirmUrl(ByVal str, ByVal Turl, ByVal Furl)
+	Response.Write("<sc" & "ript type=""text/javascript"">"&VbCrLf)
+	Response.Write(VbTab&"if(confirm('" & JsEncode(str) & "\t\t')){location.href='" & Turl & "';}else{location.href='" & Furl & "';}"&VbCrLf)
+	Response.Write("</sc" & "ript>"&VbCrLf)
+	Response.End()
+End Sub
 '处理字符串中的Javascript特殊字符
 Function JsEncode(ByVal str)
 	JsEncode = Easp_JsEncode(str)
