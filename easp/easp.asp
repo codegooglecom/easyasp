@@ -1389,8 +1389,8 @@ Class EasyAsp_db
 						Case 7,8,129,130,133,134,135,200,201,202,203
 							StrTemp = StrTemp & Easp_IIF(sType=3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
 						Case 11
-							Dim tmpTF
-							tmpTF = Easp_IIF(UCase(cstr(Trim(CurrentValue)))="TRUE", Easp_IIF(idbType="1" Or idbType="ACCESS","True","1"), Easp_IIF(idbType="1" Or idbType="ACCESS","False","0"))
+							Dim tmpTF, tmpTFV : tmpTFV = UCase(cstr(Trim(CurrentValue)))
+							tmpTF = Easp_IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp_IIF(idbType="ACCESS","True","1"), Easp_IIF(idbType="ACCESS","False","0"))
 							StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
 						Case Else
 							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL",CurrentValue)
