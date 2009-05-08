@@ -1377,7 +1377,7 @@ Class EasyAsp_db
 		If IsArray(ValueList) Then
 			StrTemp = ""
 			Dim rsTemp, CurrentField, CurrentValue, i
-			Set rsTemp = GRS("Select * From [" & TableName & "] Where 1 = -1")
+			Set rsTemp = GRS("Select Top 1 * From [" & TableName & "] Where 1 = -1")
 			For i = 0 to Ubound(ValueList)
 				CurrentField = Easp_Param(ValueList(i))(0)
 				CurrentValue = Easp_Param(ValueList(i))(1)
