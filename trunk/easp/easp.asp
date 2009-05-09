@@ -751,6 +751,7 @@ Private Function GetIncCode(ByVal filePath, ByVal getHtml)
 		tmpCode = regReplace(tmpStr,"^\s*=\s*",s_code) & vbCrLf
 		If getHtml = 1 Then
 			tmpCode = regReplaceM(tmpCode,"^(\s*)response\.write","$1" & s_code) & vbCrLf
+			tmpCode = regReplaceM(tmpCode,"^(\s*)Easp\.(W|WC|WN)","$1" & s_code) & vbCrLf
 		End If
 		code = code & Replace(tmpCode,vbCrLf&vbCrLf,vbCrLf)
 		en = Instr(st,content,"<%") + 2
