@@ -414,16 +414,23 @@ End Function
 Function DiffDay(theDate)
 	DiffDay=DateDiff("d",Now,theDate)
 End Function
-'仅格式化HTML文本（可带HTML标签）
-Function HtmlFormat(ByVal str)
-	If Not IsN(str) Then
-		str = Replace(str, Chr(38), "&amp;")
-		str = Replace(str, Chr(32), "&nbsp;")
-		str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
-		str = Replace(str, vbCrLf, "<br />")
-	End If
-	HtmlFormat = str
-End Function
+'仅格式化HTML文本（可带HTML标签）签）
+	Function HtmlFormat(ByVal str)
+		If Not IsN(str) Then
+			Dim m : Set m = RegMatch(str, "<([^>]+)>")
+			For Each Match In m
+				 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(32), Chr(0)))
+				 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(9), Chr(0)))
+			Next
+			Set m = Nothing
+			str = Replace(str, Chr(38), "&amp;")
+			str = Replace(str, Chr(32), "&nbsp;")
+			str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
+			str = Replace(str, Chr(0), " ")
+			str = Replace(str, vbCrLf, "<br />")
+		End If
+		HtmlFormat = str
+	End Function
 'HTML加码函数
 Function HtmlEncode(ByVal str)
 	If Not IsN(str) Then
