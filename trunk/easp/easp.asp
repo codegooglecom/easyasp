@@ -423,7 +423,6 @@ End Function
 				 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(9), Chr(0)))
 			Next
 			Set m = Nothing
-			str = Replace(str, Chr(38), "&amp;")
 			str = Replace(str, Chr(32), "&nbsp;")
 			str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
 			str = Replace(str, Chr(0), " ")
