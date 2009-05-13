@@ -414,42 +414,49 @@ End Function
 Function DiffDay(theDate)
 	DiffDay=DateDiff("d",Now,theDate)
 End Function
+'仅格式化HTML文本（可带HTML标签）
+Function HtmlFormat(ByVal str)
+	If Not IsN(str) Then
+		str = Replace(str, Chr(38), "&amp;")
+		str = Replace(str, Chr(32), "&nbsp;")
+		str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
+		str = Replace(str, vbCrLf, "<br />")
+	End If
+	HtmlFormat = str
+End Function
 'HTML加码函数
 Function HtmlEncode(ByVal str)
 	If Not IsN(str) Then
 		str = Replace(str, Chr(38), "&#38;")
-		str = Replace(str, ">", "&gt;")
 		str = Replace(str, "<", "&lt;")
+		str = Replace(str, ">", "&gt;")
 		str = Replace(str, Chr(39), "&#39;")
 		str = Replace(str, Chr(32), "&nbsp;")
 		str = Replace(str, Chr(34), "&quot;")
-		str = Replace(str, Chr(9), "&nbsp;&nbsp;&nbsp;&nbsp;")
-		str = Replace(str, Chr(13), "")
-		str = Replace(str, Chr(10), "<br />")
+		str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
+		str = Replace(str, vbCrLf, "<br />")
 	End If
 	HtmlEncode = str
 End Function
 'HTML解码函数
 Function HtmlDecode(ByVal str)
 	If Not IsN(str) Then
-		str = Replace(str, "<br/>", Chr(13)&Chr(10))
-		str = Replace(str, "<br>", Chr(13)&Chr(10))
-		str = Replace(str, "<br />", Chr(13)&Chr(10))
-		str = Replace(str, "&nbsp;&nbsp;&nbsp;&nbsp;", Chr(9))
-		str = Replace(str, "&amp;", Chr(38))
+		str = regReplace(str, "<br\s*/?\s*>", vbCrLf)
+		str = Replace(str, "&nbsp;&nbsp; &nbsp;", Chr(9))
+		str = Replace(str, "&quot;", Chr(34))
+		str = Replace(str, "&nbsp;", Chr(32))
 		str = Replace(str, "&#39;", Chr(39))
 		str = Replace(str, "&apos;", Chr(39))
-		str = Replace(str, "&nbsp;", Chr(32))
-		str = Replace(str, "&quot;", Chr(34))
 		str = Replace(str, "&gt;", ">")
 		str = Replace(str, "&lt;", "<")
+		str = Replace(str, "&amp;", Chr(38))
 		str = Replace(str, "&#38;", Chr(38))
 		HtmlDecode = str
 	End If
 End Function
 '过滤HTML标签
 Function HtmlFilter(ByVal str)
-	str = regReplace(str,"<[^>]+>|</[^>]+>","")
+	str = regReplace(str,"<[^>]+>","")
 	str = Replace(str, ">", "&gt;")
 	str = Replace(str, "<", "&lt;")
 	HtmlFilter = str
