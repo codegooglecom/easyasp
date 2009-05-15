@@ -85,21 +85,17 @@ Sub Js(ByVal Str)
 End Sub
 '服务器端输出javascript弹出消息框并返回前页
 Sub Alert(ByVal str)
-	Response.Write("<sc" & "ript type=""text/javascript"">alert('" & JsEncode(str) & "\t\t');history.go(-1);</sc" & "ript>"&VbCrLf)
+	JS("alert('" & JsEncode(str) & "\t\t');history.go(-1);")
 	Response.End()
 End Sub
 '服务器端输出javascript弹出消息框并转到URL
 Sub AlertUrl(ByVal str, ByVal url)
-	Response.Write("<sc" & "ript type=""text/javascript"">"&VbCrLf)
-	Response.Write(VbTab&"alert('" & JsEncode(str) & "\t\t');location.href='" & url & "';"&VbCrLf)
-	Response.Write("</sc" & "ript>"&VbCrLf)
+	JS("alert('" & JsEncode(str) & "\t\t');location.href='" & url & "';")
 	Response.End()
 End Sub
 '服务器端输出javascript确认消息框并根据选择转到URL
 Sub ConfirmUrl(ByVal str, ByVal Turl, ByVal Furl)
-	Response.Write("<sc" & "ript type=""text/javascript"">"&VbCrLf)
-	Response.Write(VbTab&"if(confirm('" & JsEncode(str) & "\t\t')){location.href='" & Turl & "';}else{location.href='" & Furl & "';}"&VbCrLf)
-	Response.Write("</sc" & "ript>"&VbCrLf)
+	JS("if(confirm('" & JsEncode(str) & "\t\t')){location.href='" & Turl & "';}else{location.href='" & Furl & "';}")
 	Response.End()
 End Sub
 '处理字符串中的Javascript特殊字符
@@ -291,7 +287,7 @@ end Sub
 '防SQL注入强检测
 Function CheckSql()
 	Dim noSQLStr, noSQL, StrGet, StrPost, i, j
-	noSQLStr = " and, or, insert, exec, select, delete, update, count, chr, mid, master, truncate, char, declare"
+	noSQLStr = " and, or,insert,exec,select,delete,update,count, chr, mid,master, truncate, char,declare"
 	noSQL = Split(noSQLStr,",")
 	If Request.QueryString<>"" Then
 		For Each StrGet In Request.QueryString
@@ -415,21 +411,21 @@ Function DiffDay(theDate)
 	DiffDay=DateDiff("d",Now,theDate)
 End Function
 '仅格式化HTML文本（可带HTML标签）签）
-	Function HtmlFormat(ByVal str)
-		If Not IsN(str) Then
-			Dim m : Set m = RegMatch(str, "<([^>]+)>")
-			For Each Match In m
-				 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(32), Chr(0)))
-				 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(9), Chr(0)))
-			Next
-			Set m = Nothing
-			str = Replace(str, Chr(32), "&nbsp;")
-			str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
-			str = Replace(str, Chr(0), " ")
-			str = Replace(str, vbCrLf, "<br />")
-		End If
-		HtmlFormat = str
-	End Function
+Function HtmlFormat(ByVal str)
+	If Not IsN(str) Then
+		Dim m : Set m = RegMatch(str, "<([^>]+)>")
+		For Each Match In m
+			 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(32), Chr(0)))
+			 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(9), Chr(0)))
+		Next
+		Set m = Nothing
+		str = Replace(str, Chr(32), "&nbsp;")
+		str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
+		str = Replace(str, Chr(0), " ")
+		str = Replace(str, vbCrLf, "<br />")
+	End If
+	HtmlFormat = str
+End Function
 'HTML加码函数
 Function HtmlEncode(ByVal str)
 	If Not IsN(str) Then
