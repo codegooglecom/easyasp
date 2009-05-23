@@ -274,12 +274,13 @@ Private Function IsNumber(Str, iType)
 End Function
 '检查提交数据来源
 Function CheckDataFrom()
-	CheckDataFrom = True
-	server_v1=Cstr(Request.ServerVariables("HTTP_REFERER"))
-	server_v2=Cstr(Request.ServerVariables("SERVER_NAME"))
-	if mid(server_v1,8,len(server_v2))<>server_v2 then
-		CheckDataFrom = False
-	end if
+	Dim v1, v2
+	CheckDataFrom = False
+	v1 = Cstr(Request.ServerVariables("HTTP_REFERER"))
+	v2 = Cstr(Request.ServerVariables("SERVER_NAME"))
+	If Mid(v1,8,Len(v2)) = v2 Then
+		CheckDataFrom = True
+	End If
 end Function
 Sub CheckDataFromA()
 	If Not CheckDataFrom Then alert "禁止从站点外部提交数据！"
@@ -415,13 +416,13 @@ Function HtmlFormat(ByVal str)
 	If Not IsN(str) Then
 		Dim m : Set m = RegMatch(str, "<([^>]+)>")
 		For Each Match In m
-			 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(32), Chr(0)))
-			 str = Replace(str, Match.SubMatches(0), Replace(Match.SubMatches(0), Chr(9), Chr(0)))
+			 str = Replace(str, Match.SubMatches(0), regReplace(Match.SubMatches(0), "\s+", Chr(0)))
 		Next
 		Set m = Nothing
 		str = Replace(str, Chr(32), "&nbsp;")
 		str = Replace(str, Chr(9), "&nbsp;&nbsp; &nbsp;")
 		str = Replace(str, Chr(0), " ")
+		str = regReplace(str, "(<[^>]+>)\s+", "$1")
 		str = Replace(str, vbCrLf, "<br />")
 	End If
 	HtmlFormat = str
