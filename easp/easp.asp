@@ -209,25 +209,25 @@ Class EasyAsp
 		DateTime = t
 	End Function
 	Sub RewriteRule(ByVal s, ByVal u)
-		If(Left(s,1)<>"^" And Left(s,1)<>"/") Or Left(u,1)<>"/" Then Exit Sub
+		If(Left(s,3)<>"^\/" And Left(s,2)<>"\/") Or Left(u,1)<>"/" Then Exit Sub
+		o_rwt.Add ("rule" & i_rule), Array(s,u)
+		i_rule = i_rule + 1
+	End Sub
+	Sub Rewrite(ByVal p, ByVal s, Byval u)
+		Dim rp
+		If Left(s,1) = "^" Or Right(s,1) = "$" Then Exit Sub
+		If Left(p,1) <> "/" Then Exit Sub
+		rp = Replace(p,"/","\/")
+		s = "^" & rp & "\?" & s & "$"
+		u = p & "?" & u
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
 	Function [Get](Byval s)
-		Dim tmp, isRwt, url, rule, i, qs, arrQs, t', ty, dv, sep
+		Dim tmp, isRwt, url, rule, i, qs, arrQs, t
 		t = 0 : isRwt = False : url = GetUrl(1)
 		If Instr(s,":")>0 Then
 			t = CRight(s,":") : s = CLeft(s,":")
-'			If Instr(t,":")>0 Then
-'				ty = CLeft(t,":") : dv = CRight(t,":")
-'				If (ty = 2 Or ty = 3) Then
-'					sep = dv : dv = ""
-'					If Instr(sep,":")>0 Then
-'						dv = CRight(sep,":")
-'						sep = CLeft(sep,":")
-'					End If
-'				End If
-'			End If
 		End If
 		For Each i In o_rwt
 			rule = o_rwt(i)(0)
@@ -242,13 +242,13 @@ Class EasyAsp
 			For i = 0 To Ubound(arrQs)
 				If s = CLeft(arrQs(i),"=") Then
 					tmp = RegReplace(url,rule,CRight(arrQs(i),"="))
-					Exit Function
+					Exit For
 				End If
 			Next
 		Else
 			tmp = Request.QueryString(s)
 		End If
-		[Get] = t
+		[Get] = SafeData("",tmp,t)
 	End Function
 	'安全获取值
 	Function R(ByVal s, ByVal t)
