@@ -4,7 +4,7 @@ Class EasyASP_Fso
 	Private Fso
 	Private s_fsoName,s_err,s_sizeformat,s_charset
 	Private b_debug,b_force,b_overwrite
-	
+
 	Private Sub Class_Initialize
 		s_fsoName 	= "Scripting.FilesyStemObject"
 		s_charset	= "GB2312"
@@ -50,11 +50,11 @@ Class EasyASP_Fso
 	Public Property Get ShowErr()
 		ShowErr = s_err
 	End Property
-	
+
 	'文件或文件夹是否存在
 	Public Function isExists(ByVal path)
 		path = absPath(path) : isExists = False
-		If Fso.FileExists(path) or Fso.FolderExists(path) Then isExists = True			
+		If Fso.FileExists(path) or Fso.FolderExists(path) Then isExists = True
 	End Function
 	'文件是否存在
 	Public Function isFile(ByVal filePath)
