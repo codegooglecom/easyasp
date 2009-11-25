@@ -425,7 +425,7 @@ Class EasyAsp_db
 		Dim TmpSQL
 		TmpSQL = "Update ["&TableName&"] Set "
 		TmpSQL = TmpSQL & ValueToSql(TableName,ValueList,0)
-		TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
+		If Not Easp_isN(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
 		wUpdateRecord = TmpSQL
 	End Function
 	Public Function UR(ByVal TableName,ByVal Condition,ByVal ValueList)
@@ -596,8 +596,11 @@ Class EasyAsp_db
 					StrTemp = StrTemp & "[" & CurrentField & "]"
 				Else
 					Select Case rsTemp.Fields(CurrentField).Type
-						Case 7,8,129,130,133,134,135,200,201,202,203
-							StrTemp = StrTemp & Easp_IIF(sType=3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
+						Case 8,129,130,133,134,200,201,202,203
+							StrTemp = StrTemp & Easp_IIF(sType = 3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
+						Case 7,135
+							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL","'"&CurrentValue&"'")
+							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
 						Case 11
 							Dim tmpTF, tmpTFV : tmpTFV = UCase(cstr(Trim(CurrentValue)))
 							tmpTF = Easp_IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp_IIF(idbType="ACCESS","True","1"), Easp_IIF(idbType="ACCESS",Easp_IIF(tmpTFV="","NULL","False"),Easp_IIF(tmpTFV="","NULL","0")))

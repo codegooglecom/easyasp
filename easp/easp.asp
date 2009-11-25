@@ -99,8 +99,8 @@ Class EasyAsp
 	Function IIF(ByVal Cn, ByVal T, ByVal F)
 		IIF = Easp_IIF(Cn,T,F)
 	End Function
-	Function IfThen(ByVal Cn, ByVal T, ByVal F)
-		IfThen = Easp_IIF(Cn,T,F)
+	Function IfThen(ByVal Cn, ByVal T)
+		IfThen = Easp_IIF(Cn,T,"")
 	End Function
 	'·þÎñÆ÷¶ËÊä³öjavascript
 	Sub Js(ByVal s)
