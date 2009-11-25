@@ -72,7 +72,7 @@ Class EasyAsp
 		W(s)
 		Response.End()
 	End Sub
-	Function WW(ByVal s, ByVal v)
+	Function Str(ByVal s, ByVal v)
 		Dim i
 		s = Replace(s,"\$",Chr(0))
 		If isArray(v) Then
@@ -82,10 +82,10 @@ Class EasyAsp
 		Else
 			s = Replace(s,"$1",v)
 		End If
-		WW = Replace(s,Chr(0),"$")
+		Str = Replace(s,Chr(0),"$")
 	End Function
-	Sub WV(ByVal s, ByVal v)
-		W WW(s,v)
+	Sub WStr(ByVal s, ByVal v)
+		W Str(s,v)
 	End Sub
 	'服务器端跳转
 	Sub RR(ByVal u)
@@ -107,31 +107,31 @@ Class EasyAsp
 		W JsCode(s)
 	End Sub
 	Function JsCode(ByVal s)
-		JsCode = WW("<$1 type=""text/java$1"">$2$3$4$2</$1>$2", Array("sc"&"ript",vbCrLf,vbTab,s))
+		JsCode = Str("<$1 type=""text/java$1"">$2$3$4$2</$1>$2", Array("sc"&"ript",vbCrLf,vbTab,s))
 	End Function
 	'服务器端输出javascript弹出消息框并返回前页
 	Sub Alert(ByVal s)
-		WE JsCode(WW("alert('$1');history.go(-1);",JsEncode(s)))
+		WE JsCode(Str("alert('$1');history.go(-1);",JsEncode(s)))
 	End Sub
 	'服务器端输出javascript弹出消息框并转到URL
 	Sub AlertUrl(ByVal s, ByVal u)
-		WE JsCode(WW("alert('$1');location.href='$2';",Array(JsEncode(s),u)))
+		WE JsCode(Str("alert('$1');location.href='$2';",Array(JsEncode(s),u)))
 	End Sub
 	'服务器端输出javascript确认消息框并根据选择转到URL
 	Sub ConfirmUrl(ByVal s, ByVal tu, ByVal fu)
-		WE JsCode(WW("if(confirm('$1')){location.href='$2';}else{location.href='$3';}",Array(JsEncode(s),tu,fu)))
+		WE JsCode(Str("if(confirm('$1')){$4='$2';}else{$4='$3';}",Array(JsEncode(s),tu,fu,"location.href")))
 	End Sub
 	'处理字符串中的Javascript特殊字符
-	Function JsEncode(ByVal str)
-		JsEncode = Easp_JsEncode(str)
+	Function JsEncode(ByVal s)
+		JsEncode = Easp_JsEncode(s)
 	End Function
 	'特殊字符编码
-	Function Escape(ByVal str)
-		Escape = Easp_Escape(str)
+	Function Escape(ByVal s)
+		Escape = Easp_Escape(s)
 	End Function
 	'特殊字符解码
-	Function UnEscape(ByVal str)
-		UnEscape = Easp_UnEscape(str)
+	Function UnEscape(ByVal s)
+		UnEscape = Easp_UnEscape(s)
 	End Function
 	'格式化日期时间
 	Function DateTime(ByVal iTime, ByVal iFormat)
@@ -209,7 +209,7 @@ Class EasyAsp
 		DateTime = t
 	End Function
 	Sub RewriteRule(ByVal s, ByVal u)
-		If(Left(s,3)<>"^\/" And Left(s,2)<>"\/") Or Left(u,1)<>"/" Then Exit Sub
+		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/") Or Left(u,1)<>"/" Then Exit Sub
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
@@ -269,12 +269,6 @@ Class EasyAsp
 	Function RQa(ByVal s, ByVal t)
 		RQa = SafeData("RQa", s, t)
 	End Function
-	Function RH(ByVal s, ByVal t)
-		RH = SafeData("RH", s, t)
-	End Function
-	Function RHa(ByVal s, ByVal t)
-		RHa = SafeData("RHa", s, t)
-	End Function
 	'安全获取值原始方法
 	Function SafeData(fn, ByVal s, ByVal t)
 		Dim tmp, fna
@@ -284,14 +278,9 @@ Class EasyAsp
 			Case "R", "Ra" tmp = Request(s)
 			Case "RF", "RFa" tmp = Request.Form(s)
 			Case "RQ", "RQa" tmp = Request.QueryString(s)
-			Case "RH", "RHa" tmp = s_rq
 			Case Else tmp = s
 		End Select
-		fna = IIF(fn = "Ra" or fn = "RFa" or fn = "RQa" or fn = "RHa",True,False)
-		If fn = "RH" or fn = "RHa" Then
-			If Not isNumeric(s) Then SafeData = "" : Exit Function
-			tmp = Split(Split(tmp,".")(0),"-")(s)
-		End If
+		fna = IIF(fn = "Ra" or fn = "RFa" or fn = "RQa",True,False)
 		RSplit = ","
 		If Instr(Cstr(t),":")=2 Then
 			RDefault = Mid(t,3)
@@ -381,18 +370,18 @@ Class EasyAsp
 		If Not CheckSql Then alert "数据中含有非法字符！"
 	End Sub
 	'截取长字符串左边部分并以特殊符号代替
-	Function CutString(ByVal str, ByVal strlen)
+	Function CutString(ByVal s, ByVal strlen)
 		Dim l,t,c,i,d,f
-		l = len(str) : t = 0 : d = "…" : f = Easp_Param(strlen)
+		l = len(s) : t = 0 : d = "…" : f = Easp_Param(strlen)
 		If Not isN(f(1)) Then : strlen = Int(f(0)) : d = f(1) : f = "" : End If
 		For i = 1 to l
-			c = Abs(Ascw(Mid(str,i,1)))
+			c = Abs(Ascw(Mid(s,i,1)))
 			t = IIF(c > 255,t + 2,t + 1)
 			If t >= strlen Then
-				CutString = Left(str,i) & d
+				CutString = Left(s,i) & d
 				Exit For
 			Else
-				CutString = str
+				CutString = s
 			End If
 		Next
 		CutString = Replace(CutString,vbCrLf,"")
@@ -657,11 +646,11 @@ Class EasyAsp
 		Application.UnLock
 	End Sub
 	'验证身份证号码
-	Private Function isIDCard(ByVal str)
+	Private Function isIDCard(ByVal s)
 		Dim Ai, BirthDay, arrVerifyCode, Wi, i, AiPlusWi, modValue, strVerifyCode
 		isIDCard = False
-		If Len(str) <> 15 And Len(str) <> 18 Then Exit Function
-		Ai = IIF(Len(str) = 18,Mid(str, 1, 17),Left(str, 6) & "19" & Mid(str, 7, 9))
+		If Len(s) <> 15 And Len(s) <> 18 Then Exit Function
+		Ai = IIF(Len(s) = 18,Mid(s, 1, 17),Left(s, 6) & "19" & Mid(s, 7, 9))
 		If Not IsNumeric(Ai) Then Exit Function
 		If Not Test(Left(Ai,6),"^(1[1-5]|2[1-3]|3[1-7]|4[1-6]|5[0-4]|6[1-5]|8[12]|91)\d{2}[01238]\d{1}$") Then Exit Function
 		BirthDay = Mid(Ai, 7, 4) & "-" & Mid(Ai, 11, 2) & "-" & Mid(Ai, 13, 2)
@@ -678,41 +667,41 @@ Class EasyAsp
 		modValue = AiPlusWi Mod 11
 		strVerifyCode = arrVerifyCode(modValue)
 		Ai = Ai & strVerifyCode
-		If Len(str) = 18 And LCase(str) <> Ai Then Exit Function
+		If Len(s) = 18 And LCase(s) <> Ai Then Exit Function
 		isIDCard = True
 	End Function
 	'简易的服务端检查表单
-	Function CheckForm(ByVal Str, ByVal Rule, ByVal Require, ByVal ErrMsg)
+	Function CheckForm(ByVal s, ByVal Rule, ByVal Require, ByVal ErrMsg)
 		Dim tmpMsg, Msg
 		tmpMsg = Replace(ErrMsg,"\:",chr(0))
 		Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("有项目不能为空",tmpMsg))
-		If Require = 1 And IsN(Str) Then
+		If Require = 1 And IsN(s) Then
 			If Instr(tmpMsg,":")>0 Then
 				alert Replace(Msg(0),chr(0),":") : Exit Function
 			Else
 				alert Replace(tmpMsg,chr(0),":") : Exit Function
 			End If
 		End If
-		If Not (Require = 0 And isN(Str)) Then
+		If Not (Require = 0 And isN(s)) Then
 			If Left(Rule,1)=":" Then
 				pass = False
 				arrRule = Split(Mid(Rule,2),"|")
 				For i = 0 To Ubound(arrRule)
-					If Test(Str,arrRule(i)) Then pass = True : Exit For
+					If Test(s,arrRule(i)) Then pass = True : Exit For
 				Next
 				If Not pass Then Alert(Replace(Msg(1),chr(0),":")) : Exit Function
 			Else
-				If Not Test(Str,Rule) Then : Alert(Replace(Msg(1),chr(0),":")) : Exit Function
+				If Not Test(s,Rule) Then : Alert(Replace(Msg(1),chr(0),":")) : Exit Function
 			End If
 		End If
-		CheckForm = Str
+		CheckForm = s
 	End Function
 	'返回正则验证结果
-	Function Test(ByVal Str, ByVal Pattern)
+	Function Test(ByVal s, ByVal Pattern)
 		Dim Pa
 		Select Case Lcase(Pattern)
-			Case "date"		Test = IIF(isDate(Str),True,False) : Exit Function
-			Case "idcard"	Test = IIF(isIDCard(Str),True,False) : Exit Function
+			Case "date"		Test = IIF(isDate(s),True,False) : Exit Function
+			Case "idcard"	Test = IIF(isIDCard(s),True,False) : Exit Function
 			Case "english"	Pa = "^[A-Za-z]+$"
 			Case "chinese"	Pa = "^[\u0391-\uFFE5]+$"
 			Case "username"	Pa = "^[a-z]\w{2,19}$"
@@ -730,25 +719,25 @@ Class EasyAsp
 			Case "ip"		Pa = "^(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5])$"
 			Case Else Pa = Pattern
 		End Select
-		Test = Easp_Test(CStr(Str),Pa)
+		Test = Easp_Test(CStr(s),Pa)
 	End Function
 	'正则替换
-	Function regReplace(ByVal Str, ByVal rule, Byval Result)
-		regReplace = Easp_Replace(Str,rule,Result,0)
+	Function regReplace(ByVal s, ByVal rule, Byval Result)
+		regReplace = Easp_Replace(s,rule,Result,0)
 	End Function
 	'正则替换多行模式
-	Function regReplaceM(ByVal Str, ByVal rule, Byval Result)
-		regReplaceM = Easp_Replace(Str,rule,Result,1)
+	Function regReplaceM(ByVal s, ByVal rule, Byval Result)
+		regReplaceM = Easp_Replace(s,rule,Result,1)
 	End Function
 	'正则匹配捕获
-	Function regMatch(ByVal Str, ByVal rule)
-		Set regMatch =  Easp_Match(Str,rule)
+	Function regMatch(ByVal s, ByVal rule)
+		Set regMatch =  Easp_Match(s,rule)
 	End Function
 	'检测组件是否安装
-	Function isInstall(Byval Str)
+	Function isInstall(Byval s)
 		On Error Resume Next : Err.Clear()
 		isInstall = False
-		Dim obj : Set obj = Server.CreateObject(Str)
+		Dim obj : Set obj = Server.CreateObject(s)
 		If Err.Number = 0 Then isInstall = True
 		Set obj = Nothing : Err.Clear()
 	End Function
@@ -868,8 +857,8 @@ Class EasyAsp
 		End If
 	End Sub
 	'Md5加密字符串
-	Function Md5(ByVal Str)
-		Use("Md5") : Md5 = o_md5.md5(Str)
+	Function Md5(ByVal s)
+		Use("Md5") : Md5 = o_md5.md5(s)
 	End Function
 End Class
 Class EasyAsp_obj : End Class
@@ -891,26 +880,26 @@ Function Easp_Param(ByVal s)
 	End If
 	Easp_Param = arr
 End Function
-Function Easp_isN(ByVal str)
+Function Easp_isN(ByVal s)
 	Easp_isN = False
-	Select Case VarType(str)
+	Select Case VarType(s)
 		Case vbEmpty, vbNull
 			Easp_isN = True : Exit Function
 		Case vbString
-			If str="" Then Easp_isN = True : Exit Function
+			If s="" Then Easp_isN = True : Exit Function
 		Case vbObject
-			If TypeName(str)="Nothing" Or TypeName(str)="Empty" Then Easp_isN = True : Exit Function
+			If TypeName(s)="Nothing" Or TypeName(s)="Empty" Then Easp_isN = True : Exit Function
 		Case vbArray,8194,8204,8209
-			If Ubound(str)=-1 Then Easp_isN = True : Exit Function
+			If Ubound(s)=-1 Then Easp_isN = True : Exit Function
 	End Select
 End Function
-Function Easp_JsEncode(str)
+Function Easp_JsEncode(s)
 	Dim i, j, aL1, aL2, c, p, t
 	aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
 	aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
-	For i = 1 To Len(str)
+	For i = 1 To Len(s)
 		p = True
-		c = Mid(str, i, 1)
+		c = Mid(s, i, 1)
 		For j = 0 To 7
 			If c = Chr(aL1(j)) Then
 				t = t & "\" & Chr(aL2(j))
@@ -930,11 +919,11 @@ Function Easp_JsEncode(str)
 	Next
 	Easp_JsEncode = t
 End Function
-Function Easp_Escape(ByVal str)
+Function Easp_Escape(ByVal ss)
 	Dim i,c,a,s : s = ""
-	If Easp_isN(str) Then Easp_Escape = "" : Exit Function
-	For i = 1 To Len(str)
-		c = Mid(str,i,1)
+	If Easp_isN(ss) Then Easp_Escape = "" : Exit Function
+	For i = 1 To Len(ss)
+		c = Mid(ss,i,1)
 		a = ASCW(c)
 		If (a>=48 and a<=57) or (a>=65 and a<=90) or (a>=97 and a<=122) Then
 			s = s & c
@@ -950,22 +939,22 @@ Function Easp_Escape(ByVal str)
 	Next
 	Easp_Escape = s
 End Function
-Function Easp_UnEscape(ByVal str)
+Function Easp_UnEscape(ByVal ss)
 	Dim x, s
-	x = InStr(str,"%")
+	x = InStr(ss,"%")
 	s = ""
 	Do While x>0
-		s = s & Mid(str,1,x-1)
-		If LCase(Mid(str,x+1,1))="u" Then
-			s = s & ChrW(CLng("&H"&Mid(str,x+2,4)))
-			str = Mid(str,x+6)
+		s = s & Mid(ss,1,x-1)
+		If LCase(Mid(ss,x+1,1))="u" Then
+			s = s & ChrW(CLng("&H"&Mid(ss,x+2,4)))
+			ss = Mid(ss,x+6)
 		Else
-			s = s & Chr(CLng("&H"&Mid(str,x+1,2)))
-			str = Mid(str,x+3)
+			s = s & Chr(CLng("&H"&Mid(ss,x+1,2)))
+			ss = Mid(ss,x+3)
 		End If
-		x=InStr(str,"%")
+		x=InStr(ss,"%")
 	Loop
-	Easp_UnEscape = s & str
+	Easp_UnEscape = s & ss
 End Function
 Function Easp_RandStr(ByVal cfg)
 	Dim a, p, l, t, reg, m, mi, ma
@@ -1014,19 +1003,19 @@ End Function
 Function Easp_Rand(ByVal min, ByVal max)
     Randomize() : Easp_Rand = Int((max - min + 1) * Rnd + min)
 End Function
-Function Easp_Test(ByVal Str, ByVal Pattern)
-	If Easp_IsN(Str) Then Easp_Test = False : Exit Function
+Function Easp_Test(ByVal s, ByVal Pattern)
+	If Easp_IsN(s) Then Easp_Test = False : Exit Function
 	Dim Reg
 	Set Reg = New RegExp
 	Reg.IgnoreCase = True
 	Reg.Global = True
 	Reg.Pattern = Pattern
-	Easp_Test = Reg.Test(CStr(Str))
+	Easp_Test = Reg.Test(CStr(s))
 	Set Reg = Nothing
 End Function
-Function Easp_Replace(ByVal Str, ByVal rule, Byval Result, ByVal isM)
-	Dim tmpStr,Reg : tmpStr = Str
-	If Not Easp_isN(Str) Then
+Function Easp_Replace(ByVal s, ByVal rule, Byval Result, ByVal isM)
+	Dim tmpStr,Reg : tmpStr = s
+	If Not Easp_isN(s) Then
 		Set Reg = New Regexp
 		Reg.Global = True
 		Reg.IgnoreCase = True
@@ -1038,13 +1027,13 @@ Function Easp_Replace(ByVal Str, ByVal rule, Byval Result, ByVal isM)
 	Easp_Replace = tmpStr
 End Function
 '正则匹配
-Function Easp_Match(ByVal Str, ByVal rule)
+Function Easp_Match(ByVal s, ByVal rule)
 	Dim Reg
 	Set Reg = New Regexp
 	Reg.Global = True
 	Reg.IgnoreCase = True
 	Reg.Pattern = rule
-	Set Easp_Match = Reg.Execute(Str)
+	Set Easp_Match = Reg.Execute(s)
 	Set Reg = Nothing
 End Function
 
