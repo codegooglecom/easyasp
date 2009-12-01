@@ -1,4 +1,5 @@
 <%
+Option Explicit
 '#################################################################################
 '##	easp.asp
 '##	------------------------------------------------------------------------------
@@ -18,7 +19,6 @@
 '					8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
 '					9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
 '#################################################################################
-Option Explicit
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
 %>
@@ -52,6 +52,9 @@ Class EasyAsp
 	End Sub
 	Public Property Let basePath(ByVal p)
 		s_path = p
+	End Property
+	Public Property Get basePath()
+		basePath = s_path
 	End Property
 	Public Property Let fsoName(ByVal s)
 		s_fsoName = s
@@ -236,9 +239,10 @@ Class EasyAsp
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
+	'获取QueryString值，支持取Rewrite值
 	Function [Get](Byval s)
 		Dim tmp, isRwt, url, rule, i, qs, arrQs, t
-		t = 0 : isRwt = False : url = GetUrl(1)
+		isRwt = False : url = GetUrl(1)
 		If Instr(s,":")>0 Then
 		'如果有类型参数，则取出为t
 			t = CRight(s,":") : s = CLeft(s,":")
@@ -262,55 +266,79 @@ Class EasyAsp
 		Else
 			tmp = Request.QueryString(s)
 		End If
-		[Get] = SafeData("",tmp,t)
+		[Get] = Safe(tmp,t)
+	End Function
+	'取Form值
+	Function Post(ByVal s)
+		Dim t,tmp
+		If Instr(s,":")>0 Then
+			t = CRight(s,":") : s = CLeft(s,":")
+		End If
+		tmp = Request.Form(s)
+		Post = Safe(tmp,t)
 	End Function
 	'安全获取值新版
 	Function Safe(ByVal s, ByVal t)
-		Dim spl,d,l,li,i,tmp,arr(5) : l = False
-		If Instr(t,":")>0 Then
+		Dim spl,d,l,li,i,tmp,arr() : l = False
 		'如果类型中有默认值
+		If Instr(t,":")>0 Then
 			d = CRight(t,":") : t = CLeft(t,":")
 		End If
-		If Instr(",sa,da,na,", "," & Left(t,2) & ",")>0 Then
+		If Instr(",sa,da,na,", "," & Left(LCase(t),2) & ",")>0 Then
 			'如果有分隔符且要警告
 			If Len(t)>2 Then
-				spl = Mid(t,3) : t = Left(t,2) : l = True
+				spl = Mid(t,3) : t = LCase(Left(t,2)) : l = True
 			End If
-		ElseIf Instr("sdn", Left(t,1))>0 Then
+		ElseIf Instr("sdn", Left(LCase(t),1))>0 Then
 			'如果有分隔符且不警告
 			If Len(t)>1 Then
-				spl = Mid(t,2) : t = Left(t,1) : l = True
+				spl = Mid(t,2) : t = LCase(Left(t,1)) : l = True
 			End If
-		Else
+		ElseIf Not isN(t) Then
 			'仅有分隔符无类型
-			spl = t : t = ""
+			spl = t : t = "" : l = True
 		End If
 		li = Split(s,spl)
-		If l Then Redim arr(Ubound(li)+1)
+		If l Then Redim arr(Ubound(li))
 		For i = 0 To Ubound(li)
 			If i<>0 Then tmp = tmp & spl
 			Select Case t
 				Case "s","sa"
+				'字符串类型
 					If isN(li(i)) Then li(i) = d
 					tmp = tmp & Replace(li(i),"'","''")
 					If l Then arr(i) = Replace(li(i),"'","''")
-				Case "d"
-					tmp = IIF(Test(li(i),"date"), tmp & li(i), tmp & d)
-					If l Then arr(i) = IIF(Test(li(i),"date"), li(i), d)
-				Case "da"
-					If Not Test(li(i),"date") Then Alert("不正确的日期值！")
-				Case "n"
+				Case "d","da"
+				'日期类型
+					If t = "da" Then
+						If Not isDate(li(i)) And Not isN(li(i)) Then Alert("不正确的日期值！")
+					End If
+					tmp = IIF(isDate(li(i)), tmp & li(i), tmp & d)
+					If l Then arr(i) = IIF(isDate(li(i)), li(i), d)
+				Case "n","na"
+				'数字类型
+					If t = "na" Then
+						If Not isNumeric(li(i)) And Not isN(li(i)) Then Alert("不正确的数值！")
+					End If
 					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
-				Case "na"
-					If Not isNumeric(li(i)) Then Alert("不正确的数值！")
 				Case Else
+				'未指定类型则不处理
 					tmp = IIF(isN(li(i)), tmp & d, tmp & li(i))
 					If l Then arr(i) = IIF(isN(li(i)), d, li(i))
 			End Select
 		Next
 		Safe = IIF(l,arr,tmp)
 	End Function
+	'调试函数
+'	Function Trace(Byval o)
+'		Dim t : t = VarType(o)
+'		Select Case t
+'			Case 8
+'			Case 9
+'			Case Else
+'		End Select
+'	End Function
 	'安全获取值
 	Function R(ByVal s, ByVal t)
 		R = SafeData("R", s, t)
@@ -725,7 +753,7 @@ Class EasyAsp
 	End Function
 	'简易的服务端检查表单
 	Function CheckForm(ByVal s, ByVal Rule, ByVal Require, ByVal ErrMsg)
-		Dim tmpMsg, Msg
+		Dim tmpMsg, Msg, i
 		tmpMsg = Replace(ErrMsg,"\:",chr(0))
 		Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("有项目不能为空",tmpMsg))
 		If Require = 1 And IsN(s) Then
