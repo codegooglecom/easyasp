@@ -1,14 +1,25 @@
 <%
 '#################################################################################
 '##	easp.asp
-'##	--------------------------------------------------------------------
+'##	------------------------------------------------------------------------------
 '##	Feature		:	EasyAsp Class
-'##	Version		:	v2.2
-'##	Author		:	Coldstone(coldstone[在]qq.com)
-'##	Update Date	:	2009-03-26  16:50
-'##	Description	:	EasyAsp类
+'##	Version		:	v2.2 alpha
+'##	Author		:	Coldstone(coldstone[at]qq.com)
+'##	Update Date	:	2009/12/1 0:02:32
+'##	Description	:	EasyAsp Class
 '##
+'##	Update Info	:	1. 优化Easp.CheckForm中的rule可带多个验证项；
+'					2. 增加Easp.Str和Easp.WStr输出字符串；
+'					3. 增加Easp.JsCode方法，返回javascript字符串；
+'					4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
+'					5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数；
+'					6. 增加Easp.Use方法，用于引用Easp的官方类库；
+'					7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
+'					8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
+'					9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
 '#################################################################################
+Option Explicit
+Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
 %>
 <!--#include file="easp._config.asp"-->
@@ -25,7 +36,7 @@ Class EasyAsp
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		Set o_rwt 	= Server.CreateObject("Scripting.Dictionary")
-		Set db		= New EasyAsp_obj
+		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
 		Set upload	= New EasyAsp_obj
@@ -72,18 +83,20 @@ Class EasyAsp
 		W(s)
 		Response.End()
 	End Sub
+	'生成动态字符串
 	Function Str(ByVal s, ByVal v)
 		Dim i
-		s = Replace(s,"\$",Chr(0))
+		s = Replace(s,"\{",Chr(0))
 		If isArray(v) Then
 			For i = 0 To Ubound(v)
-				s = Replace(s,"$"&(i+1),v(i))
+				s = Replace(s,"{"&(i+1)&"}",v(i))
 			Next
 		Else
-			s = Replace(s,"$1",v)
+			s = Replace(s,"{1}",v)
 		End If
-		Str = Replace(s,Chr(0),"$")
+		Str = Replace(s,Chr(0),"{")
 	End Function
+	'输出动态字符串
 	Sub WStr(ByVal s, ByVal v)
 		W Str(s,v)
 	End Sub
@@ -107,19 +120,19 @@ Class EasyAsp
 		W JsCode(s)
 	End Sub
 	Function JsCode(ByVal s)
-		JsCode = Str("<$1 type=""text/java$1"">$2$3$4$2</$1>$2", Array("sc"&"ript",vbCrLf,vbTab,s))
+		JsCode = Str("<{1} type=""text/java{1}"">{2}{3}{4}{2}</{1}>{2}", Array("sc"&"ript",vbCrLf,vbTab,s))
 	End Function
 	'服务器端输出javascript弹出消息框并返回前页
 	Sub Alert(ByVal s)
-		WE JsCode(Str("alert('$1');history.go(-1);",JsEncode(s)))
+		WE JsCode(Str("alert('{1}');history.go(-1);",JsEncode(s)))
 	End Sub
 	'服务器端输出javascript弹出消息框并转到URL
 	Sub AlertUrl(ByVal s, ByVal u)
-		WE JsCode(Str("alert('$1');location.href='$2';",Array(JsEncode(s),u)))
+		WE JsCode(Str("alert('{1}');location.href='{2}';",Array(JsEncode(s),u)))
 	End Sub
 	'服务器端输出javascript确认消息框并根据选择转到URL
 	Sub ConfirmUrl(ByVal s, ByVal tu, ByVal fu)
-		WE JsCode(Str("if(confirm('$1')){$4='$2';}else{$4='$3';}",Array(JsEncode(s),tu,fu,"location.href")))
+		WE JsCode(Str("if(confirm('{1}')){{4}='{2}';}else{{4}='{3}';}",Array(JsEncode(s),tu,fu,"location.href")))
 	End Sub
 	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
@@ -227,6 +240,7 @@ Class EasyAsp
 		Dim tmp, isRwt, url, rule, i, qs, arrQs, t
 		t = 0 : isRwt = False : url = GetUrl(1)
 		If Instr(s,":")>0 Then
+		'如果有类型参数，则取出为t
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
 		For Each i In o_rwt
@@ -249,6 +263,53 @@ Class EasyAsp
 			tmp = Request.QueryString(s)
 		End If
 		[Get] = SafeData("",tmp,t)
+	End Function
+	'安全获取值新版
+	Function Safe(ByVal s, ByVal t)
+		Dim spl,d,l,li,i,tmp,arr(5) : l = False
+		If Instr(t,":")>0 Then
+		'如果类型中有默认值
+			d = CRight(t,":") : t = CLeft(t,":")
+		End If
+		If Instr(",sa,da,na,", "," & Left(t,2) & ",")>0 Then
+			'如果有分隔符且要警告
+			If Len(t)>2 Then
+				spl = Mid(t,3) : t = Left(t,2) : l = True
+			End If
+		ElseIf Instr("sdn", Left(t,1))>0 Then
+			'如果有分隔符且不警告
+			If Len(t)>1 Then
+				spl = Mid(t,2) : t = Left(t,1) : l = True
+			End If
+		Else
+			'仅有分隔符无类型
+			spl = t : t = ""
+		End If
+		li = Split(s,spl)
+		If l Then Redim arr(Ubound(li)+1)
+		For i = 0 To Ubound(li)
+			If i<>0 Then tmp = tmp & spl
+			Select Case t
+				Case "s","sa"
+					If isN(li(i)) Then li(i) = d
+					tmp = tmp & Replace(li(i),"'","''")
+					If l Then arr(i) = Replace(li(i),"'","''")
+				Case "d"
+					tmp = IIF(Test(li(i),"date"), tmp & li(i), tmp & d)
+					If l Then arr(i) = IIF(Test(li(i),"date"), li(i), d)
+				Case "da"
+					If Not Test(li(i),"date") Then Alert("不正确的日期值！")
+				Case "n"
+					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
+					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
+				Case "na"
+					If Not isNumeric(li(i)) Then Alert("不正确的数值！")
+				Case Else
+					tmp = IIF(isN(li(i)), tmp & d, tmp & li(i))
+					If l Then arr(i) = IIF(isN(li(i)), d, li(i))
+			End Select
+		Next
+		Safe = IIF(l,arr,tmp)
 	End Function
 	'安全获取值
 	Function R(ByVal s, ByVal t)
@@ -388,19 +449,11 @@ Class EasyAsp
 	End Function
 	'取字符隔开的左段
 	Function CLeft(ByVal s, ByVal m)
-		If Instr(s,m)>0 Then
-			CLeft = Left(s,Instr(s,m)-1)
-		Else
-			CLeft = s
-		End If
+		CLeft = Easp_LR(s,m,0)
 	End Function
 	'取字符隔开的右段
 	Function CRight(ByVal s, ByVal m)
-		If Instr(s,m)>0 Then
-			CRight = Mid(s,Instr(s,m)+1)
-		Else
-			CRight = s
-		End If
+		CRight = Easp_LR(s,m,1)
 	End Function
 	
 	'获取当前文件的地址
@@ -691,20 +744,20 @@ Class EasyAsp
 				Next
 				If Not pass Then Alert(Replace(Msg(1),chr(0),":")) : Exit Function
 			Else
-				If Not Test(s,Rule) Then : Alert(Replace(Msg(1),chr(0),":")) : Exit Function
+				If Not Test(s,Rule) Then Alert(Replace(Msg(1),chr(0),":")) : Exit Function
 			End If
 		End If
 		CheckForm = s
 	End Function
 	'返回正则验证结果
-	Function Test(ByVal s, ByVal Pattern)
+	Function [Test](ByVal s, ByVal p)
 		Dim Pa
-		Select Case Lcase(Pattern)
+		Select Case Lcase(p)
 			Case "date"		Test = IIF(isDate(s),True,False) : Exit Function
 			Case "idcard"	Test = IIF(isIDCard(s),True,False) : Exit Function
 			Case "english"	Pa = "^[A-Za-z]+$"
 			Case "chinese"	Pa = "^[\u0391-\uFFE5]+$"
-			Case "username"	Pa = "^[a-z]\w{2,19}$"
+			Case "username"	Pa = "^[a-zA-Z]\w{2,19}$"
 			Case "email"	Pa = "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
 			Case "int"		Pa = "^[-\+]?\d+$"
 			Case "number"	Pa = "^\d+$"
@@ -715,11 +768,11 @@ Class EasyAsp
 			Case "phone"	Pa = "^((\(\d{2,3}\))|(\d{3}\-))?(\(0\d{2,3}\)|0\d{2,3}-)?[1-9]\d{6,7}(\-\d{1,4})?$"
 			Case "mobile"	Pa = "^((\(\d{2,3}\))|(\d{3}\-))?(1[35][0-9]|189)\d{8}$"
 			Case "url"		Pa = "^(http|https|ftp):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\""])*$"
-			Case "domain"	Pa = "^[A-Za-z0-9\-]+\.([A-Za-z]{2,4}|[A-Za-z]{2,4}\.[A-Za-z]{2})$"
+			Case "domain"	Pa = "^[A-Za-z0-9\-\.]+\.([A-Za-z]{2,4}|[A-Za-z]{2,4}\.[A-Za-z]{2})$"
 			Case "ip"		Pa = "^(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5])$"
-			Case Else Pa = Pattern
+			Case Else Pa = p
 		End Select
-		Test = Easp_Test(CStr(s),Pa)
+		[Test] = Easp_Test(CStr(s),Pa)
 	End Function
 	'正则替换
 	Function regReplace(ByVal s, ByVal rule, Byval Result)
@@ -853,12 +906,17 @@ Class EasyAsp
 					fso.CharSet = s_charset
 				Case "upload"
 					upload.CharSet = s_charset
+				Case "tpl"
+					tpl.CharSet = s_charset
 			End Select
 		End If
 	End Sub
 	'Md5加密字符串
-	Function Md5(ByVal s)
-		Use("Md5") : Md5 = o_md5.md5(s)
+	Function MD5(ByVal s)
+		Use("Md5") : MD5 = o_md5(s)
+	End Function
+	Function MD5_16(ByVal s)
+		Use("Md5") : MD5_16 = o_md5.To16(s)
 	End Function
 End Class
 Class EasyAsp_obj : End Class
@@ -973,15 +1031,15 @@ Function Easp_RandStr(ByVal cfg)
 			If Easp_Test(l,"^\d+$") Then
 				t = Replace(t,p,Easp_RandString(l,a),1,1)
 			Else
-				mi = Left(l,Instr(l,"-")-1)
-				ma = Mid(l,Instr(l,"-")+1)
+				mi = Easp_LR(l,"-",0)
+				ma = Easp_LR(l,"-",1)
 				t =  Replace(t,p,Easp_Rand(mi, ma),1,1)
 			End If
 		Next
 		Set reg = Nothing
 	ElseIf Easp_Test(cfg,"^\d+-\d+$") Then
-		mi = Left(cfg,Instr(cfg,"-")-1)
-		ma = Mid(cfg,Instr(cfg,"-")+1)
+		mi = Easp_LR(cfg,"-",0)
+		ma = Easp_LR(cfg,"-",1)
 		t = Easp_Rand(mi, ma)
 	ElseIf Easp_Test(cfg, "^(\d+)|(\d+:.)$") Then
 		l = cfg : p = Easp_Param(cfg)
@@ -995,6 +1053,7 @@ Function Easp_RandStr(ByVal cfg)
 	Easp_RandStr = Replace(Replace(Replace(t,Chr(0),"<"),Chr(1),">"),Chr(2),":")
 End Function
 Function Easp_RandString(ByVal length, ByVal allowStr)
+	Dim i
 	If Easp_IsN(allowStr) Then allowStr = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	For i = 1 To length
 		Randomize() : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
@@ -1003,13 +1062,12 @@ End Function
 Function Easp_Rand(ByVal min, ByVal max)
     Randomize() : Easp_Rand = Int((max - min + 1) * Rnd + min)
 End Function
-Function Easp_Test(ByVal s, ByVal Pattern)
+Function Easp_Test(ByVal s, ByVal p)
 	If Easp_IsN(s) Then Easp_Test = False : Exit Function
 	Dim Reg
 	Set Reg = New RegExp
-	Reg.IgnoreCase = True
 	Reg.Global = True
-	Reg.Pattern = Pattern
+	Reg.Pattern = p
 	Easp_Test = Reg.Test(CStr(s))
 	Set Reg = Nothing
 End Function
@@ -1036,5 +1094,17 @@ Function Easp_Match(ByVal s, ByVal rule)
 	Set Easp_Match = Reg.Execute(s)
 	Set Reg = Nothing
 End Function
-
+'取字符串的两头
+Function Easp_LR(ByVal s, ByVal m, ByVal t)
+	If Instr(s,m)>0 Then
+		If t = 0 Then
+			Easp_LR = Left(s,Instr(s,m)-1)
+		ElseIf t = 1 Then
+			Easp_LR = Mid(s,Instr(s,m)+1)
+		End If
+	Else
+		Easp_LR = s
+	End If
+End Function
 %>
+<!--#include file="easp.db.asp"-->

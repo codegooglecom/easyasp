@@ -162,14 +162,13 @@ Class EasyAsp_md5
 	Private Function WordToHex(lValue)
 		Dim lByte
 		Dim lCount
-		
 		For lCount = 0 To 3
 			lByte = RShift(lValue, lCount * BITS_TO_A_BYTE) And m_lOnBits(BITS_TO_A_BYTE - 1)
 			WordToHex = WordToHex & Right("0" & Hex(lByte), 2)
 		Next
 	End Function
 	
-	Public Function MD5(sMessage)
+	Private Function MD5(sMessage, bit)
 		m_lOnBits(0) = CLng(1)
 		m_lOnBits(1) = CLng(3)
 		m_lOnBits(2) = CLng(7)
@@ -233,7 +232,6 @@ Class EasyAsp_md5
 		m_l2Power(28) = CLng(268435456)
 		m_l2Power(29) = CLng(536870912)
 		m_l2Power(30) = CLng(1073741824)
-	
 	
 		Dim x
 		Dim k
@@ -349,8 +347,17 @@ Class EasyAsp_md5
 			c = AddUnsigned(c, CC)
 			d = AddUnsigned(d, DD)
 		Next
-		
-		MD5 = LCase(WordToHex(a) & WordToHex(b) & WordToHex(c) & WordToHex(d))
+		If bit = 16 Then
+			MD5 = LCase(WordToHex(b) & WordToHex(c))
+		Else
+			MD5 = LCase(WordToHex(a) & WordToHex(b) & WordToHex(c) & WordToHex(d))
+		End If
+	End Function
+	Public Default Function To32(ByVal s)
+		To32 = MD5(s,32)
+	End Function
+	Public Function To16(ByVal s)
+		To16 = MD5(s,16)
 	End Function
 End Class
 %>
