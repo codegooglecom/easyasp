@@ -27,10 +27,11 @@ Dim Easp : Set Easp = New EasyASP
 Dim EasyAsp_s_html
 Class EasyAsp
 	Public db,fso,upload,tpl
-	Private s_path, s_fsoName, s_charset,s_rq, i_rule
+	Private s_path, s_plugin, s_fsoName, s_charset,s_rq, i_rule
 	Private o_md5, o_rwt
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
+		s_plugin	= "/easp/plugin/"
 		s_fsoName	= "Scripting.FilesyStemObject"
 		s_charset	= "GB2312"
 		s_rq		= Request.QueryString()
@@ -55,6 +56,12 @@ Class EasyAsp
 	End Property
 	Public Property Get basePath()
 		basePath = s_path
+	End Property
+	Public Property Let pluginPath(ByVal p)
+		s_plugin = p
+	End Property
+	Public Property Get pluginPath()
+		pluginPath = s_plugin
 	End Property
 	Public Property Let fsoName(ByVal s)
 		s_fsoName = s
@@ -339,82 +346,6 @@ Class EasyAsp
 '			Case Else
 '		End Select
 '	End Function
-	'安全获取值
-	Function R(ByVal s, ByVal t)
-		R = SafeData("R", s, t)
-	End Function
-	Function Ra(ByVal s, ByVal t)
-		Ra = SafeData("Ra", s, t)
-	End Function
-	Function RF(ByVal s, ByVal t)
-		RF = SafeData("RF", s, t)
-	End Function
-	Function RFa(ByVal s, ByVal t)
-		RFa = SafeData("RFa", s, t)
-	End Function
-	Function RQ(ByVal s, ByVal t)
-		RQ = SafeData("RQ", s, t)
-	End Function
-	Function RQa(ByVal s, ByVal t)
-		RQa = SafeData("RQa", s, t)
-	End Function
-	'安全获取值原始方法
-	Function SafeData(fn, ByVal s, ByVal t)
-		Dim tmp, fna
-		Dim RDefault,RSplit
-		Dim TempArr, i
-		Select Case fn
-			Case "R", "Ra" tmp = Request(s)
-			Case "RF", "RFa" tmp = Request.Form(s)
-			Case "RQ", "RQa" tmp = Request.QueryString(s)
-			Case Else tmp = s
-		End Select
-		fna = IIF(fn = "Ra" or fn = "RFa" or fn = "RQa",True,False)
-		RSplit = ","
-		If Instr(Cstr(t),":")=2 Then
-			RDefault = Mid(t,3)
-			If IsN(tmp) Then tmp = RDefault
-			t = Int(Left(t,1))
-			If t = 2 Or t = 3 Then RSplit = RDefault
-		End If
-		Select Case t
-			Case 0
-				tmp = Replace(tmp,"'","''")
-			Case 1
-				tmp = IsNumber(tmp,IIF(fna,0,1))
-			Case 2,3
-				If Instr(tmp,RSplit)>0 Then
-					TempArr = split(tmp,RSplit)
-					tmp = ""
-					For i = 0 To Ubound(TempArr)
-						If i <>0 Then tmp = tmp & RSplit
-						If t = 2 Then
-							tmp = tmp & Replace(Trim(TempArr(i)),"'","''")
-						Else
-							TempArr(i) = IsNumber(Trim(TempArr(i)),IIF(fna,0,1))
-							tmp = tmp & TempArr(i)
-						End If
-					Next
-				Else
-					tmp = IIF(t = 2,Replace(tmp,"'","''"),IsNumber(tmp,IIF(fna,0,1)))
-				End If
-		End Select
-		SafeData = tmp
-	End Function
-	'临时验证是否为数字
-	Private Function IsNumber(s, t)
-		If Not IsN(s) Then
-			If not isNumeric(s) Then
-				If t = 0 Then
-					Alert "数据类型不正确！"
-				Else
-					IsNumber = ""
-				End If
-			Else
-				IsNumber = s
-			End if
-		End If
-	End Function
 	'检查提交数据来源
 	Function CheckDataFrom()
 		Dim v1, v2
@@ -428,36 +359,6 @@ Class EasyAsp
 	Sub CheckDataFromA()
 		If Not CheckDataFrom Then alert "禁止从站点外部提交数据！"
 	end Sub
-	'防SQL注入强检测
-	Function CheckSql()
-		Dim noSQLStr, noSQL, StrGet, StrPost, i, j
-		noSQLStr = " and, or, insert, exec, select, delete, update, count, chr, mid, master, truncate, char, declare"
-		noSQL = Split(noSQLStr,",")
-		If Not isN(s_rq) Then
-			For Each StrGet In Request.QueryString()
-				For i = 0 To Ubound(noSQL)
-					If Instr(Request.QueryString(StrGet),noSQL(i))>0 Then
-						CheckSql = False
-						exit Function
-					End If
-				Next
-			Next
-		End If
-		If Request.Form<>"" Then
-			For Each StrPost In Request.Form
-				For j = 0 To Ubound(noSQL)
-					If Instr(Request.Form(StrPost),noSQL(j))>0 Then
-						CheckSql = False
-						exit Function
-					End If
-				Next
-			Next
-		End If
-		CheckSql = True
-	End Function
-	Sub CheckSqlA()
-		If Not CheckSql Then alert "数据中含有非法字符！"
-	End Sub
 	'截取长字符串左边部分并以特殊符号代替
 	Function CutString(ByVal s, ByVal strlen)
 		Dim l,t,c,i,d,f
@@ -920,15 +821,15 @@ Class EasyAsp
 		GetIncCode = Replace(code,vbCrLf&vbCrLf,vbCrLf)
 	End Function
 	'加载引用EasyAsp库类
-	Sub Use(ByVal sType)
-		Dim p, o, t : o = sType
+	Sub Use(ByVal f)
+		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
 		If LCase(o) = "md5" Then o = "o_md5"
 		t = Eval("LCase(TypeName("&o&"))")
 		If t = "easyasp_obj" Then
 			Include(s_path & p)
-			Execute("Set "&o&" = New EasyAsp_"&sType)
-			Select Case Lcase(sType)
+			Execute("Set "&o&" = New EasyAsp_"&f)
+			Select Case Lcase(f)
 				Case "fso"
 					fso.fsoName = s_fsoName
 					fso.CharSet = s_charset
@@ -938,6 +839,10 @@ Class EasyAsp
 					tpl.CharSet = s_charset
 			End Select
 		End If
+	End Sub
+	'加载插件
+	Sub Import(ByVal f)
+		
 	End Sub
 	'Md5加密字符串
 	Function MD5(ByVal s)
