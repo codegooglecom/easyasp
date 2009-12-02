@@ -21,14 +21,14 @@ Option Explicit
 '#################################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
+Dim EasyAsp_s_html
 %>
 <!--#include file="easp._config.asp"-->
 <%
-Dim EasyAsp_s_html
 Class EasyAsp
 	Public db,fso,upload,tpl
 	Private s_path, s_plugin, s_fsoName, s_charset,s_rq, i_rule
-	Private o_md5, o_rwt
+	Private o_md5, o_rwt, o_ext
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= "/easp/plugin/"
@@ -37,6 +37,7 @@ Class EasyAsp
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		Set o_rwt 	= Server.CreateObject("Scripting.Dictionary")
+		Set o_ext 	= Server.CreateObject("Scripting.Dictionary")
 		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
@@ -44,12 +45,13 @@ Class EasyAsp
 		Set tpl		= New EasyAsp_obj
 	End Sub
 	Private Sub Class_Terminate()
-		Set o_rwt	= Nothing
-		Set db 		= Nothing
-		Set o_md5	= Nothing
-		Set fso		= Nothing
-		Set upload	= Nothing
 		Set tpl		= Nothing
+		Set upload	= Nothing
+		Set fso		= Nothing
+		Set o_md5	= Nothing
+		Set db 		= Nothing
+		Set o_ext	= Nothing
+		Set o_rwt	= Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
 		s_path = p
@@ -842,8 +844,16 @@ Class EasyAsp
 	End Sub
 	'¼ÓÔØ²å¼þ
 	Sub Import(ByVal f)
-		
+		Dim p : f = Lcase(f)
+		If Not o_ext.Exists(f) Then
+			p = s_plugin & "easp." & f & ".asp"
+			
+		End If
 	End Sub
+	Function Ext(ByVal f)
+		Dim o
+
+	End Function
 	'Md5¼ÓÃÜ×Ö·û´®
 	Function MD5(ByVal s)
 		Use("Md5") : MD5 = o_md5(s)
