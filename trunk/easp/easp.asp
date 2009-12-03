@@ -9,15 +9,18 @@ Option Explicit
 '##	Update Date	:	2009/12/1 0:02:32
 '##	Description	:	EasyAsp Class
 '##
-'##	Update Info	:	1. 优化Easp.CheckForm中的rule可带多个验证项；
-'					2. 增加Easp.Str和Easp.WStr输出字符串；
-'					3. 增加Easp.JsCode方法，返回javascript字符串；
-'					4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
-'					5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数；
-'					6. 增加Easp.Use方法，用于引用Easp的官方类库；
-'					7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
-'					8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
-'					9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
+'##	Update Info	:	 1. 优化Easp.CheckForm方法，rule规则可带多个验证项，用|隔开；
+'					 2. 增加Easp.Str和Easp.WStr输出字符串；
+'					 3. 增加Easp.JsCode方法，返回javascript字符串；
+'					 4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
+'					 5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数；
+'					 6. 增加Easp.Use方法，用于动态引用Easp的官方类库；
+'					 7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
+'					 8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
+'					 9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
+'					10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
+'					11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
+'					12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
 '#################################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
@@ -27,17 +30,18 @@ Dim EasyAsp_s_html
 <%
 Class EasyAsp
 	Public db,fso,upload,tpl
-	Private s_path, s_plugin, s_fsoName, s_charset,s_rq, i_rule
+	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq, i_rule
 	Private o_md5, o_rwt, o_ext
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= "/easp/plugin/"
-		s_fsoName	= "Scripting.FilesyStemObject"
+		s_fsoName	= "Scripting.FileSystemObject"
+		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "GB2312"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
-		Set o_rwt 	= Server.CreateObject("Scripting.Dictionary")
-		Set o_ext 	= Server.CreateObject("Scripting.Dictionary")
+		Set o_rwt 	= Server.CreateObject(s_dicName)
+		Set o_ext 	= Server.CreateObject(s_dicName)
 		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
@@ -50,7 +54,7 @@ Class EasyAsp
 		Set fso		= Nothing
 		Set o_md5	= Nothing
 		Set db 		= Nothing
-		Set o_ext	= Nothing
+		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
@@ -119,6 +123,9 @@ Class EasyAsp
 	'判断是否为空值
 	Function isN(ByVal s)
 		isN = Easp_isN(s)
+	End Function
+	Function Has(ByVal s)
+		Has = Not Easp_isN(s)
 	End Function
 	'判断三元表达式
 	Function IIF(ByVal Cn, ByVal T, ByVal F)
@@ -256,14 +263,16 @@ Class EasyAsp
 		'如果有类型参数，则取出为t
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
-		For Each i In o_rwt
-			rule = o_rwt(i)(0)
-			If Easp_Test(url,rule) Then
-				qs = CRight(o_rwt(i)(1),"?")
-				isRwt = True
-				Exit For
-			End If
-		Next
+		If Has(o_rwt) Then
+			For Each i In o_rwt
+				rule = o_rwt(i)(0)
+				If Easp_Test(url,rule) Then
+					qs = CRight(o_rwt(i)(1),"?")
+					isRwt = True
+					Exit For
+				End If
+			Next
+		End If
 		If isRwt Then
 			arrQs = Split(qs,"&")
 			For i = 0 To Ubound(arrQs)
@@ -303,7 +312,7 @@ Class EasyAsp
 			If Len(t)>1 Then
 				spl = Mid(t,2) : t = LCase(Left(t,1)) : l = True
 			End If
-		ElseIf Not isN(t) Then
+		ElseIf Has(t) Then
 			'仅有分隔符无类型
 			spl = t : t = "" : l = True
 		End If
@@ -320,14 +329,14 @@ Class EasyAsp
 				Case "d","da"
 				'日期类型
 					If t = "da" Then
-						If Not isDate(li(i)) And Not isN(li(i)) Then Alert("不正确的日期值！")
+						If Not isDate(li(i)) And Has(li(i)) Then Alert("不正确的日期值！")
 					End If
 					tmp = IIF(isDate(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isDate(li(i)), li(i), d)
 				Case "n","na"
 				'数字类型
 					If t = "na" Then
-						If Not isNumeric(li(i)) And Not isN(li(i)) Then Alert("不正确的数值！")
+						If Not isNumeric(li(i)) And Has(li(i)) Then Alert("不正确的数值！")
 					End If
 					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
@@ -362,21 +371,21 @@ Class EasyAsp
 		If Not CheckDataFrom Then alert "禁止从站点外部提交数据！"
 	end Sub
 	'截取长字符串左边部分并以特殊符号代替
-	Function CutString(ByVal s, ByVal strlen)
+	Function CutStr(ByVal s, ByVal strlen)
 		Dim l,t,c,i,d,f
 		l = len(s) : t = 0 : d = "…" : f = Easp_Param(strlen)
-		If Not isN(f(1)) Then : strlen = Int(f(0)) : d = f(1) : f = "" : End If
+		If Has(f(1)) Then : strlen = Int(f(0)) : d = f(1) : f = "" : End If
 		For i = 1 to l
 			c = Abs(Ascw(Mid(s,i,1)))
 			t = IIF(c > 255,t + 2,t + 1)
 			If t >= strlen Then
-				CutString = Left(s,i) & d
+				CutStr = Left(s,i) & d
 				Exit For
 			Else
-				CutString = s
+				CutStr = s
 			End If
 		Next
-		CutString = Replace(CutString,vbCrLf,"")
+		CutStr = Replace(CutStr,vbCrLf,"")
 	End Function
 	'取字符隔开的左段
 	Function CLeft(ByVal s, ByVal m)
@@ -409,7 +418,7 @@ Class EasyAsp
 			Else
 				GetUrl = url : Exit Function
 			End If
-			If Not IsN(s_rq) Then url = url & "?" & s_rq
+			If Has(s_rq) Then url = url & "?" & s_rq
 			GetUrl = url : Exit Function
 		End If
 		If param = "0" Then : GetUrl = url : Exit Function
@@ -421,7 +430,7 @@ Class EasyAsp
 		Else
 			out = param : hasQS = 1
 		End If
-		If Not IsN(s_rq) Then
+		If Has(s_rq) Then
 			If param="1" Or hasQS = 0 Then
 				url = url & "?" & s_rq
 			Else
@@ -434,7 +443,7 @@ Class EasyAsp
 						i = i + 1
 					End If
 				Next
-				If Not isN(qtemp) Then url = url & "?" & qtemp
+				If Has(qtemp) Then url = url & "?" & qtemp
 			End If
 		End If
 		GetUrl = url
@@ -459,7 +468,7 @@ Class EasyAsp
 	End Function
 	'仅格式化HTML文本（可带HTML标签）
 	Function HtmlFormat(ByVal s)
-		If Not IsN(s) Then
+		If Has(s) Then
 			Dim m : Set m = RegMatch(s, "<([^>]+)>")
 			For Each Match In m
 				 s = Replace(s, Match.SubMatches(0), regReplace(Match.SubMatches(0), "\s+", Chr(0)))
@@ -475,7 +484,7 @@ Class EasyAsp
 	End Function
 	'HTML加码函数
 	Function HtmlEncode(ByVal s)
-		If Not IsN(s) Then
+		If Has(s) Then
 			s = Replace(s, Chr(38), "&#38;")
 			s = Replace(s, "<", "&lt;")
 			s = Replace(s, ">", "&gt;")
@@ -489,7 +498,7 @@ Class EasyAsp
 	End Function
 	'HTML解码函数
 	Function HtmlDecode(ByVal s)
-		If Not IsN(s) Then
+		If Has(s) Then
 			s = regReplace(s, "<br\s*/?\s*>", vbCrLf)
 			s = Replace(s, "&nbsp;&nbsp; &nbsp;", Chr(9))
 			s = Replace(s, "&quot;", Chr(34))
@@ -511,6 +520,7 @@ Class EasyAsp
 	End Function
 	'精确到毫秒的脚本执行时间
 	Function GetScriptTime(t)
+		If t = "" Or t = "0" Then t = Easp_Timer
 		GetScriptTime = FormatNumber((Timer()-t)*1000, 2, -1)
 	End Function
 	'取指定长度的随机字符串
@@ -554,7 +564,7 @@ Class EasyAsp
 		Dim n,i,cExp,cDomain,cPath,cSecure
 		If isArray(cooCfg) Then
 			For i = 0 To Ubound(cooCfg)
-				If Test(cooCfg(i),"date") Then
+				If isDate(cooCfg(i)) Then
 					cExp = cDate(cooCfg(i))
 				ElseIf Test(cooCfg(i),"int") Then
 					If cooCfg(i)<>0 Then cExp = Now()+Int(cooCfg(i))/60/24
@@ -567,7 +577,7 @@ Class EasyAsp
 				End If
 			Next
 		Else
-			If Test(cooCfg,"date") Then
+			If isDate(cooCfg) Then
 				cExp = cDate(cooCfg)
 			ElseIf Test(cooCfg,"int") Then
 				If cooCfg<>0 Then cExp = Now()+Int(cooCfg)/60/24
@@ -580,22 +590,22 @@ Class EasyAsp
 			End If
 		End If
 		n = Easp_Param(cooName)
-		If Not isN(cooValue) Then
+		If Has(cooValue) Then
 			If isN(n(1)) Then
 				Response.Cookies(n(0)) = cooValue
 			Else
 				Response.Cookies(n(0))(n(1)) = cooValue
 			End If
 		End If
-		If Not isN(cExp) Then Response.Cookies(n(0)).Expires = cExp
-		If Not isN(cDomain) Then Response.Cookies(n(0)).Domain = cDomain
-		If Not isN(cPath) Then Response.Cookies(n(0)).Path = cPath
-		If Not isN(cSecure) Then Response.Cookies(n(0)).Secure = cSecure
+		If Has(cExp) Then Response.Cookies(n(0)).Expires = cExp
+		If Has(cDomain) Then Response.Cookies(n(0)).Domain = cDomain
+		If Has(cPath) Then Response.Cookies(n(0)).Path = cPath
+		If Has(cSecure) Then Response.Cookies(n(0)).Secure = cSecure
 	End Sub
 	'获取一个Cookies值
 	Function GetCookie(ByVal cooName)
 		Dim n : n = Easp_Param(cooName)
-		If Response.Cookies(n(0)).HasKeys And Not isN(n(1)) Then
+		If Response.Cookies(n(0)).HasKeys And Has(n(1)) Then
 			GetCookie = SafeData("",Request.Cookies(n(0))(n(1)),0)
 		Else
 			GetCookie = SafeData("",Request.Cookies(n(0)),0)
@@ -605,7 +615,7 @@ Class EasyAsp
 	'删除一个Cookies值
 	Sub RemoveCookie(ByVal cooName)
 		Dim n : n = Easp_Param(cooName)
-		If Response.Cookies(n(0)).HasKeys And Not isN(n(1)) Then
+		If Response.Cookies(n(0)).HasKeys And Has(n(1)) Then
 			Response.Cookies(n(0))(n(1)) = Empty
 		Else
 			Response.Cookies(n(0)) = Empty
@@ -797,7 +807,7 @@ Class EasyAsp
 		While en > st + 1
 			tmpStr = Mid(content,st,en-st-2)
 			st = Instr(en,content,"%"&">") + 2
-			If Not isN(tmpStr) Then
+			If Has(tmpStr) Then
 				tmpStr = Replace(tmpStr,"""","""""")
 				tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
 				tmpStr = Replace(tmpStr,vbCrLf,"""&vbCrLf&""")
@@ -813,7 +823,7 @@ Class EasyAsp
 			en = Instr(st,content,"<%") + 2
 		Wend
 		tmpStr = Mid(content,st)
-		If Not isN(tmpStr) Then
+		If Has(tmpStr) Then
 			tmpStr = Replace(tmpStr,"""","""""")
 			tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
 			tmpStr = Replace(tmpStr,vbcrlf,"""&vbCrLf&""")
@@ -843,17 +853,30 @@ Class EasyAsp
 		End If
 	End Sub
 	'加载插件
-	Sub Import(ByVal f)
-		Dim p : f = Lcase(f)
+	Function Ext(ByVal f)
+		Dim loaded
+		f = Lcase(f) : loaded = True
 		If Not o_ext.Exists(f) Then
-			p = s_plugin & "easp." & f & ".asp"
-			
+			loaded = False
+		Else
+			If LCase(TypeName(o_ext(f))) <> "easyasp_" & f Then loaded = False
+		End If
+		If Not loaded Then
+			Include(s_plugin & "easp." & f & ".asp")
+			Execute("Set o_ext(""" & f & """) = New EasyAsp_" & f)
+		End If
+		Set Ext = o_ext(f)
+	End Function
+	'清除加载插件
+	Private Sub ClearExt()
+		Dim i
+		If Has(o_ext) Then
+			For Each i In o_ext
+				Set o_ext(i) = Nothing
+			Next
+			o_ext.RemoveAll
 		End If
 	End Sub
-	Function Ext(ByVal f)
-		Dim o
-
-	End Function
 	'Md5加密字符串
 	Function MD5(ByVal s)
 		Use("Md5") : MD5 = o_md5(s)
@@ -889,7 +912,14 @@ Function Easp_isN(ByVal s)
 		Case vbString
 			If s="" Then Easp_isN = True : Exit Function
 		Case vbObject
-			If TypeName(s)="Nothing" Or TypeName(s)="Empty" Then Easp_isN = True : Exit Function
+			Select Case TypeName(s)
+				Case "Nothing","Empty"
+					Easp_isN = True : Exit Function
+				Case "Recordset"
+					If s.Bof And s.Eof Then Easp_isN = True : Exit Function
+				Case "Dictionary"
+					If s.Count = 0 Then Easp_isN = True : Exit Function
+			End Select
 		Case vbArray,8194,8204,8209
 			If Ubound(s)=-1 Then Easp_isN = True : Exit Function
 	End Select
