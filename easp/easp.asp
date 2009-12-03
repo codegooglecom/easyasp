@@ -29,9 +29,10 @@ Dim EasyAsp_s_html
 <!--#include file="easp._config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl
-	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq, i_rule
+	Public db,fso,upload,tpl,aes
+	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq
 	Private o_md5, o_rwt, o_ext
+	Private b_cooen, i_rule
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= "/easp/plugin/"
@@ -40,6 +41,7 @@ Class EasyAsp
 		s_charset	= "GB2312"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
+		b_cooen		= True
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
 		Set db		= New EasyAsp_db
@@ -47,8 +49,10 @@ Class EasyAsp
 		Set fso		= New EasyAsp_obj
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
+		Set aes		= New EasyAsp_obj
 	End Sub
 	Private Sub Class_Terminate()
+		Set aes		= Nothing
 		Set tpl		= Nothing
 		Set upload	= Nothing
 		Set fso		= Nothing
@@ -81,6 +85,13 @@ Class EasyAsp
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
 	End Property
+	Public Property Let CookieEncode(ByVal b)
+		b_cooen = b
+	End Property
+	Public Property Get CookieEncode()
+		CookieEncode = b_cooen
+	End Property
+
 	Private Function rqsv(ByVal s)
 		rqsv = Request.ServerVariables(s)
 	End Function
@@ -591,11 +602,15 @@ Class EasyAsp
 		End If
 		n = Easp_Param(cooName)
 		If Has(cooValue) Then
-			If isN(n(1)) Then
-				Response.Cookies(n(0)) = cooValue
-			Else
-				Response.Cookies(n(0))(n(1)) = cooValue
+			If b_cooen Then
+				Use("Aes")
+				cooValue = Aes.Encode(cooValue)
 			End If
+		End If
+		If isN(n(1)) Then
+			Response.Cookies(n(0)) = cooValue
+		Else
+			Response.Cookies(n(0))(n(1)) = cooValue
 		End If
 		If Has(cExp) Then Response.Cookies(n(0)).Expires = cExp
 		If Has(cDomain) Then Response.Cookies(n(0)).Domain = cDomain
@@ -604,13 +619,16 @@ Class EasyAsp
 	End Sub
 	'获取一个Cookies值
 	Function GetCookie(ByVal cooName)
-		Dim n : n = Easp_Param(cooName)
+		Dim n,coo : n = Easp_Param(cooName)
 		If Response.Cookies(n(0)).HasKeys And Has(n(1)) Then
-			GetCookie = SafeData("",Request.Cookies(n(0))(n(1)),0)
+			coo = Request.Cookies(n(0))(n(1))
 		Else
-			GetCookie = SafeData("",Request.Cookies(n(0)),0)
+			coo = Request.Cookies(n(0))
 		End If
-		If IsN(GetCookie) Then GetCookie = ""
+		If IsN(coo) Then GetCookie = "": Exit Function
+		If  b_cooen Then Use("Aes")
+		coo = IIF(b_cooen, Aes.Decode(coo), coo)
+		GetCookie = Safe(coo,"s")
 	End Function
 	'删除一个Cookies值
 	Sub RemoveCookie(ByVal cooName)
