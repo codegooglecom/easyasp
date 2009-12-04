@@ -1,27 +1,35 @@
 <%
 Option Explicit
-'#################################################################################
-'##	easp.asp
-'##	------------------------------------------------------------------------------
-'##	Feature		:	EasyAsp Class
-'##	Version		:	v2.2 alpha
-'##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2009/12/1 0:02:32
-'##	Description	:	EasyAsp Class
+'###################################################################################
+'## easp.asp
+'## --------------------------------------------------------------------------------
+'## Feature		:	EasyAsp Class
+'## Version		:	v2.2 alpha
+'## Author		:	Coldstone(coldstone[at]qq.com)
+'## Update Date	:	2009/12/1 0:02:32
+'## Description	:	EasyAsp Class
 '##
-'##	Update Info	:	 1. 优化Easp.CheckForm方法，rule规则可带多个验证项，用|隔开；
-'					 2. 增加Easp.Str和Easp.WStr输出字符串；
-'					 3. 增加Easp.JsCode方法，返回javascript字符串；
-'					 4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
-'					 5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数；
-'					 6. 增加Easp.Use方法，用于动态引用Easp的官方类库；
-'					 7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
-'					 8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
-'					 9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
-'					10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
-'					11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
-'					12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
-'#################################################################################
+'## Update Info	:	 1. 修改Easp.CutString为Easp.CutStr，Easp.GetCookie为Easp.Cookie；
+'   				 2. 增加Easp.Str和Easp.WStr输出字符串；
+'   				 3. 增加Easp.JsCode方法，返回生成的javascript代码字符串；
+'   				 4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
+'   				 5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数，更加安全；
+'   				 6. 增加Easp.Use方法，用于引用Easp的官方类库，如Easp.Aes、Easp.Fso、
+'   				    Easp.Upload等，此方法为动态加载，可多次调用但只引用一次文件；
+'   				 7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
+'   				 8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
+'   				 9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
+'   				10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
+'   				11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
+'   				12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
+'   				13. 增加Easp.Aes类，用于对中英文字符串的AES算法加密，可使用中文密码(钥)；
+'   				14. 优化Easp.Cookie/SetCookie，可对cookie按AES算法加密，防伪造；
+'   				    同时方法参数有所变化，原来的分隔符:更改为>，且支持Easp.Get的参数方式；
+'   				15. 新增Easp.Fso类，用于FSO文件操作，功能非常全面和易于使用；
+'   				16. 优化Easp.GetUrlWith方法，可以将参数带到其它页面；
+'   				17. 优化Easp.CheckForm方法，rule规则如果以:开头，并用||隔开，则可以验
+'   				    证多个表示"或"关系的规则项，符合其中任意一个规则则验证通过；
+'###################################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
 Dim EasyAsp_s_html
@@ -359,15 +367,6 @@ Class EasyAsp
 		Next
 		Safe = IIF(l,arr,tmp)
 	End Function
-	'调试函数
-'	Function Trace(Byval o)
-'		Dim t : t = VarType(o)
-'		Select Case t
-'			Case 8
-'			Case 9
-'			Case Else
-'		End Select
-'	End Function
 	'检查提交数据来源
 	Function CheckDataFrom()
 		Dim v1, v2
@@ -461,12 +460,25 @@ Class EasyAsp
 	End Function
 	'获取本页URL地址并带上新的URL参数
 	Function GetUrlWith(ByVal p, ByVal v)
-		Dim u,s
-		u = GetUrl(p)
+		Dim u,s,n
 		s = IIF(p=-1,GetUrl(-1)&"/","")
 		s = IIF(IsN(p),GetUrl(""),GetUrl(0))
+		If Instr(p,":")>0 Then
+			If Has(CLeft(p,":")) Then
+				n = Cleft(p,":") : p = CRight(p,":")
+			End If
+		End If
+		u = GetUrl(p)
 		If Left(p,1)=":" Then s = Left(u,InstrRev(u,"/"))
-		GetUrlWith = u & IIF(isN(Mid(u,len(s)+1)),"?","&") & v
+		u = u & IfThen(Has(v),IIF(isN(Mid(u,len(s)+1)),"?","&") & v)
+		If Has(n) Then
+			If Instr(u,"?")>0 Then
+				u = n & Mid(u,Instr(u,"?"))
+			Else
+				u = n
+			End If
+		End If
+		GetUrlWith = u
 	End Function
 	'获取用户IP地址
 	Function GetIP()
@@ -572,14 +584,14 @@ Class EasyAsp
 	End Sub
 	'设置一个Cookies值
 	Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
-		Dim n,i,cExp,cDomain,cPath,cSecure
+		Dim n(1),i,cExp,cDomain,cPath,cSecure
 		If isArray(cooCfg) Then
 			For i = 0 To Ubound(cooCfg)
 				If isDate(cooCfg(i)) Then
 					cExp = cDate(cooCfg(i))
 				ElseIf Test(cooCfg(i),"int") Then
 					If cooCfg(i)<>0 Then cExp = Now()+Int(cooCfg(i))/60/24
-				ElseIf Test(cooCfg(i),"domain") Then
+				ElseIf Test(cooCfg(i),"domain") or Test(cooCfg(i),"ip") Then
 					cDomain = cooCfg(i)
 				ElseIf Instr(cooCfg(i),"/")>0 Then
 					cPath = cooCfg(i)
@@ -592,7 +604,7 @@ Class EasyAsp
 				cExp = cDate(cooCfg)
 			ElseIf Test(cooCfg,"int") Then
 				If cooCfg<>0 Then cExp = Now()+Int(cooCfg)/60/24
-			ElseIf Test(cooCfg,"domain") Then
+			ElseIf Test(cooCfg,"domain") or Test(cooCfg,"ip") Then
 				cDomain = cooCfg
 			ElseIf Instr(cooCfg,"/")>0 Then
 				cPath = cooCfg
@@ -600,17 +612,17 @@ Class EasyAsp
 				cSecure = cooCfg
 			End If
 		End If
-		n = Easp_Param(cooName)
 		If Has(cooValue) Then
 			If b_cooen Then
-				Use("Aes")
-				cooValue = Aes.Encode(cooValue)
+				Use("Aes") : cooValue = Aes.Encode(cooValue)
 			End If
 		End If
-		If isN(n(1)) Then
-			Response.Cookies(n(0)) = cooValue
-		Else
+		If Instr(cooName,">")>0 Then
+			n(0) = CLeft(cooName,">")
+			n(1) = CRight(cooName,">")
 			Response.Cookies(n(0))(n(1)) = cooValue
+		Else
+			Response.Cookies(cooName) = cooValue
 		End If
 		If Has(cExp) Then Response.Cookies(n(0)).Expires = cExp
 		If Has(cDomain) Then Response.Cookies(n(0)).Domain = cDomain
@@ -618,17 +630,28 @@ Class EasyAsp
 		If Has(cSecure) Then Response.Cookies(n(0)).Secure = cSecure
 	End Sub
 	'获取一个Cookies值
-	Function GetCookie(ByVal cooName)
-		Dim n,coo : n = Easp_Param(cooName)
-		If Response.Cookies(n(0)).HasKeys And Has(n(1)) Then
-			coo = Request.Cookies(n(0))(n(1))
-		Else
-			coo = Request.Cookies(n(0))
+	Function Cookie(ByVal s)
+		Dim p,t,coo
+		If Instr(s,">") > 0 Then
+			p = CLeft(s,">")
+			s = CRight(s,">")
 		End If
-		If IsN(coo) Then GetCookie = "": Exit Function
-		If  b_cooen Then Use("Aes")
-		coo = IIF(b_cooen, Aes.Decode(coo), coo)
-		GetCookie = Safe(coo,"s")
+		If Instr(s,":")>0 Then
+			t = CRight(s,":")
+			s = CLeft(s,":")
+		End If
+		If Has(p) And Response.Cookies(p).HasKeys And Has(s) Then
+			coo = Request.Cookies(p)(s)
+		ElseIf Has(s) Then
+			coo = Request.Cookies(s)
+		Else
+			Cookie = "" : Exit Function
+		End If
+		If IsN(coo) Then Cookie = "": Exit Function
+		If  b_cooen Then
+			Use("Aes") : coo = Aes.Decode(coo)
+		End If
+		Cookie = Safe(coo,t)
 	End Function
 	'删除一个Cookies值
 	Sub RemoveCookie(ByVal cooName)
@@ -697,7 +720,7 @@ Class EasyAsp
 		If Not (Require = 0 And isN(s)) Then
 			If Left(Rule,1)=":" Then
 				pass = False
-				arrRule = Split(Mid(Rule,2),"|")
+				arrRule = Split(Mid(Rule,2),"||")
 				For i = 0 To Ubound(arrRule)
 					If Test(s,arrRule(i)) Then pass = True : Exit For
 				Next
