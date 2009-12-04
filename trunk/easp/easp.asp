@@ -70,6 +70,8 @@ Class EasyAsp
 		Set o_rwt	= Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
+		p = IIF(Left(p,1)= "/", p, "/" & p)
+		p = IIF(Right(p,1)="/", p, p & "/")
 		s_path = p
 	End Property
 	Public Property Get basePath()
@@ -880,7 +882,7 @@ Class EasyAsp
 		If LCase(o) = "md5" Then o = "o_md5"
 		t = Eval("LCase(TypeName("&o&"))")
 		If t = "easyasp_obj" Then
-			Include(s_path & p)
+			Include(s_path & "core/" & p)
 			Execute("Set "&o&" = New EasyAsp_"&f)
 			Select Case Lcase(f)
 				Case "fso"
@@ -1121,4 +1123,4 @@ Function Easp_LR(ByVal s, ByVal m, ByVal t)
 	End If
 End Function
 %>
-<!--#include file="easp.db.asp"-->
+<!--#include file="core/easp.db.asp"-->
