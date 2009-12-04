@@ -1,102 +1,104 @@
 <%
 Class EasyAsp_db
-	Private idbConn, idbType, idebug, idbErr, iQueryType
-	Private iPageParam, iPageIndex, iPageSize, iPageSpName, iPageCount, iRecordCount, iPageDic
+
+	Private b_debug
+	Private s_dbType, s_dbErr, s_pageParam, s_pageSpName
+	Private i_queryType, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
+	Private o_conn, o_pageDic
 
 	Private Sub Class_Initialize()
-		On Error Resume Next
-		idbType = ""
-		idebug = False
-		idbErr = ""
-		iQueryType = 0
-		If TypeName(Conn) = "Connection" Then
-			Set idbConn = Conn : idbType = GetDataType(Conn)
-		End If
-		iPageParam = "page"
-		iPageSize = 20
-		iPageSpName = "easp_sp_pager"
-		Set iPageDic = Server.CreateObject("Scripting.Dictionary")
-
-		iPageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} 跳转到{jump}页</div>"
-		iPageDic("default_config") = ""
+		'On Error Resume Next
+		s_dbType = ""
+		b_debug = False
+		s_dbErr = ""
+		i_queryType = 0
+'		If TypeName(Conn) = "Connection" Then
+'			Set o_conn = Conn : s_dbType = GetDataType(Conn)
+'		End If
+		s_pageParam = "page"
+		i_pageSize = 20
+		s_pageSpName = "easp_sp_pager"
+		Set o_pageDic = Server.CreateObject("Scripting.Dictionary")
+		o_pageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} 跳转到{jump}页</div>"
+		o_pageDic("default_config") = ""
 	End Sub
 	Private Sub Class_Terminate()
-		If TypeName(idbConn) = "Connection" Then
-			If idbConn.State = 1 Then idbConn.Close()
-			Set idbConn = Nothing
+		If TypeName(o_conn) = "Connection" Then
+			If o_conn.State = 1 Then o_conn.Close()
+			Set o_conn = Nothing
 		End If
-		Set iPageDic = Nothing
+		Set o_pageDic = Nothing
 	End Sub
 	'属性：定义数据库连接
 	Public Property Let dbConn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
-			Set idbConn = pdbConn
-			idbType = GetDataType(pdbConn)
+			Set o_conn = pdbConn
+			s_dbType = GetDataType(pdbConn)
 		Else
 			ErrMsg "无效的数据库连接", Err.Description
 		End If
 	End Property
 	Public Property Get dbConn()
-		Set dbConn = idbConn
+		Set dbConn = o_conn
 	End Property
 	'属性：当前数据库类型
 	Public Property Get DatabaseType()
-		DatabaseType = idbType
+		DatabaseType = s_dbType
 	End Property
 	'属性：设置是否开启调试模式
 	Public Property Let Debug(ByVal bool)
-		idebug = bool
+		b_debug = bool
 	End Property
 	Public Property Get Debug()
-		Debug = idebug
+		Debug = b_debug
 	End Property
 	'属性：返回错误信息
 	Public Property Get dbErr()
-		dbErr = idbErr
+		dbErr = s_dbErr
 	End Property
 	'属性：设置获取记录集的方式
 	Public Property Let QueryType(ByVal str)
 		str = Lcase(str)
 		If str = "1" or str = "command" Then
-			iQueryType = 1
+			i_queryType = 1
 		Else
-			iQueryType = 0
+			i_queryType = 0
 		End If
 	End Property
 	'属性：设置分页数量
 	Public Property Let PageSize(ByVal num)
-		iPageSize = num
+		i_pageSize = num
 	End Property
 	'属性：返回分页数量
 	Public Property Get PageSize()
-		PageSize = iPageSize
+		PageSize = i_pageSize
 	End Property
 	'属性：返回总页数
 	Public Property Get PageCount()
-		PageCount = iPageCount
+		PageCount = i_pageCount
 	End Property
 	'属性：返回当前页码
 	Public Property Get PageIndex()
-		PageIndex = Easp_IIF(Easp_isN(iPageIndex),GetCurrentPage,iPageIndex)
+		PageIndex = Easp_IIF(Easp_isN(i_pageIndex),GetCurrentPage,i_pageIndex)
 	End Property
 	'属性：返回总记录数
 	Public Property Get PageRecordCount()
-		PageRecordCount = iRecordCount
+		PageRecordCount = i_recordCount
 	End Property
 	'属性：设置获取分页参数
 	Public Property Let PageParam(ByVal str)
-		iPageParam = str
+		s_pageParam = str
 	End Property
 	'属性：设置分页存储过程名
 	Public Property Let PageSpName(ByVal str)
-		iPageSpName = str
+		s_pageSpName = str
 	End Property
 	Private Sub ErrMsg(e,d)
-		idbErr = "<div id=""easp_db_err"">" & e
-		If d<>"" Then idbErr = idbErr & "<br/>错误信息：" & d
-		idbErr = idbErr & "</div>"
-		If idebug Then
-			Response.Write idbErr
+		s_dbErr = "<div id=""easp_db_err"">" & e
+		If d<>"" Then s_dbErr = s_dbErr & "<br/>错误信息：" & d
+		s_dbErr = s_dbErr & "</div>"
+		If b_debug Then
+			Response.Write s_dbErr
 			Response.End()
 		End If
 	End Sub
@@ -117,8 +119,8 @@ Class EasyAsp_db
 				p = Trim(strServer)
 			End If
 		End If
-		idbType = UCase(Cstr(dbType))
-		Select Case idbType
+		s_dbType = UCase(Cstr(dbType))
+		Select Case s_dbType
 			Case "0","MSSQL"
 				If port = "" Then port = "1433"
 				TempStr = "Provider=sqloledb;Data Source="&s&","&port&";Initial Catalog="&strDB&";User Id="&u&";Password="&p&";"
@@ -135,7 +137,7 @@ Class EasyAsp_db
 	End Function
 	'建立数据库连接对象
 	Public Function CreatConn(ByVal ConnStr)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
@@ -173,7 +175,7 @@ Class EasyAsp_db
 	End Function
 	'自动获取唯一序列号（自动编号）
 	Public Function AutoID(ByVal TableName)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
 		tmp = Easp_Param(TableName)
 		If Not Easp_isN(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
@@ -232,11 +234,11 @@ Class EasyAsp_db
 	End Function
 	'根据sql语句返回记录集
 	Public Function GetRecordBySQL(ByVal str)
-		On Error Resume Next
-		If iQueryType = 1 Then
+		'On Error Resume Next
+		If i_queryType = 1 Then
 			Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
-				.ActiveConnection = idbConn
+				.ActiveConnection = o_conn
 				.CommandText = str
 				Set GetRecordBySQL = .Execute
 			End With
@@ -244,7 +246,7 @@ Class EasyAsp_db
 		Else
 			Dim rs : Set rs = Server.CreateObject("Adodb.Recordset")
 			With rs
-				.ActiveConnection = idbConn
+				.ActiveConnection = o_conn
 				.CursorType = 1
 				.LockType = 1
 				.Source = str
@@ -260,7 +262,7 @@ Class EasyAsp_db
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tmpStr, rs, fi, i, j, o, isE,tName,tValue : i = 0
 		isE = False
 		o = Easp_Param(jName)
@@ -296,7 +298,7 @@ Class EasyAsp_db
 	End Function
 	'生成指定长度的不重复的字符串
 	Public Function RandStr(length,TableField)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tb, fi, tmpStr, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -315,7 +317,7 @@ Class EasyAsp_db
 	End Function
 	'生成一个不重复的随机数
 	Public Function Rand(min,max,TableField)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tb, fi, tmpInt, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -365,7 +367,7 @@ Class EasyAsp_db
 		End If
 		Condition = Easp_IIF(Easp_isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
 		sql = "Select Top " & showN & " " & fi & " From ["&TableName&"]" & Condition
-		Select Case idbType
+		Select Case s_dbType
 			Case "ACCESS" : Randomize
 				sql = sql & " Order By Rnd(-(" & IdField & "+" & Rnd() & "))"
 			Case "MSSQL"
@@ -382,7 +384,7 @@ Class EasyAsp_db
 	End Function
 	'添加一个新的纪录
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		DoExecute wAddRecord(TableName,ValueList)
 		If Err.number <> 0 Then
@@ -412,7 +414,7 @@ Class EasyAsp_db
 	End Function
 	'修改某一纪录
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
-		On Error Resume Next
+		'On Error Resume Next
 		DoExecute wUpdateRecord(TableName,Condition,ValueList)
 		If Err.number <> 0 Then
 			ErrMsg "更新数据库记录出错！", Err.Description
@@ -436,7 +438,7 @@ Class EasyAsp_db
 	End Function
 	'删除指定的纪录
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
-		On Error Resume Next
+		'On Error Resume Next
 		DoExecute wDeleteRecord(TableName,Condition)
 		If Err.number <> 0 Then
 			ErrMsg "从数据库删除数据出错！", Err.Description
@@ -469,7 +471,7 @@ Class EasyAsp_db
 	End Function
 	'从某一表中，根据一个条件获取一条记录的其他字段的值
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
 		TempStr = "" : arrStr = ""
 		Sql = "Select "&GetFieldNames&" From ["&TableName&"] Where " & ValueToSql(TableName,Condition,1)
@@ -495,9 +497,9 @@ Class EasyAsp_db
 	End Function
 	'调用存储过程
 	Public Function doSP(ByVal spName, ByVal spParam)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
-		If Not idbType="0" And Not idbType="MSSQL" Then
+		If Not s_dbType="0" And Not s_dbType="MSSQL" Then
 			MsgErr "仅支持从MS SQL Server数据库调用存储过程！",""
 			Exit Function
 		End If
@@ -505,7 +507,7 @@ Class EasyAsp_db
 		If Not Easp_isN(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
 		Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
-				.ActiveConnection = idbConn
+				.ActiveConnection = o_conn
 				.CommandText = spName
 				.CommandType = 4
 				.Prepared = true
@@ -559,18 +561,18 @@ Class EasyAsp_db
 	End Function
 	'释放记录集对象
 	Public Function C(ByRef ObjRs)
-		On Error Resume Next
+		'On Error Resume Next
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
 	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal str)
-		On Error Resume Next
+		'On Error Resume Next
 		If Lcase(Left(str,6)) = "select" Then
-			Dim i : i = iQueryType
-			iQueryType = 1
+			Dim i : i = i_queryType
+			i_queryType = 1
 			Set Exec = GRS(str)
-			iQueryType = i
+			i_queryType = i
 		Else
 			Exec = 1 : DoExecute(str)
 			If Err.number <> 0 Then Exec = 0
@@ -582,7 +584,7 @@ Class EasyAsp_db
 	End Function
 	
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim StrTemp : StrTemp = ValueList
 		If IsArray(ValueList) Then
 			StrTemp = ""
@@ -603,7 +605,7 @@ Class EasyAsp_db
 							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
 						Case 11
 							Dim tmpTF, tmpTFV : tmpTFV = UCase(cstr(Trim(CurrentValue)))
-							tmpTF = Easp_IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp_IIF(idbType="ACCESS","True","1"), Easp_IIF(idbType="ACCESS",Easp_IIF(tmpTFV="","NULL","False"),Easp_IIF(tmpTFV="","NULL","0")))
+							tmpTF = Easp_IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp_IIF(s_dbType="ACCESS","True","1"), Easp_IIF(s_dbType="ACCESS",Easp_IIF(tmpTFV="","NULL","False"),Easp_IIF(tmpTFV="","NULL","0")))
 							StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
 						Case Else
 							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL",CurrentValue)
@@ -619,7 +621,7 @@ Class EasyAsp_db
 	Private Function DoExecute(ByVal sql)
 		Dim ExecuteCmd : Set ExecuteCmd = Server.CreateObject("ADODB.Command")
 		With ExecuteCmd
-			.ActiveConnection = idbConn
+			.ActiveConnection = o_conn
 			.CommandText = sql
 			.Execute
 		End With
@@ -628,24 +630,24 @@ Class EasyAsp_db
 	'以下是分页程序部分
 	'获取分页后的记录集
 	Public Function GetPageRecord(ByVal PageSetup, ByVal Condition)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
 		o = Easp_Param(Cstr(PageSetup))
 		pType = o(0)
 		If Not Easp_isN(o(1)) Then
 			p = Easp_Param(o(1))
 			If Not Easp_isN(p(1)) Then
-				iPageParam = Lcase(p(0))
-				iPageSize = Int(p(1))
+				s_pageParam = Lcase(p(0))
+				i_pageSize = Int(p(1))
 			Else
 				If isNumeric(o(1)) Then
-					iPageSize = Int(o(1))
+					i_pageSize = Int(o(1))
 				Else
-					iPageParam = Lcase(o(1))
+					s_pageParam = Lcase(o(1))
 				End If
 			End If
 		End If
-		iPageIndex = GetCurrentPage()
+		i_pageIndex = GetCurrentPage()
 		Select Case Lcase(pType)
 			Case "array","0"
 				If isArray(Condition) Then
@@ -661,28 +663,28 @@ Class EasyAsp_db
 					Else
 						Where = Condition(1)
 					End If
-					iRecordCount = Int(RT(Table, Easp_IIF(Easp_isN(Where),"1=1",Where), "Count(0)"))
-					n = iRecordCount / iPageSize
-					iPageCount = Easp_IIF(n=Int(n), n, Int(n)+1)
-					iPageIndex = Easp_IIF(iPageIndex > iPageCount, iPageCount, iPageIndex)
-					If idbType = "1" or idbType = "ACCESS" Then
+					i_recordCount = Int(RT(Table, Easp_IIF(Easp_isN(Where),"1=1",Where), "Count(0)"))
+					n = i_recordCount / i_pageSize
+					i_pageCount = Easp_IIF(n=Int(n), n, Int(n)+1)
+					i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
+					If s_dbType = "1" or s_dbType = "ACCESS" Then
 						Set rs = GR(Table&":"&Fi,Where,Condition(2))
-						rs.PageSize = iPageSize
-						If iRecordCount>0 Then rs.AbsolutePage = iPageIndex
+						rs.PageSize = i_pageSize
+						If i_recordCount>0 Then rs.AbsolutePage = i_pageIndex
 						Set GetPageRecord = rs : Exit Function
-					ElseIf idbType = "2" or idbType = "MYSQL" Then
+					ElseIf s_dbType = "2" or s_dbType = "MYSQL" Then
 						Sql = "Select "& fi & " From [" & Table & "]"
 						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
 						If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
-						Sql = Sql & " Limit " & iPageSize*(iPageIndex-1) & ", " & iPageSize
+						Sql = Sql & " Limit " & i_pageSize*(i_pageIndex-1) & ", " & i_pageSize
 					Else
 						If Ubound(Condition)<>3 Then ErrMsg "获取分页数据出错！", "数组必须是4个元素（必须提供数据库表的主键）！"
-						Sql = "Select Top " & iPageSize & " " & fi
+						Sql = "Select Top " & i_pageSize & " " & fi
 						Sql = Sql & " From [" & Table & "]"
 						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
-						If iPageIndex > 1 Then
+						If i_pageIndex > 1 Then
 							Sql = Sql & " " & Easp_IIF(Easp_isN(Where), "Where", "And") & " " & Condition(3) & " Not In ("
-							Sql = Sql & "Select Top " & iPageSize * (iPageIndex-1) & " " & Condition(3) & " From [" & Table & "]"
+							Sql = Sql & "Select Top " & i_pageSize * (i_pageIndex-1) & " " & Condition(3) & " From [" & Table & "]"
 							If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
 							If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 							Sql = Sql & ") "
@@ -697,11 +699,11 @@ Class EasyAsp_db
 			Case "rs","2" Set rs = Condition
 			Case Else
 				If isArray(Condition) Then
-					If pType = "" Then pType = iPageSpName
+					If pType = "" Then pType = s_pageSpName
 					Select Case pType
 						Case "easp_sp_pager"	'使用自带分页存储过程分页
 							If Ubound(Condition)<>5 Then ErrMsg "获取分页数据出错！", "使用自带分页存储过程时条件数组参数必须为6个元素！"
-							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&iPageSize,"@PageIndex:"&iPageIndex,"@@RecordCount","@@PageCount"))
+							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&i_pageSize,"@PageIndex:"&i_pageIndex,"@@RecordCount","@@PageCount"))
 						Case Else	'使用自定义分页存储过程
 							spReturn = Array(False,False)
 							For i = 0 To Ubound(Condition)
@@ -716,19 +718,19 @@ Class EasyAsp_db
 							End If
 					End Select
 					Set GetPageRecord = spResult(0)
-					iRecordCount = int(spResult(1)("@@RecordCount"))
-					iPageCount = int(spResult(1)("@@PageCount"))
-					iPageIndex = Easp_IIF(iPageIndex > iPageCount, iPageCount, iPageIndex)
+					i_recordCount = int(spResult(1)("@@RecordCount"))
+					i_pageCount = int(spResult(1)("@@PageCount"))
+					i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
 				Else
 					ErrMsg "获取分页数据出错！", "使用存储过程获取分页数据时条件参数必须为数组！"
 				End If
 		End Select
 		If Instr(",sql,rs,1,2,", "," & pType & ",")>0 Then
-			iRecordCount = rs.RecordCount
-			rs.PageSize = iPageSize
-			iPageCount = rs.PageCount
-			iPageIndex = Easp_IIF(iPageIndex > iPageCount, iPageCount, iPageIndex)
-			If iRecordCount>0 Then rs.AbsolutePage = iPageIndex
+			i_recordCount = rs.RecordCount
+			rs.PageSize = i_pageSize
+			i_pageCount = rs.PageCount
+			i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
+			If i_recordCount>0 Then rs.AbsolutePage = i_pageIndex
 			Set GetPageRecord = rs
 		End If
 	End Function
@@ -737,16 +739,16 @@ Class EasyAsp_db
 	End Function
 	'生成分页导航链接
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
 		Dim pJump, pJumpLong, pJumpStart, pJumpEnd, pJumpValue
 		Dim i, j, tmpStr, pStart, pEnd, cfg, pcfg(1)
-		tmpStr = Easp_IIF(PagerHtml="",iPageDic("default_html"),PagerHtml)
+		tmpStr = Easp_IIF(PagerHtml="",o_pageDic("default_html"),PagerHtml)
 		Set cfg = Server.CreateObject("Scripting.Dictionary")
-		cfg("recordcount")	= iRecordCount
-		cfg("pageindex")	= iPageIndex
-		cfg("pagecount")	= iPageCount
-		cfg("pagesize")		= iPageSize
+		cfg("recordcount")	= i_recordCount
+		cfg("pageindex")	= i_pageIndex
+		cfg("pagecount")	= i_pageCount
+		cfg("pagesize")		= i_pageSize
 		cfg("listlong")		= 9
 		cfg("listsidelong")	= 2
 		cfg("list")			= "*"
@@ -762,7 +764,7 @@ Class EasyAsp_db
 		cfg("jumpplus")		= ""
 		cfg("jumpaction")	= ""
 		cfg("jumplong")		= 50
-		PagerConfig = Easp_IIF(isArray(PagerConfig),PagerConfig, Easp_IIF(Easp_isN(PagerConfig),iPageDic("default_config"),Array(PagerConfig,"pagerconfig:1")))
+		PagerConfig = Easp_IIF(isArray(PagerConfig),PagerConfig, Easp_IIF(Easp_isN(PagerConfig),o_pageDic("default_config"),Array(PagerConfig,"pagerconfig:1")))
 		If isArray(PagerConfig) Then
 			Dim ConfigName, ConfigValue
 			For i = 0 To Ubound(PagerConfig)
@@ -879,18 +881,18 @@ Class EasyAsp_db
 	'配置分页样式
 	Public Sub SetPager(ByVal PagerName, ByVal PagerHtml, ByRef PagerConfig)
 		If PagerName = "" Then PagerName = "default"
-		If Not Easp_isN(PagerHtml) Then iPageDic.item(PagerName&"_html") = PagerHtml
-		If Not Easp_isN(PagerConfig) Then iPageDic.item(PagerName&"_config") = PagerConfig
+		If Not Easp_isN(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
+		If Not Easp_isN(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
 	End Sub
 	'调用分页样式
 	Public Function GetPager(ByVal PagerName)
 		If PagerName = "" Then PagerName = "default"
-		GetPager = Pager(iPageDic(PagerName&"_html"),iPageDic(PagerName&"_config"))
+		GetPager = Pager(o_pageDic(PagerName&"_html"),o_pageDic(PagerName&"_config"))
 	End Function
 	'取得当前页码
 	Private Function GetCurrentPage()
 		Dim rqParam, thisPage : thisPage = 1
-		rqParam = Request.QueryString(iPageParam)
+		rqParam = Request.QueryString(s_pageParam)
 		If isNumeric(rqParam) Then
 			If Int(rqParam) > 0 Then thisPage = Int(rqParam)
 		End If
@@ -900,9 +902,9 @@ Class EasyAsp_db
 	Private Function GetRQ(pageNumer)
 		Dim tmpStr,rq : tmpStr = ""
 		For Each rq In Request.QueryString()
-			If rq<>iPageParam Then tmpStr = tmpStr & "&" & rq & "=" & Server.UrlEncode(Request.QueryString(rq))
+			If rq<>s_pageParam Then tmpStr = tmpStr & "&" & rq & "=" & Server.UrlEncode(Request.QueryString(rq))
 		Next
-		GetRQ = Request.ServerVariables("SCRIPT_NAME") & "?" & Easp_IIF(tmpStr="","",Mid(tmpStr,2)&"&") & iPageParam & "=" & Easp_IIF(pageNumer=0,"",pageNumer)
+		GetRQ = Request.ServerVariables("SCRIPT_NAME") & "?" & Easp_IIF(tmpStr="","",Mid(tmpStr,2)&"&") & s_pageParam & "=" & Easp_IIF(pageNumer=0,"",pageNumer)
 	End Function
 End Class
 %>
