@@ -34,7 +34,7 @@ Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
 Dim EasyAsp_s_html
 %>
-<!--#include file="easp._config.asp"-->
+<!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
 	Public db,fso,upload,tpl,aes
@@ -285,6 +285,7 @@ Class EasyAsp
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
 		If Has(o_rwt) Then
+		'如果有Rewrite规则，则检测匹配否
 			For Each i In o_rwt
 				rule = o_rwt(i)(0)
 				If Easp_Test(url,rule) Then
@@ -295,6 +296,7 @@ Class EasyAsp
 			Next
 		End If
 		If isRwt Then
+		'如果是Rewrite的页面地址
 			arrQs = Split(qs,"&")
 			For i = 0 To Ubound(arrQs)
 				If s = CLeft(arrQs(i),"=") Then
@@ -303,6 +305,7 @@ Class EasyAsp
 				End If
 			Next
 		Else
+		'否则直接取QueryString
 			tmp = Request.QueryString(s)
 		End If
 		[Get] = Safe(tmp,t)
@@ -384,20 +387,26 @@ Class EasyAsp
 	end Sub
 	'截取长字符串左边部分并以特殊符号代替
 	Function CutStr(ByVal s, ByVal strlen)
-		Dim l,t,c,i,d,f
+		Dim l,t,i,j,d,f,n
+		s = Replace(s,vbCrLf,"")
 		l = len(s) : t = 0 : d = "…" : f = Easp_Param(strlen)
-		If Has(f(1)) Then : strlen = Int(f(0)) : d = f(1) : f = "" : End If
+		If Has(f(1)) Then
+			strlen = Int(f(0)) : d = f(1) : f = ""
+		End If
+		For j = 1 To Len(d)
+			n = IIF(Abs(Ascw(Mid(d,j,1)))>255, n+2, n+1)
+		Next
+		strlen = strlen - n
 		For i = 1 to l
-			c = Abs(Ascw(Mid(s,i,1)))
-			t = IIF(c > 255,t + 2,t + 1)
+			t = IIF(Abs(Ascw(Mid(s,i,1)))>255, t+2, t+1)
 			If t >= strlen Then
-				CutStr = Left(s,i) & d
+				f = Left(s,i) & d
 				Exit For
 			Else
-				CutStr = s
+				f = s
 			End If
 		Next
-		CutStr = Replace(CutStr,vbCrLf,"")
+		CutStr = f
 	End Function
 	'取字符隔开的左段
 	Function CLeft(ByVal s, ByVal m)
@@ -407,7 +416,6 @@ Class EasyAsp
 	Function CRight(ByVal s, ByVal m)
 		CRight = Easp_LR(s,m,1)
 	End Function
-	
 	'获取当前文件的地址
 	Function GetUrl(param)
 		Dim script_name,url,dir
@@ -586,7 +594,7 @@ Class EasyAsp
 	End Sub
 	'设置一个Cookies值
 	Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
-		Dim n(1),i,cExp,cDomain,cPath,cSecure
+		Dim n,i,cExp,cDomain,cPath,cSecure
 		If isArray(cooCfg) Then
 			For i = 0 To Ubound(cooCfg)
 				If isDate(cooCfg(i)) Then
@@ -620,16 +628,16 @@ Class EasyAsp
 			End If
 		End If
 		If Instr(cooName,">")>0 Then
-			n(0) = CLeft(cooName,">")
-			n(1) = CRight(cooName,">")
-			Response.Cookies(n(0))(n(1)) = cooValue
+			n = CRight(cooName,">")
+			cooName = CLeft(cooName,">")
+			Response.Cookies(cooName)(n) = cooValue
 		Else
 			Response.Cookies(cooName) = cooValue
 		End If
-		If Has(cExp) Then Response.Cookies(n(0)).Expires = cExp
-		If Has(cDomain) Then Response.Cookies(n(0)).Domain = cDomain
-		If Has(cPath) Then Response.Cookies(n(0)).Path = cPath
-		If Has(cSecure) Then Response.Cookies(n(0)).Secure = cSecure
+		If Has(cExp) Then Response.Cookies(cooName).Expires = cExp
+		If Has(cDomain) Then Response.Cookies(cooName).Domain = cDomain
+		If Has(cPath) Then Response.Cookies(cooName).Path = cPath
+		If Has(cSecure) Then Response.Cookies(cooName).Secure = cSecure
 	End Sub
 	'获取一个Cookies值
 	Function Cookie(ByVal s)
@@ -642,8 +650,10 @@ Class EasyAsp
 			t = CRight(s,":")
 			s = CLeft(s,":")
 		End If
-		If Has(p) And Response.Cookies(p).HasKeys And Has(s) Then
-			coo = Request.Cookies(p)(s)
+		If Has(p) And Has(s) Then
+			If Response.Cookies(p).HasKeys Then
+				coo = Request.Cookies(p)(s)
+			End If
 		ElseIf Has(s) Then
 			coo = Request.Cookies(s)
 		Else
@@ -714,9 +724,9 @@ Class EasyAsp
 		Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("有项目不能为空",tmpMsg))
 		If Require = 1 And IsN(s) Then
 			If Instr(tmpMsg,":")>0 Then
-				alert Replace(Msg(0),chr(0),":") : Exit Function
+				Alert Replace(Msg(0),chr(0),":") : Exit Function
 			Else
-				alert Replace(tmpMsg,chr(0),":") : Exit Function
+				Alert Replace(tmpMsg,chr(0),":") : Exit Function
 			End If
 		End If
 		If Not (Require = 0 And isN(s)) Then
@@ -792,7 +802,7 @@ Class EasyAsp
 		p = filePath
 		If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
 		Set Fso = Server.CreateObject(s_fsoName)
-		If  Fso.FileExists(p) Then
+		If Fso.FileExists(p) Then
 			If s_charset = "GB2312" Then
 				Set f = Fso.OpenTextFile(p)
 				tmpStr = f.ReadAll
@@ -939,7 +949,7 @@ Function Easp_IIF(ByVal Cn, ByVal T, ByVal F)
 	End If
 End Function
 Function Easp_Param(ByVal s)
-	Dim arr(2),t : t = Instr(s,":")
+	Dim arr(1),t : t = Instr(s,":")
 	If t > 0 Then
 		arr(0) = Left(s,t-1) : arr(1) = Mid(s,t+1)
 	Else
