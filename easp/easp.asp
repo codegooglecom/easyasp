@@ -979,7 +979,7 @@ Function Easp_isN(ByVal s)
 			If Ubound(s)=-1 Then Easp_isN = True : Exit Function
 	End Select
 End Function
-Function Easp_JsEncode(s)
+Function Easp_JsEncode(ByVal s)
 	Dim i, j, aL1, aL2, c, p, t
 	aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
 	aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
