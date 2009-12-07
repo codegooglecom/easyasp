@@ -1,35 +1,37 @@
 <%
 Option Explicit
-'###################################################################################
+'######################################################################
 '## easp.asp
-'## --------------------------------------------------------------------------------
-'## Feature		:	EasyAsp Class
-'## Version		:	v2.2 alpha
-'## Author		:	Coldstone(coldstone[at]qq.com)
-'## Update Date	:	2009/12/1 0:02:32
-'## Description	:	EasyAsp Class
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp Class
+'## Version     :   v2.2 alpha
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/1 0:02:32
+'## Description :   EasyAsp Class
 '##
-'## Update Info	:	 1. 修改Easp.CutString为Easp.CutStr，Easp.GetCookie为Easp.Cookie；
-'   				 2. 增加Easp.Str和Easp.WStr输出字符串；
-'   				 3. 增加Easp.JsCode方法，返回生成的javascript代码字符串；
-'   				 4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
-'   				 5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数，更加安全；
-'   				 6. 增加Easp.Use方法，用于引用Easp的官方类库，如Easp.Aes、Easp.Fso、
-'   				    Easp.Upload等，此方法为动态加载，可多次调用但只引用一次文件；
-'   				 7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
-'   				 8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
-'   				 9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
-'   				10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
-'   				11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
-'   				12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
-'   				13. 增加Easp.Aes类，用于对中英文字符串的AES算法加密，可使用中文密码(钥)；
-'   				14. 优化Easp.Cookie/SetCookie，可对cookie按AES算法加密，防伪造；
-'   				    同时方法参数有所变化，原来的分隔符:更改为>，且支持Easp.Get的参数方式；
-'   				15. 新增Easp.Fso类，用于FSO文件操作，功能非常全面和易于使用；
-'   				16. 优化Easp.GetUrlWith方法，可以将参数带到其它页面；
-'   				17. 优化Easp.CheckForm方法，rule规则如果以:开头，并用||隔开，则可以验
-'   				    证多个表示"或"关系的规则项，符合其中任意一个规则则验证通过；
-'###################################################################################
+'## Update Info	:
+'    1. 修改Easp.CutString为Easp.CutStr，Easp.GetCookie为Easp.Cookie；
+'    2. 增加Easp.Str和Easp.WStr输出字符串；
+'    3. 增加Easp.JsCode方法，返回生成的javascript代码字符串；
+'    4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
+'    5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数，更加安全；
+'    6. 增加Easp.Use方法，用于引用Easp的官方类库，如Easp.Aes、Easp.Fso、
+'       Easp.Upload等，此方法为动态加载，可多次调用但只引用一次文件；
+'    7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
+'    8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
+'    9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
+'   10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
+'   11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
+'   12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
+'   13. 增加Easp.Aes类，用于对中英文字符串的AES算法加密，可使用中文密码(钥)；
+'   14. 优化Easp.Cookie/SetCookie，可对cookie按AES算法加密，防伪造；
+'       同时方法参数有所变化，原来的分隔符:更改为>，且支持Easp.Get的参数方式；
+'   15. 新增Easp.Fso类，用于FSO文件操作，功能非常全面和易于使用；
+'   16. 优化Easp.GetUrlWith方法，可以将参数带到其它页面；
+'   17. 优化Easp.CheckForm方法，rule规则如果以:开头，并用||隔开，则可以验
+'       证多个表示"或"关系的规则项，符合其中任意一个规则则验证通过；
+'   18. 优化Easp.JsEncode方法，会对双字节字符进行编码，更加严谨且无乱码问题；
+'######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP
 Dim EasyAsp_s_html
