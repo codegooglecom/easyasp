@@ -39,7 +39,7 @@ Dim EasyAsp_s_html
 <!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl,aes,er
+	Public db,fso,upload,tpl,aes,[error]
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq
 	Private o_md5, o_rwt, o_ext
 	Private b_cooen, i_rule
@@ -60,7 +60,7 @@ Class EasyAsp
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
 		Set aes		= New EasyAsp_obj
-		Set er		= New EasyAsp_Er
+		Set [error]	= New EasyAsp_Error
 	End Sub
 	Private Sub Class_Terminate()
 		Set er		= Nothing
@@ -1142,4 +1142,4 @@ Function Easp_LR(ByVal s, ByVal m, ByVal t)
 End Function
 %>
 <!--#include file="core/easp.db.asp"-->
-<!--#include file="core/easp.er.asp"-->
+<!--#include file="core/easp.error.asp"-->
