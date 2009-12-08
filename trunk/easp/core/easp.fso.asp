@@ -1,5 +1,5 @@
 <%
-Class EasyASP_Fso
+Class EasyAsp_Fso
 	Public oFso
 	Private Fso
 	Private s_fsoName,s_err,s_sizeformat,s_charset
