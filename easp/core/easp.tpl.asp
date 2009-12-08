@@ -1,5 +1,5 @@
 <%
-Class EasyASP_tpl
+Class EasyAsp_tpl
 	Private s_html, s_m, s_ms, s_me, o_loop, o_data
 	
 	Private Sub Class_Initialize

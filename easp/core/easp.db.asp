@@ -3,11 +3,11 @@ Class EasyAsp_db
 
 	Private b_debug
 	Private s_dbType, s_dbErr, s_pageParam, s_pageSpName
-	Private i_queryType, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
+	Private i_queryType, i_errNumber, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
 	Private o_conn, o_pageDic
 
 	Private Sub Class_Initialize()
-		'On Error Resume Next
+		On Error Resume Next
 		s_dbType = ""
 		b_debug = False
 		s_dbErr = ""
@@ -30,7 +30,7 @@ Class EasyAsp_db
 		Set o_pageDic = Nothing
 	End Sub
 	'属性：定义数据库连接
-	Public Property Let dbConn(ByVal pdbConn)
+	Public Property Let Conn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
 			Set o_conn = pdbConn
 			s_dbType = GetDataType(pdbConn)
@@ -38,8 +38,8 @@ Class EasyAsp_db
 			ErrMsg "无效的数据库连接", Err.Description
 		End If
 	End Property
-	Public Property Get dbConn()
-		Set dbConn = o_conn
+	Public Property Get Conn()
+		Set Conn = o_conn
 	End Property
 	'属性：当前数据库类型
 	Public Property Get DatabaseType()
@@ -137,7 +137,7 @@ Class EasyAsp_db
 	End Function
 	'建立数据库连接对象
 	Public Function CreatConn(ByVal ConnStr)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
@@ -175,7 +175,7 @@ Class EasyAsp_db
 	End Function
 	'自动获取唯一序列号（自动编号）
 	Public Function AutoID(ByVal TableName)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
 		tmp = Easp_Param(TableName)
 		If Not Easp_isN(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
@@ -234,7 +234,7 @@ Class EasyAsp_db
 	End Function
 	'根据sql语句返回记录集
 	Public Function GetRecordBySQL(ByVal str)
-		'On Error Resume Next
+		On Error Resume Next
 		If i_queryType = 1 Then
 			Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
@@ -262,7 +262,7 @@ Class EasyAsp_db
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim tmpStr, rs, fi, i, j, o, isE,tName,tValue : i = 0
 		isE = False
 		o = Easp_Param(jName)
@@ -298,7 +298,7 @@ Class EasyAsp_db
 	End Function
 	'生成指定长度的不重复的字符串
 	Public Function RandStr(length,TableField)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim tb, fi, tmpStr, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -317,7 +317,7 @@ Class EasyAsp_db
 	End Function
 	'生成一个不重复的随机数
 	Public Function Rand(min,max,TableField)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim tb, fi, tmpInt, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -384,7 +384,7 @@ Class EasyAsp_db
 	End Function
 	'添加一个新的纪录
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		DoExecute wAddRecord(TableName,ValueList)
 		If Err.number <> 0 Then
@@ -414,7 +414,7 @@ Class EasyAsp_db
 	End Function
 	'修改某一纪录
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
-		'On Error Resume Next
+		On Error Resume Next
 		DoExecute wUpdateRecord(TableName,Condition,ValueList)
 		If Err.number <> 0 Then
 			ErrMsg "更新数据库记录出错！", Err.Description
@@ -438,7 +438,7 @@ Class EasyAsp_db
 	End Function
 	'删除指定的纪录
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
-		'On Error Resume Next
+		On Error Resume Next
 		DoExecute wDeleteRecord(TableName,Condition)
 		If Err.number <> 0 Then
 			ErrMsg "从数据库删除数据出错！", Err.Description
@@ -471,7 +471,7 @@ Class EasyAsp_db
 	End Function
 	'从某一表中，根据一个条件获取一条记录的其他字段的值
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
 		TempStr = "" : arrStr = ""
 		Sql = "Select "&GetFieldNames&" From ["&TableName&"] Where " & ValueToSql(TableName,Condition,1)
@@ -497,7 +497,7 @@ Class EasyAsp_db
 	End Function
 	'调用存储过程
 	Public Function doSP(ByVal spName, ByVal spParam)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
 		If Not s_dbType="0" And Not s_dbType="MSSQL" Then
 			MsgErr "仅支持从MS SQL Server数据库调用存储过程！",""
@@ -561,13 +561,13 @@ Class EasyAsp_db
 	End Function
 	'释放记录集对象
 	Public Function C(ByRef ObjRs)
-		'On Error Resume Next
+		On Error Resume Next
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
 	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal str)
-		'On Error Resume Next
+		On Error Resume Next
 		If Lcase(Left(str,6)) = "select" Then
 			Dim i : i = i_queryType
 			i_queryType = 1
@@ -584,7 +584,7 @@ Class EasyAsp_db
 	End Function
 	
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim StrTemp : StrTemp = ValueList
 		If IsArray(ValueList) Then
 			StrTemp = ""
@@ -630,7 +630,7 @@ Class EasyAsp_db
 	'以下是分页程序部分
 	'获取分页后的记录集
 	Public Function GetPageRecord(ByVal PageSetup, ByVal Condition)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
 		o = Easp_Param(Cstr(PageSetup))
 		pType = o(0)
@@ -739,7 +739,7 @@ Class EasyAsp_db
 	End Function
 	'生成分页导航链接
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
 		Dim pJump, pJumpLong, pJumpStart, pJumpEnd, pJumpValue
 		Dim i, j, tmpStr, pStart, pEnd, cfg, pcfg(1)

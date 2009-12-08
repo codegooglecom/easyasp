@@ -39,7 +39,7 @@ Dim EasyAsp_s_html
 <!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl,aes
+	Public db,fso,upload,tpl,aes,er
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq
 	Private o_md5, o_rwt, o_ext
 	Private b_cooen, i_rule
@@ -60,8 +60,10 @@ Class EasyAsp
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
 		Set aes		= New EasyAsp_obj
+		Set er		= New EasyAsp_Er
 	End Sub
 	Private Sub Class_Terminate()
+		Set er		= Nothing
 		Set aes		= Nothing
 		Set tpl		= Nothing
 		Set upload	= Nothing
@@ -125,7 +127,8 @@ Class EasyAsp
 	'生成动态字符串
 	Function Str(ByVal s, ByVal v)
 		Dim i
-		s = Replace(s,"\{",Chr(0))
+		s = Replace(s,"\\",Chr(0))
+		s = Replace(s,"\{",Chr(1))
 		If isArray(v) Then
 			For i = 0 To Ubound(v)
 				s = Replace(s,"{"&(i+1)&"}",v(i))
@@ -133,7 +136,8 @@ Class EasyAsp
 		Else
 			s = Replace(s,"{1}",v)
 		End If
-		Str = Replace(s,Chr(0),"{")
+		s = Replace(s,Chr(1),"{")
+		Str = Replace(s,Chr(0),"\")
 	End Function
 	'输出动态字符串
 	Sub WStr(ByVal s, ByVal v)
@@ -971,6 +975,7 @@ Function Easp_isN(ByVal s)
 				Case "Nothing","Empty"
 					Easp_isN = True : Exit Function
 				Case "Recordset"
+					If s.State = 0 Then Easp_isN = True : Exit Function
 					If s.Bof And s.Eof Then Easp_isN = True : Exit Function
 				Case "Dictionary"
 					If s.Count = 0 Then Easp_isN = True : Exit Function
@@ -1124,11 +1129,12 @@ Function Easp_Match(ByVal s, ByVal rule)
 End Function
 '取字符串的两头
 Function Easp_LR(ByVal s, ByVal m, ByVal t)
-	If Instr(s,m)>0 Then
+	Dim n : n = Instr(s,m)
+	If n>0 Then
 		If t = 0 Then
-			Easp_LR = Left(s,Instr(s,m)-1)
+			Easp_LR = Left(s,n-1)
 		ElseIf t = 1 Then
-			Easp_LR = Mid(s,Instr(s,m)+1)
+			Easp_LR = Mid(s,n+1)
 		End If
 	Else
 		Easp_LR = s
@@ -1136,3 +1142,4 @@ Function Easp_LR(ByVal s, ByVal m, ByVal t)
 End Function
 %>
 <!--#include file="core/easp.db.asp"-->
+<!--#include file="core/easp.er.asp"-->
