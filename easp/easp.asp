@@ -54,22 +54,22 @@ Class EasyAsp
 		b_cooen		= True
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
+		Set [error]	= New EasyAsp_Error
 		Set db		= New EasyAsp_db
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
 		Set aes		= New EasyAsp_obj
-		Set [error]	= New EasyAsp_Error
 	End Sub
 	Private Sub Class_Terminate()
-		Set er		= Nothing
 		Set aes		= Nothing
 		Set tpl		= Nothing
 		Set upload	= Nothing
 		Set fso		= Nothing
 		Set o_md5	= Nothing
 		Set db 		= Nothing
+		Set [error]	= Nothing
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 	End Sub
