@@ -33,7 +33,7 @@ Option Explicit
 '   18. 优化Easp.JsEncode方法，会对双字节字符进行编码，更加严谨且无乱码问题；
 '######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
-Dim Easp : Set Easp = New EasyASP
+Dim Easp : Set Easp = New EasyASP : Easp.Init()
 Dim EasyAsp_s_html
 %>
 <!--#include file="easp.config.asp"-->
@@ -54,8 +54,8 @@ Class EasyAsp
 		b_cooen		= True
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
-		Set [error]	= New EasyAsp_Error
-		Set db		= New EasyAsp_db
+		Set [error]	= New EasyAsp_obj
+		Set db		= New EasyAsp_obj
 		Set o_md5	= New EasyAsp_obj
 		Set fso		= New EasyAsp_obj
 		Set upload	= New EasyAsp_obj
@@ -105,6 +105,11 @@ Class EasyAsp
 	Public Property Get CookieEncode()
 		CookieEncode = b_cooen
 	End Property
+
+	Public Sub Init()
+		Set [error] = New EasyAsp_Error
+		Set db = New EasyAsp_db
+	End Sub
 
 	Private Function rqsv(ByVal s)
 		rqsv = Request.ServerVariables(s)

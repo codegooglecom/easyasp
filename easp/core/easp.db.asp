@@ -1,26 +1,38 @@
 <%
 Class EasyAsp_db
 
-	Private b_debug
-	Private s_dbType, s_dbErr, s_pageParam, s_pageSpName
+	Private s_dbType, s_pageParam, s_pageSpName
 	Private i_queryType, i_errNumber, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
-	Private o_conn, o_pageDic, Er
+	Private o_conn, o_pageDic
 
 	Private Sub Class_Initialize()
-'		On Error Resume Next
-		s_dbType = ""
-		b_debug = False
-		s_dbErr = ""
-		i_queryType = 0
-'		If TypeName(Conn) = "Connection" Then
-'			Set o_conn = Conn : s_dbType = GetDataType(Conn)
-'		End If
-		Set Er = New EasyAsp_Error
-		Er(101) = "无效的查询条件，无法获取记录集！"
-		Er(102) = "数据库服务器端连接错误，请检查数据库连接。"
-		s_pageParam = "page"
-		i_pageSize = 20
-		s_pageSpName = "easp_sp_pager"
+		Easp.Error(11) = "无效的查询条件，无法获取记录集！"
+		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接。"
+		Easp.Error(13) = "无效的数据库连接！"
+		Easp.Error(14) = "无效的查询条件，无法获取新的ID号！"
+		Easp.Error(15) = "生成Json格式代码出错！"
+		Easp.Error(16) = "生成不重复的随机字符串出错！"
+		Easp.Error(17) = "生成不重复的随机数出错！"
+		Easp.Error(18) = "获取随机记录失败，请输入要取的记录数量！"
+		Easp.Error(19) = "获取随机记录失败，请在表名后输入:ID字段的名称！"
+		Easp.Error(20) = "向数据库添加记录出错！"
+		Easp.Error(21) = "更新数据库记录出错！"
+		Easp.Error(22) = "从数据库删除数据出错！"
+		Easp.Error(23) = "从数据库获取数据出错！"
+		Easp.Error(32) = "仅支持从MS SQL Server数据库调用存储过程！"
+		Easp.Error(24) = "调用存储过程出错！"
+		Easp.Error(25) = "执行SQL语句出错！"
+		Easp.Error(26) = "生成SQL语句出错！"
+		Easp.Error(27) = "获取分页数据出错，数组必须是4个元素（必须提供数据库表的主键）！"
+		Easp.Error(28) = "获取分页数据出错，使用数组条件获取分页数据时条件参数必须为数组！"
+		Easp.Error(29) = "获取分页数据出错，使用自带分页存储过程时条件数组参数必须为6个元素！"
+		Easp.Error(30) = "获取分页数据出错，使用自定义分页存储过程时必须包含@@RecordCount和@@PageCount输出参数！"
+		Easp.Error(31) = "获取分页数据出错，使用存储过程获取分页数据时条件参数必须为数组！"
+		s_dbType       = ""
+		i_queryType    = 0
+		s_pageParam    = "page"
+		i_pageSize     = 20
+		s_pageSpName   = "easp_sp_pager"
 		Set o_pageDic = Server.CreateObject("Scripting.Dictionary")
 		o_pageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} 跳转到{jump}页</div>"
 		o_pageDic("default_config") = ""
@@ -38,7 +50,7 @@ Class EasyAsp_db
 			Set o_conn = pdbConn
 			s_dbType = GetDataType(pdbConn)
 		Else
-			ErrMsg "无效的数据库连接", Err.Description
+			Easp.Error.Raise 13
 		End If
 	End Property
 	Public Property Get Conn()
@@ -47,17 +59,6 @@ Class EasyAsp_db
 	'属性：当前数据库类型
 	Public Property Get DatabaseType()
 		DatabaseType = s_dbType
-	End Property
-	'属性：设置是否开启调试模式
-	Public Property Let Debug(ByVal bool)
-		b_debug = bool
-	End Property
-	Public Property Get Debug()
-		Debug = b_debug
-	End Property
-	'属性：返回错误信息
-	Public Property Get dbErr()
-		dbErr = s_dbErr
 	End Property
 	'属性：设置获取记录集的方式
 	Public Property Let QueryType(ByVal str)
@@ -96,15 +97,6 @@ Class EasyAsp_db
 	Public Property Let PageSpName(ByVal str)
 		s_pageSpName = str
 	End Property
-	Private Sub ErrMsg(e,d)
-		s_dbErr = "<div id=""easp_db_err"">" & e
-		If d<>"" Then s_dbErr = s_dbErr & "<br/>错误信息：" & d
-		s_dbErr = s_dbErr & "</div>"
-		If b_debug Then
-			Response.Write s_dbErr
-			Response.End()
-		End If
-	End Sub
 	'生成数据库连接字符串
 	Public Function OpenConn(ByVal dbType, ByVal strDB, ByVal strServer)
 		Dim TempStr, objConn, s, u, p, port
@@ -144,7 +136,7 @@ Class EasyAsp_db
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
-			ErrMsg "数据库服务器端连接错误，请检查数据库连接。", Err.Description
+			Easp.Error.Raise 12
 			objConn.Close
 			Set objConn = Nothing
 		End If
@@ -196,7 +188,7 @@ Class EasyAsp_db
 				newRs.Close() : Set newRs = Nothing
 			End If
 		End If
-		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取新的ID号！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 14
 		rs.Close() : Set rs = Nothing
 		AutoID = tmpID
 	End Function
@@ -257,9 +249,8 @@ Class EasyAsp_db
 			End With
 			Set GetRecordBySQL = rs
 		End If
-		Easp.Error.Raise 101
-'		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & str
-'		Err.Clear
+		If Err.number <> 0 Then Easp.Error.Raise 11
+		Err.Clear
 	End Function
 	Public Function GRS(ByVal strSelect)
 		Set GRS = GetRecordBySQL(strSelect)
@@ -296,7 +287,7 @@ Class EasyAsp_db
 			Wend
 		End If
 		tmpStr = tmpStr & "]}"
-		If Err.number <> 0 Then ErrMsg "生成Json格式代码出错！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 15
 		rs.Close() : Set rs = Nothing
 		Json = tmpStr
 	End Function
@@ -317,7 +308,7 @@ Class EasyAsp_db
 			End If
 			C(rs)
 		Loop
-		If Err.number <> 0 Then ErrMsg "生成不重复的随机字符串出错！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 16
 	End Function
 	'生成一个不重复的随机数
 	Public Function Rand(min,max,TableField)
@@ -336,7 +327,7 @@ Class EasyAsp_db
 			End If
 			C(rs)
 		Loop
-		If Err.number <> 0 Then ErrMsg "生成不重复的随机数出错！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 17
 	End Function
 	'取得某一指定纪录的详细资料
 	Public Function GetRecordDetail(ByVal TableName,ByVal Condition)
@@ -355,7 +346,7 @@ Class EasyAsp_db
 			TableName = o(0)
 			p = Easp_Param(o(1))
 			If Easp_isN(p(1)) Then
-				ErrMsg "获取随机记录失败！", "请输入要取的记录数量"
+				Easp.Error.Raise 18
 				Exit Function
 			Else
 				fi = p(0) : showN = p(1)
@@ -366,7 +357,7 @@ Class EasyAsp_db
 				End If
 			End If
 		Else
-			ErrMsg "获取随机记录失败！", "请在表名后输入:ID字段的名称"
+			Easp.Error.Raise 19
 			Exit Function
 		End If
 		Condition = Easp_IIF(Easp_isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
@@ -392,7 +383,7 @@ Class EasyAsp_db
 		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
 		DoExecute wAddRecord(TableName,ValueList)
 		If Err.number <> 0 Then
-			ErrMsg "向数据库添加记录出错！", Err.Description
+			Easp.Error.Raise 20
 			AddRecord = 0
 			Exit Function
 		End If
@@ -421,7 +412,7 @@ Class EasyAsp_db
 		On Error Resume Next
 		DoExecute wUpdateRecord(TableName,Condition,ValueList)
 		If Err.number <> 0 Then
-			ErrMsg "更新数据库记录出错！", Err.Description
+			Easp.Error.Raise 21
 			UpdateRecord = 0
 			Exit Function
 		End If
@@ -445,7 +436,7 @@ Class EasyAsp_db
 		On Error Resume Next
 		DoExecute wDeleteRecord(TableName,Condition)
 		If Err.number <> 0 Then
-			ErrMsg "从数据库删除数据出错！", Err.Description
+			Easp.Error.Raise 22
 			DeleteRecord = 0
 			Exit Function
 		End If
@@ -492,7 +483,7 @@ Class EasyAsp_db
 				TempStr = rs.Fields.Item(0).Value
 			End If
 		End If
-		If Err.number <> 0 Then ErrMsg "从数据库获取数据出错！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 23
 		rs.close() : Set rs = Nothing : Err.Clear
 		ReadTable = TempStr
 	End Function
@@ -504,7 +495,7 @@ Class EasyAsp_db
 		On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
 		If Not s_dbType="0" And Not s_dbType="MSSQL" Then
-			MsgErr "仅支持从MS SQL Server数据库调用存储过程！",""
+			Easp.Error.Raise 32
 			Exit Function
 		End If
 		p = Easp_Param(spName)
@@ -559,7 +550,7 @@ Class EasyAsp_db
 			Else
 				cmd.Execute : doSP = cmd(0)
 			End If
-		If Err.number <> 0 Then ErrMsg "调用存储过程出错！", Err.Description
+		If Err.number <> 0 Then Easp.Error.Raise 24
 		Set cmd = Nothing
 		Err.Clear
 	End Function
@@ -581,9 +572,7 @@ Class EasyAsp_db
 			Exec = 1 : DoExecute(str)
 			If Err.number <> 0 Then Exec = 0
 		End If
-		If Err.number <> 0 Then
-			ErrMsg "执行SQL语句出错！", Err.Description
-		End If
+		If Err.number <> 0 Then Easp.Error.Raise 25
 		Err.Clear
 	End Function
 	
@@ -617,7 +606,7 @@ Class EasyAsp_db
 					End Select
 				End If
 			Next
-			If Err.number <> 0 Then ErrMsg "生成SQL语句出错！", Err.Description
+			If Err.number <> 0 Then Easp.Error.Raise 26
 			rsTemp.Close() : Set rsTemp = Nothing : Err.Clear
 		End If
 		ValueToSql = StrTemp
@@ -682,7 +671,7 @@ Class EasyAsp_db
 						If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 						Sql = Sql & " Limit " & i_pageSize*(i_pageIndex-1) & ", " & i_pageSize
 					Else
-						If Ubound(Condition)<>3 Then ErrMsg "获取分页数据出错！", "数组必须是4个元素（必须提供数据库表的主键）！"
+						If Ubound(Condition)<>3 Then Easp.Error.Raise 27
 						Sql = "Select Top " & i_pageSize & " " & fi
 						Sql = Sql & " From [" & Table & "]"
 						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
@@ -697,7 +686,7 @@ Class EasyAsp_db
 					End If
 					Set GetPageRecord = GRS(Sql)
 				Else
-					ErrMsg "获取分页数据出错！", "使用数组条件获取分页数据时条件参数必须为数组！"
+					Easp.Error.Raise 28
 				End If
 			Case "sql","1" Set rs = GRS(Condition)
 			Case "rs","2" Set rs = Condition
@@ -706,7 +695,7 @@ Class EasyAsp_db
 					If pType = "" Then pType = s_pageSpName
 					Select Case pType
 						Case "easp_sp_pager"	'使用自带分页存储过程分页
-							If Ubound(Condition)<>5 Then ErrMsg "获取分页数据出错！", "使用自带分页存储过程时条件数组参数必须为6个元素！"
+							If Ubound(Condition)<>5 Then Easp.Error.Raise 29
 							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&i_pageSize,"@PageIndex:"&i_pageIndex,"@@RecordCount","@@PageCount"))
 						Case Else	'使用自定义分页存储过程
 							spReturn = Array(False,False)
@@ -718,7 +707,7 @@ Class EasyAsp_db
 							If spReturn(0) And spReturn(1) Then
 								spResult = doSP(pType&":3",Condition)
 							Else
-								ErrMsg "获取分页数据出错！", "使用自定义分页存储过程时必须包含@@RecordCount和@@PageCount输出参数！"
+								Easp.Error.Raise 30
 							End If
 					End Select
 					Set GetPageRecord = spResult(0)
@@ -726,7 +715,7 @@ Class EasyAsp_db
 					i_pageCount = int(spResult(1)("@@PageCount"))
 					i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
 				Else
-					ErrMsg "获取分页数据出错！", "使用存储过程获取分页数据时条件参数必须为数组！"
+					Easp.Error.Raise 31
 				End If
 		End Select
 		If Instr(",sql,rs,1,2,", "," & pType & ",")>0 Then

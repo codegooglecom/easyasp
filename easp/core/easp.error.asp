@@ -22,7 +22,7 @@ Class EasyAsp_Error
 	End Property
 	'×Ô¶¨Òå´íÎó´úÂë
 	Public Property Let E(ByVal n, ByVal s)
-		If Not Easp_isN(n) And Not Easp_isN(s) Then
+		If Easp.Has(n) And Easp.Has(s) Then
 			If n <> "0" Then
 				o_err(n) = s
 			End If
@@ -34,15 +34,15 @@ Class EasyAsp_Error
 	End Property
 
 	Public Sub Raise(ByVal n)
-		If Easp_isN(n) Then Exit Sub
+		If Easp.isN(n) Then Exit Sub
 		Dim s : i_errNum = n
 		If b_debug Then
-			s = "<fieldset id=""easpErrorField"" ><legend>³ö´íÀ²</legend><ul><li>" & n & Me.E(n) & "</li>"
+			s = "<fieldset id=""easpError"" ><legend>³ö´íÀ²</legend><ul><li>" & Me.E(n) & "</li>"
 			If Err.Number<>0 Then
-				s = s & "<li>´íÎóÃèÊö£º(" & Hex(Err.Number) & ")" & Err.Description & "</li>"
+				s = s & "<li>´íÎóÃèÊö£º(0x" & Hex(Err.Number) & ")" & Err.Description & "</li>"
 			End If
 			s = s & "</ul></fieldset>"
-			Response.Write s
+			Easp.WE s
 		End If
 	End Sub
 
