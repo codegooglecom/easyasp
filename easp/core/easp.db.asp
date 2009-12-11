@@ -4,10 +4,10 @@ Class EasyAsp_db
 	Private b_debug
 	Private s_dbType, s_dbErr, s_pageParam, s_pageSpName
 	Private i_queryType, i_errNumber, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
-	Private o_conn, o_pageDic
+	Private o_conn, o_pageDic, Er
 
 	Private Sub Class_Initialize()
-		On Error Resume Next
+'		On Error Resume Next
 		s_dbType = ""
 		b_debug = False
 		s_dbErr = ""
@@ -15,6 +15,9 @@ Class EasyAsp_db
 '		If TypeName(Conn) = "Connection" Then
 '			Set o_conn = Conn : s_dbType = GetDataType(Conn)
 '		End If
+		Set Er = New EasyAsp_Error
+		Er(101) = "无效的查询条件，无法获取记录集！"
+		Er(102) = "数据库服务器端连接错误，请检查数据库连接。"
 		s_pageParam = "page"
 		i_pageSize = 20
 		s_pageSpName = "easp_sp_pager"
@@ -254,8 +257,9 @@ Class EasyAsp_db
 			End With
 			Set GetRecordBySQL = rs
 		End If
-		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & str
-		Err.Clear
+		Easp.Error.Raise 101
+'		If Err.number <> 0 Then ErrMsg "无效的查询条件，无法获取记录集！", Err.Description & "<br/>SQL：" & str
+'		Err.Clear
 	End Function
 	Public Function GRS(ByVal strSelect)
 		Set GRS = GetRecordBySQL(strSelect)
