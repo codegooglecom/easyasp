@@ -22,7 +22,7 @@ Class EasyAsp_Error
 	End Property
 	'自定义错误代码
 	Public Property Let E(ByVal n, ByVal s)
-		If Easp.Has(n) And Easp.Has(s) Then
+		If Not Easp_isN(n) And Not Easp_isN(s) Then
 			If n <> "0" Then
 				o_err(n) = s
 			End If
@@ -34,16 +34,19 @@ Class EasyAsp_Error
 	End Property
 
 	Public Sub Raise(ByVal n)
-		If Easp.isN(n) Then Exit Sub
-		i_errNum = n
+		If Easp_isN(n) Then Exit Sub
+		Dim s : i_errNum = n
 		If b_debug Then
-			
+			s = "<fieldset id=""easpErrorField"" ><legend>出错啦</legend><ul><li>" & n & Me.E(n) & "</li>"
+			If Err.Number<>0 Then
+				s = s & "<li>错误描述：(" & Hex(Err.Number) & ")" & Err.Description & "</li>"
+			End If
+			s = s & "</ul></fieldset>"
+			Response.Write s
 		End If
 	End Sub
 
 	Public Function ThrowError()
-		Dim o : Set o = Server.GetLastError
-		
 	End Function
 
 	Public Sub Trace()
