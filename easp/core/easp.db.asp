@@ -368,9 +368,9 @@ Class EasyAsp_db
 			Case "MSSQL"
 				sql = sql & " Order By newid()"
 			Case "MYSQL"
-				sql = "Select " & fi & " From ["&TableName&"]" & Condition & " Order By rand() limit " & showN
+				sql = "Select " & fi & " From " & TableName & Condition & " Order By rand() limit " & showN
 			Case "ORACLE"
-				sql = "Select " & fi & " From (Select " & fi & " From ["&TableName&"] Order By dbms_random.value) " & Easp_IIF(Easp_isN(Condition),"Where",Condition & " And") & " rownum < " & Int(showN)+1
+				sql = "Select " & fi & " From (Select " & fi & " From "&TableName&" Order By dbms_random.value) " & Easp_IIF(Easp_isN(Condition),"Where",Condition & " And") & " rownum < " & Int(showN)+1
 		End Select
 		Set GetRandRecord = GRS(sql)
 	End Function
@@ -885,7 +885,7 @@ Class EasyAsp_db
 	'取得当前页码
 	Private Function GetCurrentPage()
 		Dim rqParam, thisPage : thisPage = 1
-		rqParam = Request.QueryString(s_pageParam)
+		rqParam = Easp.Get(s_pageParam)
 		If isNumeric(rqParam) Then
 			If Int(rqParam) > 0 Then thisPage = Int(rqParam)
 		End If
