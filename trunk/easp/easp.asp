@@ -40,7 +40,8 @@ Dim EasyAsp_s_html
 <%
 Class EasyAsp
 	Public db,fso,upload,tpl,aes,[error]
-	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset,s_rq
+	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq
+	Private s_url, s_rwtS, s_rwtU
 	Private o_md5, o_rwt, o_ext
 	Private b_cooen, i_rule
 	Private Sub Class_Initialize()
@@ -273,45 +274,63 @@ Class EasyAsp
 		DateTime = t
 	End Function
 	Sub RewriteRule(ByVal s, ByVal u)
-		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/") Or Left(u,1)<>"/" Then Exit Sub
+		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/" And Left(s,2)<>"^/" And Left(s,1)<>"/") Or Left(u,1)<>"/" Then Exit Sub
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
 	Sub Rewrite(ByVal p, ByVal s, Byval u)
-		Dim rp
-		If Left(s,1) = "^" Or Right(s,1) = "$" Then Exit Sub
-		If Left(p,1) <> "/" Then Exit Sub
-		rp = Replace(p,"/","\/")
-		s = "^" & rp & "\?" & s & "$"
-		u = p & "?" & u
-		o_rwt.Add ("rule" & i_rule), Array(s,u)
-		i_rule = i_rule + 1
+		Dim rp,arr,i,rs,ru
+		If Left(s,1) = "^" Then s = Mid(s,2)
+		If Right(s,1) = "$" Then s = Left(s,Len(s)-1)
+		arr = Split(p,"|")
+		For i = 0 To Ubound(arr)
+			If Left(arr(i),1) <> "/" Then Exit For
+			rp = Replace(arr(i),".","\.")
+			rs = "^" & rp & "\?" & s & "$"
+			ru = arr(i) & "?" & u
+			o_rwt.Add ("rule" & i_rule), Array(rs,ru)
+			i_rule = i_rule + 1
+			rp = ""
+		Next
 	End Sub
-	'获取QueryString值，支持取Rewrite值
-	Function [Get](Byval s)
-		Dim tmp, isRwt, url, rule, i, qs, arrQs, t
-		isRwt = False : url = GetUrl(1)
-		If Instr(s,":")>0 Then
-		'如果有类型参数，则取出为t
-			t = CRight(s,":") : s = CLeft(s,":")
-		End If
+	'检测本页是否是Rewrite
+	Function isRewrite()
+		Dim rule,i
+		isRewrite = False
 		If Has(o_rwt) Then
-		'如果有Rewrite规则，则检测匹配否
+			s_url = GetUrl(1)
 			For Each i In o_rwt
 				rule = o_rwt(i)(0)
-				If Easp_Test(url,rule) Then
-					qs = CRight(o_rwt(i)(1),"?")
-					isRwt = True
+				If Easp_Test(s_url,rule) Then
+					isRewrite = True
+					s_rwtS = rule
+					s_rwtU = CRight(o_rwt(i)(1),"?")
 					Exit For
 				End If
 			Next
 		End If
-		If isRwt Then
+	End Function
+	Function ReplaceUrl(ByVal n, ByVal s)
+		Dim i
+		If isRewrite Then
+			
+		Else
+
+		End If
+	End Function
+	'获取QueryString值，支持取Rewrite值
+	Function [Get](Byval s)
+		Dim tmp, i, arrQs, t
+		If Instr(s,":")>0 Then
+		'如果有类型参数，则取出为t
+			t = CRight(s,":") : s = CLeft(s,":")
+		End If
+		If isRewrite Then
 		'如果是Rewrite的页面地址
-			arrQs = Split(qs,"&")
+			arrQs = Split(s_rwtU,"&")
 			For i = 0 To Ubound(arrQs)
 				If s = CLeft(arrQs(i),"=") Then
-					tmp = RegReplace(url,rule,CRight(arrQs(i),"="))
+					tmp = RegReplace(s_url,s_rwtS,CRight(arrQs(i),"="))
 					Exit For
 				End If
 			Next
