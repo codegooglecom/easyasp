@@ -1,10 +1,18 @@
 <%
+'######################################################################
+'## easp.db.asp
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp Database Control
+'## Version     :   v2.2
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/14 22:22
+'## Description :   EasyAsp数据库操作类
+'##
+'######################################################################
 Class EasyAsp_db
-
 	Private s_dbType, s_pageParam, s_pageSpName
 	Private i_queryType, i_errNumber, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
 	Private o_conn, o_pageDic
-
 	Private Sub Class_Initialize()
 		Easp.Error(11) = "无效的查询条件，无法获取记录集！"
 		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接。"
@@ -746,7 +754,7 @@ Class EasyAsp_db
 		cfg("listsidelong")	= 2
 		cfg("list")			= "*"
 		cfg("currentclass")	= "current"
-		cfg("link")			= GetRQ(0) & "*"
+		cfg("link")			= GetRQ("*")
 		cfg("first")		= "&laquo;"
 		cfg("prev")			= "&#8249;"
 		cfg("next")			= "&#8250;"
@@ -893,11 +901,7 @@ Class EasyAsp_db
 	End Function
 	'返回除去页码的当前URL参数
 	Private Function GetRQ(pageNumer)
-		Dim tmpStr,rq : tmpStr = ""
-		For Each rq In Request.QueryString()
-			If rq<>s_pageParam Then tmpStr = tmpStr & "&" & rq & "=" & Server.UrlEncode(Request.QueryString(rq))
-		Next
-		GetRQ = Request.ServerVariables("SCRIPT_NAME") & "?" & Easp_IIF(tmpStr="","",Mid(tmpStr,2)&"&") & s_pageParam & "=" & Easp_IIF(pageNumer=0,"",pageNumer)
+		GetRQ = Easp.GetUrlWith("-" & s_pageParam, s_pageParam & "=" & pageNumer)
 	End Function
 End Class
 %>

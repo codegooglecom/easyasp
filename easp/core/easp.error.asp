@@ -1,18 +1,38 @@
 <%
+'######################################################################
+'## easp.error.asp
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp Exception Class
+'## Version     :   v2.2
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/14 22:20
+'## Description :   EasyAsp异常处理
+'##
+'######################################################################
 Class EasyAsp_Error
-	Private b_debug
-	Private i_errNum
-	Private s_errStr, s_title
+	Private b_debug, b_redirect
+	Private i_errNum, i_delay
+	Private s_errStr, s_title, s_url, s_css
 	Private o_err
 	Private Sub Class_Initialize
-		i_errNum = 0
-		b_debug = True
-		s_title = "出错啦"
-		Set o_err = Server.CreateObject("Scripting.Dictionary")
+		i_errNum    = 0
+		i_delay     = 3000
+		s_title     = "发生错误啦"
+		b_debug     = True
+		b_redirect  = True
+		s_url       = "javascript:history.go(-1)"
+		Set o_err   = Server.CreateObject("Scripting.Dictionary")
 	End Sub
 	Private Sub Class_Terminate
 		Set o_err = Nothing
 	End Sub
+	'是否开启调试状态（开启后返回开发者错误信息）
+	Public Property Get [Debug]
+		[Debug] = b_debug
+	End Property
+	Public Property Let [Debug](ByVal b)
+		b_debug = b
+	End Property
 	'取已定义的错误信息
 	Public Default Property Get E(ByVal n)
 		If o_err.Exists(n) Then
@@ -40,30 +60,63 @@ Class EasyAsp_Error
 	Public Property Let Title(ByVal s)
 		s_title = s
 	End Property
-
+	'是否自动转向
+	Public Property Get [Redirect]
+		[Redirect] = b_redirect
+	End Property
+	Public Property Let [Redirect](ByVal b)
+		b_redirect = b
+	End Property
+	'自定义跳转页
+	Public Property Get Url
+		Url = s_url
+	End Property
+	Public Property Let Url(ByVal s)
+		s_url = s
+	End Property
+	'自动跳转时间（秒）
+	Public Property Get Delay
+		Delay = i_delay /1000
+	End Property
+	Public Property Let Delay(ByVal i)
+		i_delay = i * 1000
+	End Property
+	'自定义样式名称
+	Public Property Get ClassName
+		ClassName = s_css
+	End Property
+	Public Property Let ClassName(ByVal s)
+		s_css = s
+	End Property
+	'生成错误
 	Public Sub Raise(ByVal n)
 		If Easp.isN(n) Then Exit Sub
 		Dim s : i_errNum = n
 		If b_debug Then
-			Easp.WE ShowMsg(Me.E(n), 1, "", 0)
+			Easp.WE ShowMsg(o_err(n), 1)
 		End If
 	End Sub
-
+	'抛出错误信息
 	Public Sub Throw(ByVal msg)
-		'Easp.W ShowMsg()
-	End Sub
-	Private Function ShowMsg(ByVal msg, ByVal t, ByVal url, ByVal relay)
-		Dim s, isBack
-		If Easp.isN(title) Then title = Me.Title
-		If Easp.Has(url) Then
-			isBack = True
-			If isNumeric(relay) Then
-				relay = relay / 1000
-			Else
-				relay = 3000
-			End If
+		If Left(msg,1) = ":" Then
+			If o_err.Exists(Mid(msg,2)) Then msg = o_err(Mid(msg,2))
 		End If
-		s = "<fieldset id=""easpError"" ><legend>" & title & "</legend>" & vbCrLf
+		Easp.W ShowMsg(msg,0)
+	End Sub
+	'显示已定义的所有错误代码及信息
+	Public Sub Trace()
+		Dim key
+		If Easp.Has(o_err) Then
+			For Each key In o_err
+				Easp.Wn key & ":" & o_err(key)
+			Next
+		End If
+	End Sub
+	'显示错误信息框
+	Private Function ShowMsg(ByVal msg, ByVal t)
+		Dim s
+		s = "<fieldset id=""easpError""" & Easp.IfThen(Easp.Has(s_css)," class=""" & s_css & """") & ">" & vbCrLf
+		s = s & "	<legend>" & s_title & "</legend>" & vbCrLf
 		s = s & "	<p class=""msg"">" & msg & "</p>" & vbCrLf
 		If t = 1 Then
 			If Err.Number<>0 Then
@@ -75,20 +128,16 @@ Class EasyAsp_Error
 				s = s & "	</ul>" & vbCrLf
 			End If
 		Else
-			If isBack Then
-				s = s & "	<p class=""back"">页面将在" & relay*1000 & "秒钟后跳转，如果浏览器没有正常跳转，<a href=""" & Easp.IIF(url=":back","javascript:history.go(-1)",url) & """>请点击此处</a>。</p>" & vbCrLf
+			If b_redirect Then
+				s = s & "	<p class=""back"">页面将在" & i_delay/1000 & "秒钟后跳转，如果浏览器没有正常跳转，<a href=""" & s_url & """>请点击此处继续</a>。</p>" & vbCrLf
+				s_url = Easp.IIF(Left(s_url,11) = "javascript:", Mid(s_url,12), "location.href='" & s_url & "';")
+				s = s & Easp.JsCode("setTimeout(function(){" & s_url & "}," & i_delay & ");")
+			Else
+				s = s & "	<p class=""back""><a href=""" & s_url & """>请点击此处继续</a></p>"
 			End If
 		End If
 		s = s & "</fieldset>" & vbCrLf
 		ShowMsg = s
 	End Function
-	Public Sub Trace()
-		Dim key
-		If Easp.Has(o_err) Then
-			For Each key In o_err
-				Easp.Wn key & ":" & o_err(key)
-			Next
-		End If
-	End Sub
 End Class
 %>
