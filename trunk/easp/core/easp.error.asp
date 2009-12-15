@@ -12,7 +12,7 @@
 Class EasyAsp_Error
 	Private b_debug, b_redirect
 	Private i_errNum, i_delay
-	Private s_errStr, s_title, s_url, s_css
+	Private s_errStr, s_title, s_url, s_css, s_msg
 	Private o_err
 	Private Sub Class_Initialize
 		i_errNum    = 0
@@ -60,6 +60,13 @@ Class EasyAsp_Error
 	Public Property Let Title(ByVal s)
 		s_title = s
 	End Property
+	'自定义的错误信息
+	Public Property Get Msg
+		Msg = s_msg
+	End Property
+	Public Property Let Msg(ByVal s)
+		s_msg = s
+	End Property
 	'是否自动转向
 	Public Property Get [Redirect]
 		[Redirect] = b_redirect
@@ -91,17 +98,11 @@ Class EasyAsp_Error
 	'生成错误
 	Public Sub Raise(ByVal n)
 		If Easp.isN(n) Then Exit Sub
-		Dim s,msg
-		If isArray(n) Then
-			msg = n(1) : n = n(0)
-		ElseIf Instr(n,":")>0 Then
-			msg = CRight(n,":") : n = CLeft(n,":")
-		End If
 		i_errNum = n
 		If b_debug Then
-			msg = Easp.IIF(Easp.isN(msg), o_err(n), "<br />" & msg)
-			Easp.WE ShowMsg(msg, 1)
+			Easp.WE ShowMsg(o_err(n) & s_msg, 1)
 		End If
+		s_msg = ""
 	End Sub
 	'抛出错误信息
 	Public Sub Throw(ByVal msg)
