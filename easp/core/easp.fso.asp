@@ -104,7 +104,8 @@ Class EasyAsp_Fso
 			End If
 		Else
 			tmpStr = ""
-			Easp.Error.Raise "51:文件路径(" & filePath & ")"
+			Easp.Error.Msg = "(" & filePath & ")"
+			Easp.Error.Raise 51
 		End If
 		Read = tmpStr
 	End Function
@@ -135,7 +136,8 @@ Class EasyAsp_Fso
 		End If
 		If Err.Number<>0 Then
 			CreateFile = False
-			Easp.Error.Raise "52:文件路径(" & filePath & ")"
+			Easp.Error.Msg = "(" & filePath & ")"
+			Easp.Error.Raise 52
 		End If
 		Err.Clear()
 	End Function
@@ -168,7 +170,8 @@ Class EasyAsp_Fso
 		Next
 		If Err.Number<>0 Then
 			CreateFolder = False
-			Easp.Error.Raise "53:文件夹路径("&folderPath&")"
+			Easp.Error.Msg = "(" & folderPath & ")"
+			Easp.Error.Raise 53
 		End If
 		Err.Clear()
 	End Function
@@ -218,7 +221,10 @@ Class EasyAsp_Fso
 		Set fs = Nothing
 		Set f = Nothing
 		List = arr
-		If Err.Number<>0 Then Easp.Error.Raise "54:源路径("&folderPath&")"
+		If Err.Number<>0 Then
+			Easp.Error.Msg = "(" & folderPath & ")"
+			Easp.Error.Raise 54
+		End If
 		Err.Clear()
 	End Function
 	'设置文件或文件夹属性
@@ -226,7 +232,10 @@ Class EasyAsp_Fso
 		On Error Resume Next
 		Dim p,a,i,n,f,at : p = absPath(path) : n = 0 : Attr = True
 		If not isExists(p) Then
-			Attr = False : Easp.Error.Raise "55:源路径("&path&")" : Exit Function
+			Attr = False
+			Easp.Error.Msg = "(" & path & ")"
+			Easp.Error.Raise 55
+			Exit Function
 		End If
 		If isFile(p) Then
 			Set f = Fso.GetFile(p)
@@ -262,7 +271,8 @@ Class EasyAsp_Fso
 		Set f = Nothing
 		If Err.Number<>0 Then
 			Attr = False
-			Easp.Error.Raise "56:源路径("&path&")"
+			Easp.Error.Msg = "(" & path & ")"
+			Easp.Error.Raise 56
 		End If
 		Err.Clear()
 	End Function
@@ -275,7 +285,8 @@ Class EasyAsp_Fso
 			Set f = Fso.GetFolder(p)
 		Else
 			getAttr = ""
-			Easp.Error.Raise "57:源路径("&path&")"
+			Easp.Error.Msg = "(" & path & ")"
+			Easp.Error.Raise 57
 			Exit Function
 		End If
 		Select Case LCase(attrType)
@@ -307,7 +318,9 @@ Class EasyAsp_Fso
 		ElseIf isFolder(ff) Then
 			Copy = CopyFolder(fromPath,toPath)
 		Else
-			Copy = False : Easp.Error.Raise "58:源路径("&fromPath&")"
+			Copy = False
+			Easp.Error.Msg = "(" & fromPath & ")"
+			Easp.Error.Raise 58
 		End If
 	End Function
 	'移动文件(支持通配符*和?)
@@ -326,7 +339,9 @@ Class EasyAsp_Fso
 		ElseIf isFolder(ff) Then
 			Move = MoveFolder(fromPath,toPath)
 		Else
-			Move = False : Easp.Error.Raise "59:源路径("&fromPath&")"
+			Move = False
+			Easp.Error.Msg = "(" & fromPath & ")"
+			Easp.Error.Raise 59
 		End If
 	End Function
 	'删除文件(支持通配符*和?)
@@ -348,7 +363,9 @@ Class EasyAsp_Fso
 		ElseIf isFolder(p) Then
 			Del = DelFolder(path)
 		Else
-			Del = False : Easp.Error.Raise "60:源路径("&path&")"
+			Del = False
+			Easp.Error.Msg = "(" & path & ")"
+			Easp.Error.Raise 60
 		End If
 		Err.Clear()
 	End Function
@@ -357,11 +374,15 @@ Class EasyAsp_Fso
 		Dim p,n : p = absPath(path) : Rename = True
 		n = Left(p,InstrRev(p,"\")) & newname
 		If Not isExists(p) Then
-			Rename = False : Easp.Error.Raise "61:源路径("&path&")"
+			Rename = False
+			Easp.Error.Msg = "(" & path & ")"
+			Easp.Error.Raise 61
 			Exit Function
 		End If
 		If isExists(n) Then
-			Rename = False : Easp.Error.Raise "62:文件名("&newname&")"
+			Rename = False
+			Easp.Error.Msg = "(" & newname & ")"
+			Easp.Error.Raise 62
 			Exit Function
 		End If
 		Copy p,n : Del p
@@ -416,12 +437,14 @@ Class EasyAsp_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				Easp.Error.Raise "63:" & os&oi&"失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Raise 63
 			End If
 		ElseIf isWildcards(ff) Then
 			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
 				FOFO = False
-				Easp.Error.Raise "63:" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
+				Easp.Error.Raise 63
 			End If
 			If MOC<>2 Then
 				FOFO = MD(tf)
@@ -431,11 +454,13 @@ Class EasyAsp_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				Easp.Error.Raise "63:" & os&oi&"失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Raise 63
 			End If
 		Else
 			FOFO = False
-			Easp.Error.Raise "63:" & os&oi&"失败！" & Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
+			Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
+			Easp.Error.Raise 63
 		End If
 		Err.Clear()
 	End Function

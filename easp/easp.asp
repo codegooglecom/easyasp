@@ -183,8 +183,8 @@ Class EasyAsp
 		WE JsCode(Str("alert('{1}');location.href='{2}';",Array(JsEncode(s),u)))
 	End Sub
 	'服务器端输出javascript确认消息框并根据选择转到URL
-	Sub ConfirmUrl(ByVal s, ByVal tu, ByVal fu)
-		WE JsCode(Str("if(confirm('{1}')){{4}='{2}';}else{{4}='{3}';}",Array(JsEncode(s),tu,fu,"location.href")))
+	Sub ConfirmUrl(ByVal s, ByVal t, ByVal f)
+		WE JsCode(Str("location.href=confirm('{1}')?'{2}':'{3}';",Array(JsEncode(s),t,f)))
 	End Sub
 	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
