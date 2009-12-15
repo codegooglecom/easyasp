@@ -1,19 +1,41 @@
 <%
+'######################################################################
+'## easp.fso.asp
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp FileSystemObject Class
+'## Version     :   v2.2
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/15 15:47
+'## Description :   EasyAsp文件操作类
+'##
+'######################################################################
 Class EasyAsp_Fso
 	Public oFso
 	Private Fso
-	Private s_fsoName,s_err,s_sizeformat,s_charset
-	Private b_debug,b_force,b_overwrite
+	Private b_force,b_overwrite
+	Private s_fsoName,s_sizeformat,s_charset
 
 	Private Sub Class_Initialize
-		s_fsoName 	= "Scripting.FilesyStemObject"
-		s_charset	= "GB2312"
+		s_fsoName 	= Easp.FsoName
+		s_charset	= Easp.CharSet
 		Set Fso 	= Server.CreateObject(s_fsoName)
 		Set oFso 	= Fso
-		b_debug		= False
 		b_force		= True
 		b_overwrite	= True
 		s_sizeformat= "K"
+		Easp.Error(51) = "读取文件错误，文件未找到！"
+		Easp.Error(52) = "写入文件错误！"
+		Easp.Error(53) = "创建文件夹错误！"
+		Easp.Error(54) = "读取文件列表失败！"
+		Easp.Error(55) = "设置属性失败，文件不存在！"
+		Easp.Error(56) = "设置属性失败！"
+		Easp.Error(57) = "获取属性失败，文件不存在！"
+		Easp.Error(58) = "复制失败，源文件不存在！"
+		Easp.Error(59) = "移动失败，源文件不存在！"
+		Easp.Error(60) = "删除失败，文件不存在！"
+		Easp.Error(61) = "重命名失败，源文件不存在！"
+		Easp.Error(62) = "重命名失败，已存在同名文件！"
+		Easp.Error(63) = "文件或文件夹操作错误！"
 	End Sub
 
 	Private Sub Class_Terminate
@@ -29,10 +51,6 @@ Class EasyAsp_Fso
 	'属性：文件编码
 	Public Property Let CharSet(Byval str)
 		s_charset = Ucase(str)
-	End Property
-	'属性：是否开启调试状态
-	Public Property Let Debug(Byval bool)
-		b_debug = bool
 	End Property
 	'属性：是否删除只读文件
 	Public Property Let Force(Byval bool)
@@ -86,7 +104,7 @@ Class EasyAsp_Fso
 			End If
 		Else
 			tmpStr = ""
-			ErrMsg "读取文件错误！", "文件未找到(" & filePath & ")"
+			Easp.Error.Raise "51:文件路径(" & filePath & ")"
 		End If
 		Read = tmpStr
 	End Function
@@ -117,7 +135,7 @@ Class EasyAsp_Fso
 		End If
 		If Err.Number<>0 Then
 			CreateFile = False
-			ErrMsg "写入文件错误！", Err.Description & "("&filePath&")"
+			Easp.Error.Raise "52:文件路径(" & filePath & ")"
 		End If
 		Err.Clear()
 	End Function
@@ -150,7 +168,7 @@ Class EasyAsp_Fso
 		Next
 		If Err.Number<>0 Then
 			CreateFolder = False
-			ErrMsg "创建文件夹错误！", Err.Description & "("&folderPath&")"
+			Easp.Error.Raise "53:文件夹路径("&folderPath&")"
 		End If
 		Err.Clear()
 	End Function
@@ -200,9 +218,7 @@ Class EasyAsp_Fso
 		Set fs = Nothing
 		Set f = Nothing
 		List = arr
-		If Err.Number<>0 Then
-			ErrMsg "读取文件列表失败！", Err.Description & "("&folderPath&")"
-		End If
+		If Err.Number<>0 Then Easp.Error.Raise "54:源路径("&folderPath&")"
 		Err.Clear()
 	End Function
 	'设置文件或文件夹属性
@@ -210,7 +226,7 @@ Class EasyAsp_Fso
 		On Error Resume Next
 		Dim p,a,i,n,f,at : p = absPath(path) : n = 0 : Attr = True
 		If not isExists(p) Then
-			Attr = False : ErrMsg "设置属性失败！", "文件不存在("&path&")" : Exit Function
+			Attr = False : Easp.Error.Raise "55:源路径("&path&")" : Exit Function
 		End If
 		If isFile(p) Then
 			Set f = Fso.GetFile(p)
@@ -246,7 +262,7 @@ Class EasyAsp_Fso
 		Set f = Nothing
 		If Err.Number<>0 Then
 			Attr = False
-			ErrMsg "设置属性失败！", Err.Description & "("&path&")"
+			Easp.Error.Raise "56:源路径("&path&")"
 		End If
 		Err.Clear()
 	End Function
@@ -258,7 +274,8 @@ Class EasyAsp_Fso
 		ElseIf isFolder(p) Then
 			Set f = Fso.GetFolder(p)
 		Else
-			getAttr = "" : ErrMsg "获取属性失败！", "文件不存在("&path&")"
+			getAttr = ""
+			Easp.Error.Raise "57:源路径("&path&")"
 			Exit Function
 		End If
 		Select Case LCase(attrType)
@@ -290,7 +307,7 @@ Class EasyAsp_Fso
 		ElseIf isFolder(ff) Then
 			Copy = CopyFolder(fromPath,toPath)
 		Else
-			Copy = False : ErrMsg "复制失败！","源文件不存在("&fromPath&")"
+			Copy = False : Easp.Error.Raise "58:源路径("&fromPath&")"
 		End If
 	End Function
 	'移动文件(支持通配符*和?)
@@ -309,7 +326,7 @@ Class EasyAsp_Fso
 		ElseIf isFolder(ff) Then
 			Move = MoveFolder(fromPath,toPath)
 		Else
-			Move = False : ErrMsg "移动失败！","源文件不存在("&fromPath&")"
+			Move = False : Easp.Error.Raise "59:源路径("&fromPath&")"
 		End If
 	End Function
 	'删除文件(支持通配符*和?)
@@ -331,7 +348,7 @@ Class EasyAsp_Fso
 		ElseIf isFolder(p) Then
 			Del = DelFolder(path)
 		Else
-			Del = False : ErrMsg "删除失败！", "文件不存在" & "("&path&")"
+			Del = False : Easp.Error.Raise "60:源路径("&path&")"
 		End If
 		Err.Clear()
 	End Function
@@ -340,11 +357,11 @@ Class EasyAsp_Fso
 		Dim p,n : p = absPath(path) : Rename = True
 		n = Left(p,InstrRev(p,"\")) & newname
 		If Not isExists(p) Then
-			Rename = False : ErrMsg "重命名失败！","源文件不存在("&path&")"
+			Rename = False : Easp.Error.Raise "61:源路径("&path&")"
 			Exit Function
 		End If
 		If isExists(n) Then
-			Rename = False : ErrMsg "重命名失败！","已存在同名文件("&newname&")"
+			Rename = False : Easp.Error.Raise "62:文件名("&newname&")"
 			Exit Function
 		End If
 		Copy p,n : Del p
@@ -399,12 +416,12 @@ Class EasyAsp_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				ErrMsg os&oi&"失败！", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Raise "63:" & os&oi&"失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
 			End If
 		ElseIf isWildcards(ff) Then
 			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
 				FOFO = False
-				ErrMsg os&oi&"失败！", Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
+				Easp.Error.Raise "63:" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
 			End If
 			If MOC<>2 Then
 				FOFO = MD(tf)
@@ -414,11 +431,11 @@ Class EasyAsp_Fso
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				ErrMsg os&oi&"失败！", Err.Description & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Raise "63:" & os&oi&"失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
 			End If
 		Else
 			FOFO = False
-			ErrMsg os&oi&"失败！", Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
+			Easp.Error.Raise "63:" & os&oi&"失败！" & Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
 		End If
 		Err.Clear()
 	End Function
@@ -453,15 +470,5 @@ Class EasyAsp_Fso
 		If a>=1 Then : s = "R" & s : a = a- 1 : End If
 		Attr2Str = s
 	End Function
-	'输出错误信息
-	Private Sub ErrMsg(e,d)
-		s_err = "<div id=""easp_err"">" & e
-		If Not Easp_isN(d) Then s_err = s_err & "<br/>错误信息:" & d
-		s_err = s_err & "</div>"
-		If b_debug Then
-			Response.Write s_err
-			Response.End()
-		End If
-	End Sub
 End Class
 %>

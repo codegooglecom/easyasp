@@ -6,7 +6,7 @@ Option Explicit
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/1 0:02:32
+'## Update Date :   2009/12/15 15:51
 '## Description :   EasyAsp Class
 '##
 '## Update Info	:
@@ -273,11 +273,13 @@ Class EasyAsp
 		For i = 0 To 6 : t = Replace(t, SpecialTextRe(i),SpecialText(i)) : Next
 		DateTime = t
 	End Function
+	'伪Rewrite规则设置（传统方法）
 	Sub RewriteRule(ByVal s, ByVal u)
 		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/" And Left(s,2)<>"^/" And Left(s,1)<>"/") Or Left(u,1)<>"/" Then Exit Sub
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
+	'伪Rewrite规则设置（推荐方法）
 	Sub Rewrite(ByVal p, ByVal s, Byval u)
 		Dim rp,arr,i,rs,ru
 		If Left(s,1) = "^" Then s = Mid(s,2)
@@ -310,14 +312,15 @@ Class EasyAsp
 			Next
 		End If
 	End Function
-	Function ReplaceUrl(ByVal n, ByVal s)
-		Dim i
-		If isRewrite Then
-			
-		Else
-
-		End If
-	End Function
+	'替换Url参数
+'	Function ReplaceUrl(ByVal n, ByVal s)
+'		Dim i
+'		If isRewrite Then
+'			
+'		Else
+'			ReplaceUrl = GetUrlWith("-" & n, n & "=" & s)
+'		End If
+'	End Function
 	'获取QueryString值，支持取Rewrite值
 	Function [Get](Byval s)
 		Dim tmp, i, arrQs, t
@@ -924,15 +927,15 @@ Class EasyAsp
 		If t = "easyasp_obj" Then
 			Include(s_path & "core/" & p)
 			Execute("Set "&o&" = New EasyAsp_"&f)
-			Select Case Lcase(f)
-				Case "fso"
-					fso.fsoName = s_fsoName
-					fso.CharSet = s_charset
-				Case "upload"
-					upload.CharSet = s_charset
-				Case "tpl"
-					tpl.CharSet = s_charset
-			End Select
+'			Select Case Lcase(f)
+'				Case "fso"
+'					fso.fsoName = s_fsoName
+'					fso.CharSet = s_charset
+'				Case "upload"
+'					upload.CharSet = s_charset
+'				Case "tpl"
+'					tpl.CharSet = s_charset
+'			End Select
 		End If
 	End Sub
 	'加载插件
