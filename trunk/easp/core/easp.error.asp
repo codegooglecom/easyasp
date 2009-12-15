@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Exception Class
 '## Version     :   v2.2
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/14 22:20
+'## Update Date :   2009/12/15 15:48
 '## Description :   EasyAsp异常处理
 '##
 '######################################################################
@@ -91,9 +91,16 @@ Class EasyAsp_Error
 	'生成错误
 	Public Sub Raise(ByVal n)
 		If Easp.isN(n) Then Exit Sub
-		Dim s : i_errNum = n
+		Dim s,msg
+		If isArray(n) Then
+			msg = n(1) : n = n(0)
+		ElseIf Instr(n,":")>0 Then
+			msg = CRight(n,":") : n = CLeft(n,":")
+		End If
+		i_errNum = n
 		If b_debug Then
-			Easp.WE ShowMsg(o_err(n), 1)
+			msg = Easp.IIF(Easp.isN(msg), o_err(n), "<br />" & msg)
+			Easp.WE ShowMsg(msg, 1)
 		End If
 	End Sub
 	'抛出错误信息
