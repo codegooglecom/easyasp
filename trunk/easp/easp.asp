@@ -110,6 +110,7 @@ Class EasyAsp
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
 		Set db = New EasyAsp_db
+		Set tpl = New EasyAsp_tpl
 	End Sub
 
 	Private Function rqsv(ByVal s)
@@ -312,15 +313,6 @@ Class EasyAsp
 			Next
 		End If
 	End Function
-	'替换Url参数
-'	Function ReplaceUrl(ByVal n, ByVal s)
-'		Dim i
-'		If isRewrite Then
-'			
-'		Else
-'			ReplaceUrl = GetUrlWith("-" & n, n & "=" & s)
-'		End If
-'	End Function
 	'获取QueryString值，支持取Rewrite值
 	Function [Get](Byval s)
 		Dim tmp, i, arrQs, t
@@ -823,14 +815,14 @@ Class EasyAsp
 	End Function
 	'动态载入文件
 	Sub Include(ByVal filePath)
-		ExecuteGlobal GetIncCode(filePath,0)
+		ExecuteGlobal GetIncCode(IncRead(filePath),0)
 	End Sub
 	Function getInclude(ByVal filePath)
-		ExecuteGlobal GetIncCode(filePath,1)
+		ExecuteGlobal GetIncCode(IncRead(filePath),1)
 		getInclude = EasyAsp_s_html
 	End Function
 	'读取文件内容
-	Private Function Read(ByVal filePath)
+	Function Read(ByVal filePath)
 		Dim Fso, p, f, tmpStr,o_strm
 		p = filePath
 		If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
@@ -884,10 +876,9 @@ Class EasyAsp
 		End If
 		IncRead = content
 	End Function
-	'将包含文件转换为ASP代码
-	Private Function GetIncCode(ByVal filePath, ByVal getHtml)
-		Dim content,tmpStr,code,tmpCode,s_code,st,en
-		content = IncRead(filePath)
+	'将文本内容转换为ASP代码
+	Function GetIncCode(ByVal content, ByVal getHtml)
+		Dim tmpStr,code,tmpCode,s_code,st,en
 		code = "" : st = 1 : en = Instr(content,"<%") + 2
 		s_code = IIF(getHtml=1,"EasyAsp_s_html = EasyAsp_s_html & ","Response.Write ")
 		While en > st + 1
@@ -895,28 +886,26 @@ Class EasyAsp
 			st = Instr(en,content,"%"&">") + 2
 			If Has(tmpStr) Then
 				tmpStr = Replace(tmpStr,"""","""""")
-				tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
 				tmpStr = Replace(tmpStr,vbCrLf,"""&vbCrLf&""")
 				code = code & s_code & """" & tmpStr & """" & vbCrLf
 			End If
 			tmpStr = Mid(content,en,st-en-2)
 			tmpCode = regReplace(tmpStr,"^\s*=\s*",s_code) & vbCrLf
 			If getHtml = 1 Then
-				tmpCode = regReplaceM(tmpCode,"^(\s*)response\.write","$1" & s_code) & vbCrLf
-				tmpCode = regReplaceM(tmpCode,"^(\s*)Easp\.(W|WC|WN)","$1" & s_code) & vbCrLf
+				tmpCode = regReplaceM(tmpCode,"response\.write([\( ])", s_code & "$1") & vbCrLf
+				tmpCode = regReplaceM(tmpCode,"Easp\.(WC|WN|W)([\( ])", s_code & "$2") & vbCrLf
 			End If
-			code = code & Replace(tmpCode,vbCrLf&vbCrLf,vbCrLf)
+			code = code & tmpCode
 			en = Instr(st,content,"<%") + 2
 		Wend
 		tmpStr = Mid(content,st)
 		If Has(tmpStr) Then
 			tmpStr = Replace(tmpStr,"""","""""")
-			tmpStr = Replace(tmpStr,vbCrLf&vbCrLf,vbCrLf)
 			tmpStr = Replace(tmpStr,vbcrlf,"""&vbCrLf&""")
 			code = code & s_code & """" & tmpStr & """" & vbCrLf
 		End If
 		If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
-		GetIncCode = Replace(code,vbCrLf&vbCrLf,vbCrLf)
+		GetIncCode = regReplace(code,"(\n\r)+",vbCrLf)
 	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
@@ -927,15 +916,6 @@ Class EasyAsp
 		If t = "easyasp_obj" Then
 			Include(s_path & "core/" & p)
 			Execute("Set "&o&" = New EasyAsp_"&f)
-'			Select Case Lcase(f)
-'				Case "fso"
-'					fso.fsoName = s_fsoName
-'					fso.CharSet = s_charset
-'				Case "upload"
-'					upload.CharSet = s_charset
-'				Case "tpl"
-'					tpl.CharSet = s_charset
-'			End Select
 		End If
 	End Sub
 	'加载插件
@@ -970,6 +950,56 @@ Class EasyAsp
 	Function MD5_16(ByVal s)
 		Use("Md5") : MD5_16 = o_md5.To16(s)
 	End Function
+	'调试函数
+	Sub Trace(ByVal o)
+		Dim s,i,j
+		Select Case VarType(o)
+			Case vbEmpty, vbNull
+				s = "[Empty]"
+			Case vbString
+				s = IIF(o="","[Empty String]",htmlEncode(o))
+			Case vbObject
+				Select Case TypeName(o)
+					Case "Nothing","Empty"
+						s = "[Empty Object]"
+					Case "Recordset"
+						If o.State = 0 Then
+							s = "[Closed Recordset]"
+						Else
+							If o.Bof And o.Eof Then
+								s = "[Empty Recordset]"
+							Else
+								s = "<h3>[RecordSet]</h3>"
+								While i<10 And Not rs.Eof
+									For j = 0 To o.Fields.Count-1
+										s = s & "<b>" &  o.Fields(j).Name & "</b>" & ": " & htmlEncode(o.Fields(j).Value) & "<br />"
+									Next
+									s = s & "<br />--------------------<br /><br />"
+									i = i + 1
+									o.MoveNext
+								Wend
+							End If
+						End If
+					Case "Dictionary"
+						If o.Count = 0 Then
+							s = "[Empty Dictionary]"
+						Else
+							s = "<h3>[Dictionary]</h3>"
+							For Each i In o
+								s = s & "<b>" & i & "</b>" & ": " & htmlEncode(o(i)) & "<br />"
+							Next
+						End If
+				End Select
+			Case vbArray,8194,8204,8209
+				If Ubound(o) = -1 Then
+					s = "[Empty Array]"
+				Else
+					s = "<h3>[Array]</h3>"
+					s = htmlEncode(Join(o,", "))
+				End If
+		End Select
+		W s
+	End Sub
 End Class
 Class EasyAsp_obj : End Class
 
@@ -1170,3 +1200,4 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
+<!--#include file="core/easp.tpl.asp"-->

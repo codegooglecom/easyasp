@@ -122,10 +122,11 @@ Class EasyAsp_Error
 	End Sub
 	'显示错误信息框
 	Private Function ShowMsg(ByVal msg, ByVal t)
-		Dim s
+		Dim s,x
 		s = "<fieldset id=""easpError""" & Easp.IfThen(Easp.Has(s_css)," class=""" & s_css & """") & ">" & vbCrLf
 		s = s & "	<legend>" & s_title & "</legend>" & vbCrLf
 		s = s & "	<p class=""msg"">" & msg & "</p>" & vbCrLf
+		x = Easp.IIF(s_url = "javascript:history.go(-1)", "返回", "继续")
 		If t = 1 Then
 			If Err.Number<>0 Then
 				s = s & "	<ul class=""dev"">" & vbCrLf
@@ -137,11 +138,11 @@ Class EasyAsp_Error
 			End If
 		Else
 			If b_redirect Then
-				s = s & "	<p class=""back"">页面将在" & i_delay/1000 & "秒钟后跳转，如果浏览器没有正常跳转，<a href=""" & s_url & """>请点击此处继续</a>。</p>" & vbCrLf
+				s = s & "	<p class=""back"">页面将在" & i_delay/1000 & "秒钟后跳转，如果浏览器没有正常跳转，<a href=""" & s_url & """>请点击此处" & x & "</a></p>" & vbCrLf
 				s_url = Easp.IIF(Left(s_url,11) = "javascript:", Mid(s_url,12), "location.href='" & s_url & "';")
 				s = s & Easp.JsCode("setTimeout(function(){" & s_url & "}," & i_delay & ");")
 			Else
-				s = s & "	<p class=""back""><a href=""" & s_url & """>请点击此处继续</a></p>"
+				s = s & "	<p class=""back""><a href=""" & s_url & """>请点击此处" & x & "</a></p>" & vbCrLf
 			End If
 		End If
 		s = s & "</fieldset>" & vbCrLf
