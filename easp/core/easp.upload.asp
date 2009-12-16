@@ -2,23 +2,30 @@
 Class EasyAsp_upload
 	Public	File, Form
 	Private o_strm
-	Private s_charset,s_allowed,s_denied,s_filename,s_err,s_savepath
+	Private s_charset,s_allowed,s_denied,s_filename,s_savepath
 	Private i_maxsize,i_totalmaxsize,i_filecount
-	Private b_automd,b_debug,b_random
+	Private b_automd,b_random
 	
 	Private Sub Class_Initialize
 		i_totalmaxsize	= 0
 		i_maxsize	= 0
 		i_filecount = 0
-		s_charset	= "GB2312"
+		s_charset	= Easp.CharSet
 		s_allowed	= ""
 		s_denied	= ""
 		s_filename	= ""
 		s_err		= ""
 		s_savepath	= ""
-		b_debug		= False
 		b_automd	= False
 		b_random	= False
+		Easp.Error(71) = "表单类型错误，表单只能是""multipart/form-data""类型！"
+		Easp.Error(72) = "请先选择要上传的文件！"
+		Easp.Error(73) = "上传文件失败，上传文件总大小超过了限制！"
+		Easp.Error(74) = "上传文件失败，上传文件不能为空！"
+		Easp.Error(75) = "上传文件失败，文件大小超过了限制！"
+		Easp.Error(76) = "上传文件失败，不允许上传此类型的文件！"
+		Easp.Error(77) = "上传文件失败！"
+		Easp.Error(78) = "获取文件失败！"
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		File.CompareMode = 1
@@ -30,17 +37,13 @@ Class EasyAsp_upload
 	End Sub
 	
 	Private Sub Class_Terminate
+		o_strm.Close
+		Set o_strm = Nothing
 		Form.RemoveAll
 		Set Form = Nothing
 		File.RemoveAll
 		Set File = Nothing
-		o_strm.Close
-		Set o_strm = Nothing
 	End Sub
-	'属性：程序版本
-	Public Property Get Version
-		Version = "EasyASp V2.2 Upload Class By ColdStone."
-	End Property
 	'属性：文件编码
 	Public Property Let CharSet(ByVal str)
 		s_charset = UCase(str)
@@ -72,33 +75,12 @@ Class EasyAsp_upload
 	'属性：是否重命名上传文件为随机文件名
 	Public Property Let Random(ByVal bool)
 		b_random = bool
-	End Property
-	'属性：是否开启调试状态
-	Public Property Let Debug(ByVal bool)
-		b_debug = bool
-	End Property
-	
+	End Property	
 	'属性：显示上传成功的文件数
 	Public Property Get FileCount()
 		FileCount = i_filecount
 	End Property
-	
-	'属性：显示错误信息
-	Public Property Get ShowErr()
-		ShowErr = s_err
-	End Property
-	
-	'输出错误信息
-	Private Sub ErrMsg(e,d)
-		s_err = "<div id=""easp_err"">" & e
-		If Not Easp_isN(d) Then s_err = s_err & "<br/>错误信息:" & d
-		s_err = s_err & "</div>"
-		If b_debug Then
-			Response.Write s_err
-			Response.End()
-		End If
-	End Sub
-	
+		
 	Public Property Get RadomName
 		If s_filename = "" Then
 			s_filename = GetNewFileName
@@ -114,19 +96,19 @@ Class EasyAsp_upload
 		End If
 	End Property
 
-	Public Sub StartUpload
+	Public Sub StartUpload()
 		Dim aCType : aCType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
 		If LCase(aCType(0)) <> "multipart/form-data" Then
-			ErrMsg "表单类型错误！", "表单只能是""multipart/form-data""类型"
+			Easp.Error.Raise 71
 			Exit Sub
 		End If
 		Dim nTotalSize : nTotalSize	= Request.TotalBytes
 		If nTotalSize < 1 Then
-			ErrMsg "上传文件不能为空！", "至少要上传一个文件！"
+			Easp.Error.Raise 72
 			Exit Sub
 		End If
 		If i_totalmaxsize > 0 And nTotalSize > i_totalmaxsize Then
-			ErrMsg "上传文件失败！", "上传文件总大小超过了限制！"
+			Easp.Error.Raise 73
 			Exit Sub
 		End If
 		o_strm.Write Request.BinaryRead(nTotalSize)
@@ -200,14 +182,14 @@ Class EasyAsp_upload
 	
 	Public Sub SaveAs(sItem, sFileName)
 		If File(sItem).Size < 1 Then
-			ErrMsg "上传文件失败！", "上传文件不能为空"
+			Easp.Error.Raise 74
 			Exit Sub
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
-			ErrMsg "上传文件失败！", "文件大小超过了限制"
+			Easp.Error.Raise 75
 			Exit Sub
 		End If
 		If Not isAllowed(File(sItem).Ext) Then
-			ErrMsg "上传文件失败！", "不允许上传此类型的文件"
+			Easp.Error.Raise 76
 			Exit Sub
 		End If
 		
@@ -243,7 +225,7 @@ Class EasyAsp_upload
 		End With
 		Set fileStream = Nothing
 		If Err.Number<>0 Then
-			ErrMsg "上传文件失败！", Err.Description
+			Easp.Error.Raise 77
 			SaveFile = False
 		End If
 		Err.Clear
@@ -271,19 +253,23 @@ Class EasyAsp_upload
 	Function CheckOneFile(ByVal sItem)
 		CheckOneFile = True
 		If Not File.Exists(sItem) Then
-			ErrMsg "获取文件失败！", "表单控件("""&sItem&""")不存在"
+			Easp.Error.Msg = "表单控件("""&sItem&""")不存在"
+			Easp.Error.Raise 78
 			CheckOneFile = False : Exit Function
 		End If
 		Dim cp : cp = File(sItem).ClientPath
 		If Not isAllowed(File(sItem).Ext) Then
-			ErrMsg "上传文件失败！", "不允许上传此类型的文件("&File(sItem).ClientPath&")"
+			Easp.Error.Msg = "不允许上传此类型的文件("&File(sItem).ClientPath&")"
+			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		End If
 		If File(sItem).Size < 1 Then
-			ErrMsg "上传文件失败！", "上传文件不能为空("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
+			Easp.Error.Msg = "上传文件不能为空("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
+			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
-			ErrMsg "上传文件失败！", "文件大小超过了限制("&File(sItem).ClientPath&")"
+			Easp.Error.Msg = "文件大小超过了限制("&File(sItem).ClientPath&")"
+			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		End If
 	End Function

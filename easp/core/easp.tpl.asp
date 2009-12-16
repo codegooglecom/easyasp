@@ -4,7 +4,7 @@ Class EasyAsp_tpl
 	
 	Private Sub Class_Initialize
 		s_html = ""
-		s_m = "{{*}}"
+		s_m = "{*}"
 		getMaskSE s_m
 		Set o_loop = CreateObject("Scripting.Dictionary")
 		Set o_data = CreateObject("Scripting.Dictionary")
@@ -18,7 +18,10 @@ Class EasyAsp_tpl
 	Public Property Let [File](ByVal f)
 		s_html = Easp.getInclude(f)
 	End Property
-	
+	'标签的标识符
+	Public Property Get TagMask
+		TagMask = s_m
+	End Property
 	Public Property Let TagMask(ByVal m)
 		s_m = m
 		getMaskSE s_m
@@ -65,8 +68,17 @@ Class EasyAsp_tpl
 				s = "<link href="""
 				e = """ rel=""stylesheet"" type=""text/css"" />"
 			Case "js"
-				s = "<script type=""text/javascript"" src="""
+				s = "<scr"&"ipt type=""text/javascript"" src="""
 				e = """></scr"&"ipt>"
+			Case "author"
+				s = "<meta name=""author"" content="""
+				e = """ />"
+			Case "keywords"
+				s = "<meta name=""keywords"" content="""
+				e = """ />"
+			Case "description"
+				s = "<meta name=""description"" content="""
+				e = """ />"
 		End Select
 		a = Split(f,"|")
 		For i = 0 To Ubound(a)
