@@ -16,7 +16,7 @@ Class EasyAsp_tpl
 	End Sub
 	
 	Public Property Let [File](ByVal f)
-		s_html = Easp.getInclude(f)
+		Load(f)
 	End Property
 	'标签的标识符
 	Public Property Get TagMask
@@ -34,32 +34,34 @@ Class EasyAsp_tpl
 	
 	Function getLoopBlock(ByVal n)
 		Dim reg,rule,m
-		rule = "<!--[\s]*?Easp:Loop:"&n&"[\s]*?-->([\s\S]+)<!--[\s]*?Easp:End[ +]Loop:"&n&"[\s]*?-->"
+		rule = "(<!--[\s]*)*{loop:" & n & "}([\s]*-->)*([\s\S]+)(<!--[\s]*)*{/loop:" & n & "}([\s]*-->)*"
 		Set reg = Easp_Match(s_html,rule)
 		For Each m In reg
-			getLoopBlock = Array(m,m.SubMatches(0))
+			getLoopBlock = Array(m,m.SubMatches(2))
 		Next
 		Set reg = Nothing
 	End Function
 	
 	Public Sub Load(ByVal f)
-		s_html = Easp.getInclude(f)
+		s_html = Easp.Read(f)
 	End Sub
 	
-	Public Default Function Shift(ByVal t, ByVal s)
-		Dim b,f,m
+	Public Default Sub Tag(ByVal t, ByVal s)
+		Dim b,f,m,rule,i
 		If Instr(t,".")>0 Then
 			f = Easp.CLeft(t,".")
 			m = Easp.CRight(t,".")
 			If Not o_loop.Exists(f) Then
-				b = getLoopBlock(f)
-				o_loop.Add f&"__b", b(0)
-				o_loop.Add f&"__s", b(1)
+				rule = "(<!--[\s]*)?{loop:" & f & "}([\s]*-->)?([\s\S]+?)(<!--[\s]*)?{/loop:" & f & "}([\s]*-->)?"
+				Set b = Easp.regMatch(s_html,rule)(0)
+				o_loop.Add f&"__b", b
+				o_loop.Add f&"__s", b.SubMatches(2)
+				Set b = Nothing
 			End If
 		Else
 			o_data.Add t, cStr(s)
 		End If
-	End Function
+	End Sub
 	
 	Public Function MakeTag(ByVal t, ByVal f)
 		Dim s,e,a,i
@@ -96,6 +98,10 @@ Class EasyAsp_tpl
 			Next
 		End If
 		Response.Write(s_html)
+	End Sub
+	
+	Public Sub Trace()
+		Easp.Trace(o_loop)
 	End Sub
 End Class
 %>
