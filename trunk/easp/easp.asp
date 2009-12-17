@@ -527,7 +527,7 @@ Class EasyAsp
 	'仅格式化HTML文本（可带HTML标签）
 	Function HtmlFormat(ByVal s)
 		If Has(s) Then
-			Dim m : Set m = RegMatch(s, "<([^>]+)>")
+			Dim m,Match : Set m = RegMatch(s, "<([^>]+)>")
 			For Each Match In m
 				 s = Replace(s, Match.SubMatches(0), regReplace(Match.SubMatches(0), "\s+", Chr(0)))
 			Next
@@ -905,7 +905,7 @@ Class EasyAsp
 			code = code & s_code & """" & tmpStr & """" & vbCrLf
 		End If
 		If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
-		GetIncCode = regReplace(code,"(\n\r)+",vbCrLf)
+		GetIncCode = regReplace(code,"(\r\n)+",vbCrLf)
 	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)

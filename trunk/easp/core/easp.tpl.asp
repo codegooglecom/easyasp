@@ -1,18 +1,24 @@
 <%
 Class EasyAsp_tpl
-	Private s_html, s_m, s_ms, s_me, o_loop, o_data
+	Private s_html, s_m, s_ms, s_me, s_dic
+	Private b_asp
+	private o_loop, o_data, o_loopTag
 	
 	Private Sub Class_Initialize
 		s_html = ""
 		s_m = "{*}"
+		b_asp = False
 		getMaskSE s_m
-		Set o_loop = CreateObject("Scripting.Dictionary")
-		Set o_data = CreateObject("Scripting.Dictionary")
+		s_dic = "Scripting.Dictionary"
+		Set o_loopTag = CreateObject(s_dic)
+		Set o_loop = CreateObject(s_dic)
+		Set o_data = CreateObject(s_dic)
 	End Sub
 	
 	Private Sub Class_Terminate
-		Set o_loop = Nothing
 		Set o_data = Nothing
+		Set o_loop = Nothing
+		Set o_loopTag = Nothing
 	End Sub
 	
 	Public Property Let [File](ByVal f)
@@ -26,37 +32,91 @@ Class EasyAsp_tpl
 		s_m = m
 		getMaskSE s_m
 	End Property
-	
+	'模板中是否可以执行ASP代码
+	Public Property Get AspEnable
+		AspEnable = b_asp
+	End Property
+	Public Property Let AspEnable(ByVal b)
+		b_asp = b
+	End Property
+	'获取Tag标识
 	Private Sub getMaskSE(ByVal m)
 		s_ms = Easp.CLeft(m,"*")
 		s_me = Easp.CRight(m,"*")
 	End Sub
-	
-	Function getLoopBlock(ByVal n)
-		Dim reg,rule,m
-		rule = "(<!--[\s]*)*{loop:" & n & "}([\s]*-->)*([\s\S]+)(<!--[\s]*)*{/loop:" & n & "}([\s]*-->)*"
-		Set reg = Easp_Match(s_html,rule)
-		For Each m In reg
-			getLoopBlock = Array(m,m.SubMatches(2))
+	'正则表达式特殊字符转义
+	Private Function FixRegStr(ByVal s)
+		Dim re,i
+		re = Split("$,(,),*,+,.,[,?,\,^,{,|",",")
+		For i = 0 To Ubound(re)
+			s = Replace(s,re(i),"\"&re(i))
 		Next
-		Set reg = Nothing
+		FixRegStr = s
 	End Function
+	'分析循环元素
+	private Sub GetLoop(ByVal s)
+		Dim rule,Matches,Match,i,t
+		Dim b,ruleloop
+		rule = "(<!--[\s]*)?" & FixRegStr(s_ms) & "loop:(.+?)" & FixRegStr(s_me) & "([\s]*-->)?"
+		If Not Easp_Test(s,rule) Then Exit Sub
+		'取循环标签名t
+		Set Matches = Easp_Match(s,rule)
+		i = 1
+		For Each Match In Matches
+			t = Match.SubMatches(1)
+			ruleloop = "(<!--[\s]*)?" & FixRegStr(s_ms) & "loop:" & t & "" & FixRegStr(s_me) & "([\s]*-->)?([\s\S]+?)(<!--[\s]*)?" & FixRegStr(s_ms) & "/loop:" & t & "" & FixRegStr(s_me) & "([\s]*-->)?"
+			'取循环块
+			If Easp_Test(s,ruleloop) Then
+				o_loopTag(i) = t
+				Set b = Easp_Match(s,ruleloop)(0)
+				o_loop(t) = ""
+				o_loop(t & "__b") = b
+				o_loop(t & "__s") = b.SubMatches(2)
+				Set b = Nothing
+				i = i + 1
+			End If
+		Next
+		Set Matches = Nothing
+	End Sub
 	
 	Public Sub Load(ByVal f)
-		s_html = Easp.Read(f)
+		s_html = LoadInc(f,"")
+		GetLoop(s_html)
 	End Sub
+	'载入模板文件并将无限级include模板载入
+	Private Function LoadInc(ByVal f, ByVal p)
+		Dim h,pa,rule,inc,Match,incFile,incStr
+		pa = Easp.IIF(Left(f,1)="/","",p)
+		If b_asp Then
+			h = Easp.GetInclude( pa & f )
+		Else
+			h = Easp.Read( pa & f )
+		End If
+		rule = "(<!--[\s]*)?" & FixRegStr(s_ms) & "include:(.+?)" & FixRegStr(s_me) & "([\s]*-->)?"
+		If Easp_Test(h,rule) Then
+			If Easp.isN(p) Then
+				If Instr(f,"/")>0 Then p = Left(f,InstrRev(f,"/"))
+			Else
+				If Instr(f,"/")>0 Then p = pa & Left(f,InstrRev(f,"/"))
+			End If
+			Set inc = Easp_Match(h,rule)
+			For Each Match In inc
+				incFile = Match.SubMatches(1)
+				incStr = LoadInc(incFile, p)
+				h = Replace(h,Match,incStr)
+			Next
+			Set inc = Nothing
+		End If
+		LoadInc = h
+	End Function
 	
 	Public Default Sub Tag(ByVal t, ByVal s)
 		Dim b,f,m,rule,i
 		If Instr(t,".")>0 Then
 			f = Easp.CLeft(t,".")
 			m = Easp.CRight(t,".")
-			If Not o_loop.Exists(f) Then
-				rule = "(<!--[\s]*)?{loop:" & f & "}([\s]*-->)?([\s\S]+?)(<!--[\s]*)?{/loop:" & f & "}([\s]*-->)?"
-				Set b = Easp.regMatch(s_html,rule)(0)
-				o_loop.Add f&"__b", b
-				o_loop.Add f&"__s", b.SubMatches(2)
-				Set b = Nothing
+			If o_loop.Exists(f) Then
+				o_loop(f) = o_loop(f) & s
 			End If
 		Else
 			o_data.Add t, cStr(s)
@@ -72,21 +132,18 @@ Class EasyAsp_tpl
 			Case "js"
 				s = "<scr"&"ipt type=""text/javascript"" src="""
 				e = """></scr"&"ipt>"
-			Case "author"
-				s = "<meta name=""author"" content="""
-				e = """ />"
-			Case "keywords"
-				s = "<meta name=""keywords"" content="""
-				e = """ />"
-			Case "description"
-				s = "<meta name=""description"" content="""
-				e = """ />"
+			Case "author", "keywords", "description", "copyright"
+				MakeTag = MakeTagMeta(t,f)
+				Exit Function
 		End Select
 		a = Split(f,"|")
 		For i = 0 To Ubound(a)
 			a(i) = s & Trim(a(i)) & e
 		Next
 		MakeTag = Join(a,vbCrLf)
+	End Function
+	Private Function MakeTagMeta(ByVal t, ByVal s)
+		MakeTagMeta = "<meta name=""" & t & """ content=""" & s & """ />"
 	End Function
 	
 	Public Sub Show()
@@ -97,7 +154,7 @@ Class EasyAsp_tpl
 				s_html = Replace(s_html,s_ms&k&s_me,o_data(k))
 			Next
 		End If
-		Response.Write(s_html)
+		Easp.W s_html
 	End Sub
 	
 	Public Sub Trace()
