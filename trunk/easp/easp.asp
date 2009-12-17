@@ -905,7 +905,7 @@ Class EasyAsp
 			code = code & s_code & """" & tmpStr & """" & vbCrLf
 		End If
 		If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
-		GetIncCode = regReplace(code,"(\r\n)+",vbCrLf)
+		GetIncCode = regReplace(code,"(\n\s*\r)+",vbCrLf)
 	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
@@ -969,8 +969,10 @@ Class EasyAsp
 							If o.Bof And o.Eof Then
 								s = "[Empty Recordset]"
 							Else
+								Set o = o.Clone
 								s = "<h3>[RecordSet]</h3>"
-								While i<10 And Not rs.Eof
+								o.MoveFirst
+								While i<10 And Not o.Eof
 									For j = 0 To o.Fields.Count-1
 										s = s & "<b>" &  o.Fields(j).Name & "</b>" & ": " & htmlEncode(o.Fields(j).Value) & "<br />"
 									Next
