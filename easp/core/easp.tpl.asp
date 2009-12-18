@@ -72,9 +72,9 @@ Class EasyAsp_tpl
 			If Easp_Test(s,ruleblock) Then
 				o_blockTag(i) = t
 				Set b = Easp_Match(s,ruleblock)(0)
-				o_block(t) = ""
-				o_block(t & "__b") = b
+				o_block(t & "__b") = ruleblock
 				o_block(t & "__s") = b.SubMatches(2)
+				o_block(t) = b.SubMatches(2)
 				Set b = Nothing
 				i = i + 1
 			End If
@@ -112,25 +112,47 @@ Class EasyAsp_tpl
 		End If
 		LoadInc = h
 	End Function
+	'¼ÓÔØ¸½¼ÓÄ£°å
+	Public Sub Include(ByVal tag, ByVal f)
+		Dim s
+		s = LoadInc(f)
+		Getblock(s)
+		s_html = Replace(s_html, s_ms & tag & s_me, s)
+	End Sub
 	
 	Public Default Sub Tag(ByVal t, ByVal s)
+		Dim tag,curtag,i
 		If Instr(t,".")>0 Then
-			If o_block.Exists(Easp.CLeft(t,".")) Then o_blockdata.Add t, s
+			tag = Split(t,".")
+			curtag = tag(Ubound(tag)-1)
+			If o_block.Exists(curtag) Then
+'				For i = 0 To Ubound(tag)-1
+'					If If Easp.isN(o_block(tag(i))) Then o_block(tag(i)) = o_block(tag(i) & "__s")
+'				Next
+				o_blockdata.Add t, s
+				Easp.Trace(o_blockdata)
+			End If
 		Else
 			o_data.Add t, cStr(s)
 		End If
 	End Sub
 
 	Public Sub [Update](ByVal t)
-		Dim i,tmp
-		tmp = o_block(t & "__s")
+		Dim i,tmp,tag,curtag,ftag
+		tmp = o_block(t&"__s")
 		For Each i In o_blockdata
-			If Easp.CLeft(i,".") = t Then
+			tag = Split(i,".")
+			curtag = tag(Ubound(tag)-1)
+			If curtag = t Then
 				tmp = Replace(tmp, s_ms & i & s_me, o_blockdata(i))
 				o_blockdata.Remove i
+				If Ubound(tag)>1 Then ftag = tag(Ubound(tag)-2)
 			End If
 		Next
-		o_block(t) = o_block(t) & tmp
+		o_block(t) = Easp.IIF(o_block(t)=o_block(t&"__s") ,tmp ,o_block(t) & tmp)
+		If Easp.Has(ftag) Then
+			o_block(ftag) = Easp.RegReplace(o_block(ftag),o_block(t & "__b"),o_block(t))
+		End If
 	End Sub
 	
 	Public Function MakeTag(ByVal t, ByVal f)
@@ -157,7 +179,12 @@ Class EasyAsp_tpl
 	End Function
 	
 	Public Sub Show()
-		Dim k
+		Dim i,k
+		If o_blockTag.Count>0 Then
+			For Each i In o_blockTag
+				s_html = Easp.regReplace(s_html,o_block(o_blockTag(i)&"__b"),o_block(o_blockTag(i)))
+			Next
+		End If
 		If o_data.Count > 0 Then
 			For Each k In o_data
 				'Easp.WN k & " - " & Easp.HtmlEncode(o_data(k))
@@ -168,11 +195,11 @@ Class EasyAsp_tpl
 	End Sub
 	
 	Public Sub Trace()
-		Easp.wn "========================"
+		Easp.wn "<br />========================"
 		Easp.Trace(o_blockdata)
-		Easp.wn "========================"
+		Easp.wn "<br />========================"
 		Easp.Trace(o_block)
-		Easp.wn "========================"
+		Easp.wn "<br />========================"
 	End Sub
 End Class
 %>
