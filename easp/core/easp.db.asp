@@ -15,7 +15,7 @@ Class EasyAsp_db
 	Private o_conn, o_pageDic
 	Private Sub Class_Initialize()
 		Easp.Error(11) = "无效的查询条件，无法获取记录集！"
-		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接。"
+		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接信息（用户名/密码/服务器地址/端口号/数据库名）是否正确！"
 		Easp.Error(13) = "无效的数据库连接！"
 		Easp.Error(14) = "无效的查询条件，无法获取新的ID号！"
 		Easp.Error(15) = "生成Json格式代码出错！"
@@ -901,7 +901,7 @@ Class EasyAsp_db
 	End Function
 	'返回除去页码的当前URL参数
 	Private Function GetRQ(pageNumer)
-		GetRQ = Easp.GetUrlWith("-" & s_pageParam, s_pageParam & "=" & pageNumer)
+		GetRQ = Easp.ReplaceUrl(s_pageParam, pageNumer)
 	End Function
 End Class
 %>

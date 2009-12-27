@@ -31,6 +31,8 @@ Option Explicit
 '   17. 优化Easp.CheckForm方法，rule规则如果以:开头，并用||隔开，则可以验
 '       证多个表示"或"关系的规则项，符合其中任意一个规则则验证通过；
 '   18. 优化Easp.JsEncode方法，会对双字节字符进行编码，更加严谨且无乱码问题；
+'   19. 新增Easp.ReplacePart方法，用于替换符合某个正则的字符串中的某一编组；
+'   20. 新增Easp.ReplaceUrl方法，用于替换url参数中的某一参数值并返回字符串；
 '######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP : Easp.Init()
@@ -43,7 +45,7 @@ Class EasyAsp
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq
 	Private s_url, s_rwtS, s_rwtU
 	Private o_md5, o_rwt, o_ext
-	Private b_cooen, i_rule
+	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= "/easp/plugin/"
@@ -53,6 +55,7 @@ Class EasyAsp
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		b_cooen		= True
+		b_debug		= False
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
 		Set [error]	= New EasyAsp_obj
@@ -106,9 +109,17 @@ Class EasyAsp
 	Public Property Get CookieEncode()
 		CookieEncode = b_cooen
 	End Property
+	Public Property Get [Debug]
+		[Debug] = b_debug
+	End Property
+	Public Property Let [Debug](ByVal b)
+		b_debug = b
+		[error].debug = b
+	End Property
 
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
+		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
 		Set tpl = New EasyAsp_tpl
 	End Sub
@@ -311,6 +322,24 @@ Class EasyAsp
 					Exit For
 				End If
 			Next
+		End If
+	End Function
+	'替换Url参数
+	Function ReplaceUrl(ByVal p, ByVal s)
+		Dim arrQs,tmp
+		If isRewrite Then
+			arrQs = Split(s_rwtU,"&")
+			For i = 0 To Ubound(arrQs)
+				If p = CLeft(arrQs(i),"=") Then
+					tmp = CRight(arrQs(i),"=")
+					Exit For
+				End If
+			Next
+			If Left(tmp,1) = "$" Then
+				ReplaceUrl = ReplacePart(s_url, s_rwtS, tmp, s)
+			End If
+		Else
+			ReplaceUrl = GetUrlWith("-" & p, p & "=" & s)
 		End If
 	End Function
 	'获取QueryString值，支持取Rewrite值
@@ -691,13 +720,19 @@ Class EasyAsp
 		Cookie = Safe(coo,t)
 	End Function
 	'删除一个Cookies值
-	Sub RemoveCookie(ByVal cooName)
-		Dim n : n = Easp_Param(cooName)
-		If Response.Cookies(n(0)).HasKeys And Has(n(1)) Then
-			Response.Cookies(n(0))(n(1)) = Empty
-		Else
-			Response.Cookies(n(0)) = Empty
-			Response.Cookies(n(0)).Expires = Now()
+	Sub RemoveCookie(ByVal s)
+		Dim p,t
+		If Instr(s,">") > 0 Then
+			p = CLeft(s,">")
+			s = CRight(s,">")
+		End If
+		If Has(p) And Has(s) Then
+			If Response.Cookies(p).HasKeys Then
+				Response.Cookies(p)(s) = Empty
+			End If
+		ElseIf Has(s) Then
+			Response.Cookies(s) = Empty
+			Response.Cookies(s).Expires = Now()
 		End If
 	End Sub
 	'设置缓存记录
@@ -805,6 +840,31 @@ Class EasyAsp
 	Function regMatch(ByVal s, ByVal rule)
 		Set regMatch =  Easp_Match(s,rule)
 	End Function
+	'替换正则编组
+	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
+		If Not Easp_Test(txt, rule) Then
+			replacePart = "[not match]"
+			Exit Function
+		End If
+		Dim Match,i,j,ma,pos,uleft,ul
+		i = Int(Mid(part,2))-1
+		Set Match = Easp_Match(txt,rule)(0)
+		For j = 0 To Match.SubMatches.Count-1
+			ma = Match.SubMatches(j)
+			pos = Instr(txt,ma)
+			If pos > 0 Then
+				ul = Left(txt,pos-1)
+				txt = Mid(txt,Len(ul)+1)
+				If i = j Then
+					replacePart = uleft & ul & Replace(txt,ma,replacement,pos-len(ul),1,0)
+					Exit For
+				End If
+				uleft = uleft & ul & ma
+				txt = Mid(txt, Len(ma)+1)
+			End If
+		Next
+		Set Match = Nothing
+	End Function
 	'检测组件是否安装
 	Function isInstall(Byval s)
 		On Error Resume Next : Err.Clear()
@@ -815,11 +875,23 @@ Class EasyAsp
 	End Function
 	'动态载入文件
 	Sub Include(ByVal filePath)
+		On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),0)
+		If Err.Number<>0 Then
+			[error].Msg = " ( " & filePath & " )"
+			[error].Raise 1
+		End If
+		Err.Clear()
 	End Sub
 	Function getInclude(ByVal filePath)
+		On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),1)
 		getInclude = EasyAsp_s_html
+		If Err.Number<>0 Then
+			[error].Msg = " ( " & filePath & " )"
+			[error].Raise 1
+		End If
+		Err.Clear()
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
@@ -914,7 +986,7 @@ Class EasyAsp
 		If LCase(o) = "md5" Then o = "o_md5"
 		t = Eval("LCase(TypeName("&o&"))")
 		If t = "easyasp_obj" Then
-			Include(s_path & "core/" & p)
+			Include s_path & "core/" & p
 			Execute("Set "&o&" = New EasyAsp_"&f)
 		End If
 	End Sub
