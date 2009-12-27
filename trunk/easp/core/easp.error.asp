@@ -15,10 +15,10 @@ Class EasyAsp_Error
 	Private s_errStr, s_title, s_url, s_css, s_msg
 	Private o_err
 	Private Sub Class_Initialize
-		i_errNum    = 0
+		i_errNum    = ""
 		i_delay     = 3000
 		s_title     = "发生错误啦"
-		b_debug     = True
+		b_debug     = Easp.Debug
 		b_redirect  = True
 		s_url       = "javascript:history.go(-1)"
 		Set o_err   = Server.CreateObject("Scripting.Dictionary")
@@ -44,7 +44,7 @@ Class EasyAsp_Error
 	'自定义错误代码
 	Public Property Let E(ByVal n, ByVal s)
 		If Easp.Has(n) And Easp.Has(s) Then
-			If n <> "0" Then
+			If n > "" Then
 				o_err(n) = s
 			End If
 		End If
@@ -83,7 +83,7 @@ Class EasyAsp_Error
 	End Property
 	'自动跳转时间（秒）
 	Public Property Get Delay
-		Delay = i_delay /1000
+		Delay = i_delay / 1000
 	End Property
 	Public Property Let Delay(ByVal i)
 		i_delay = i * 1000
@@ -112,11 +112,11 @@ Class EasyAsp_Error
 		Easp.W ShowMsg(msg,0)
 	End Sub
 	'显示已定义的所有错误代码及信息
-	Public Sub Trace()
+	Public Sub Defined()
 		Dim key
 		If Easp.Has(o_err) Then
 			For Each key In o_err
-				Easp.Wn key & ":" & o_err(key)
+				Easp.Wn key & " : " & o_err(key)
 			Next
 		End If
 	End Sub

@@ -392,9 +392,14 @@ Class EasyAsp_Fso
 	End Function
 	'===私有方法===
 	'取文件夹绝对路径
-	Private Function absPath(ByVal path)
-		Dim p : p = path
-		If Instr(p,":") = 0 Then p = Server.MapPath(p)
+	Private Function absPath(ByVal p)
+		If Instr(p,":")=0 Then
+			If isWildcards(p) Then
+				p = Server.MapPath(Easp_IIF(Left(p,1)="/", "/", Easp.GetUrl(2) & "/")) & Replace(p,"/","\")
+			Else
+				p = Server.MapPath(p)
+			End If
+		End If
 		If Right(p,1) = "\" Then p = Left(p,Len(p)-1)
 		absPath = p
 	End Function
