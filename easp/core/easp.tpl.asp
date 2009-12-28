@@ -1,29 +1,39 @@
 <%
-Class EasyAsp_tpl
-	Private s_html, s_m, s_ms, s_me, s_dic,s_block
+Class EasyAsp_Tpl	
+	Private s_html, s_unknown, s_dict, s_path, s_m, s_ms, s_me
+	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks
 	Private b_asp
-	private o_block, o_data, o_blockTag, o_blockdata
-	
-	Private Sub Class_Initialize
-		s_html = ""
-		s_block = ""
+
+	Private Sub class_Initialize
+		s_path = ""
+		s_unknown = "keep"
+		s_dict = "Scripting.Dictionary"
+		Set o_tag = createobject(s_dict)
+		Set o_blockdata = createobject(s_dict)
+		Set o_block = createobject(s_dict)
+		Set o_blocktag = createobject(s_dict)
+		Set o_blocks = createobject(s_dict)
 		s_m = "{*}"
-		b_asp = False
 		getMaskSE s_m
-		s_dic = "Scripting.Dictionary"
-		Set o_blockTag = CreateObject(s_dic)
-		Set o_block = CreateObject(s_dic)
-		Set o_blockdata = CreateObject(s_dic)
-		Set o_data = CreateObject(s_dic)
+		b_asp = False
+		s_html = ""
 	End Sub
-	
 	Private Sub Class_Terminate
-		Set o_data = Nothing
+		Set o_tag = Nothing
 		Set o_blockdata = Nothing
 		Set o_block = Nothing
 		Set o_blockTag = Nothing
+		Set o_blocks = Nothing
 	End Sub
-	
+
+	'模板路径
+	Public Property Get FilePath
+		FilePath = s_path
+	End Property
+	Public Property Let FilePath(ByVal f)
+		s_path = f
+	End Property
+	'加载模板方法一
 	Public Property Let [File](ByVal f)
 		Load(f)
 	End Property
@@ -42,10 +52,141 @@ Class EasyAsp_tpl
 	Public Property Let AspEnable(ByVal b)
 		b_asp = b
 	End Property
+	'如何处理未定义的标签
+	Public Property Get TagUnknown
+		TagUnknown = s_unknown
+	End Property
+	Public Property Let TagUnknown(ByVal s)
+		Select Case LCase(s)
+			Case "1", "remove"
+				s_unknown = "remove"
+			Case "2", "comment"
+				s_unknown = "comment"
+			Case Else
+				s_unknown = "keep"
+		End Select
+	End Property
+
+	'加载模板方法二
+	Public Sub Load(ByVal f)
+		s_html = LoadInc(s_path & f,"")
+		SetBlocks()
+	End Sub
+	'加载附加模板
+	Public Sub TagFile(ByVal tag, ByVal f)
+		Dim s
+		s = LoadInc(s_path & f,"")
+		s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
+		SetBlocks()
+	End Sub
+	'替换标签(默认方法)
+	Public Default Sub Tag(ByVal s, ByVal v)
+		If o_tag.Exists(s) Then o_tag.Remove s
+		o_tag.Add s, v
+	End Sub
+	'在已替换标签后添加新内容
+	Public Sub Append(s, v)
+		Dim tmp
+		If o_tag.Exists(s) Then
+			tmp = o_tag.Item(s) & v
+			o_tag.Remove s
+			o_tag.Add s, tmp
+		Else
+			o_tag.Add s, v
+		End If
+	End Sub
+	'获取最终html
+	Public Function GetHtml
+		Dim Matches, Match, n
+		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
+		For Each Match In Matches
+			n = Match.SubMatches(0)
+			If o_tag.Exists(n) Then
+				s_html = Easp.regReplace(s_html, Match.Value, o_tag.Item(n))
+			End If
+		Next
+		Set Matches = Easp.regMatch(s_html, Chr(0) & "\w+" & Chr(0))
+		For Each Match In Matches
+			s_html = Easp.regReplace(s_html, Match.Value, "")
+		Next
+		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
+		select case s_unknown
+			case "keep"
+			case "remove"
+				For Each Match In Matches
+					s_html = Easp.regReplace(s_html, Match.Value, "")
+				Next
+			case "comment"
+				For Each Match In Matches
+					s_html = Easp.regReplace(s_html, Match.Value, "<!-- Unknown Tag '" & Match.Submatches(0) & "' -->")
+				Next
+		End select
+		GetHtml = s_html
+	End Function
+	'输出模板内容
+	Public Sub Show
+		Easp.W GetHtml
+	End Sub
+	'更新循环块数据
+	Public Sub [Update](b)
+		Dim Matches, Match, tmp, s, rule, data
+		s = BlockData(b)
+		rule = Chr(0) & "(\w+)" & Chr(0)
+		Set Matches = Easp.regMatch(s, rule)
+		Set Match = Matches
+		For Each Match In Matches
+			data = Match.SubMatches(0)
+			If o_blocktag.Exists(data) Then
+				s = Easp.regReplace(s, rule, o_blocktag.Item(data))
+				o_blocktag.Remove(data)
+			End If
+		Next
+		If o_blocktag.Exists(b) Then
+			tmp = o_blocktag.Item(b) & s
+			o_blocktag.Remove b
+			o_blocktag.Add b, tmp
+		Else
+			o_blocktag.Add b, s
+		End If
+		Set Matches = Easp.regMatch(s_html, Chr(0) & b & Chr(0))
+		Set Match = Matches
+		For Each Match In Matches
+			s = BlockTag(b)
+			s_html = Easp.regReplace(s_html, Chr(0) & b & Chr(0), s & Chr(0) & b & Chr(0))
+		Next
+	End Sub
+	'生成html标签
+	Public Function MakeTag(ByVal t, ByVal f)
+		Dim s,e,a,i
+		Select Case Lcase(t)
+			Case "css"
+				s = "<link href="""
+				e = """ rel=""stylesheet"" type=""text/css"" />"
+			Case "js"
+				s = "<scr"&"ipt type=""text/javascript"" src="""
+				e = """></scr"&"ipt>"
+			Case "author", "keywords", "description", "copyright", "generator", "revised", "others"
+				MakeTag = MakeTagMeta("name",t,f)
+				Exit Function
+			Case "content-type", "expires", "refresh", "set-cookie"
+				MakeTag = MakeTagMeta("http-equiv",t,f)
+				Exit Function
+		End Select
+		a = Split(f,"|")
+		For i = 0 To Ubound(a)
+			a(i) = s & Trim(a(i)) & e
+		Next
+		MakeTag = Join(a,vbCrLf)
+	End Function
+
+	'生成Meta标签
+	Private Function MakeTagMeta(ByVal m, ByVal t, ByVal s)
+		MakeTagMeta = "<meta " & m & "=""" & t & """ content=""" & s & """ />"
+	End Function
 	'获取Tag标识
 	Private Sub getMaskSE(ByVal m)
-		s_ms = Easp.CLeft(m,"*")
-		s_me = Easp.CRight(m,"*")
+		s_ms = FixRegStr(Easp.CLeft(m,"*"))
+		s_me = FixRegStr(Easp.CRight(m,"*"))
 	End Sub
 	'正则表达式特殊字符转义
 	Private Function FixRegStr(ByVal s)
@@ -56,36 +197,6 @@ Class EasyAsp_tpl
 		Next
 		FixRegStr = s
 	End Function
-	'分析循环元素
-	private Sub GetBlock(ByVal s)
-		Dim rule,Matches,Match,i,t
-		Dim b,ruleblock
-		rule = "(<!--[\s]*)?" & FixRegStr(s_ms) & "#:(.+?)" & FixRegStr(s_me) & "([\s]*-->)?"
-		If Not Easp_Test(s,rule) Then Exit Sub
-		'取循环标签名t
-		Set Matches = Easp_Match(s,rule)
-		i = 1
-		For Each Match In Matches
-			t = Match.SubMatches(1)
-			ruleblock = "(<!--[\s]*)?" & FixRegStr(s_ms) & "#:" & t & "" & FixRegStr(s_me) & "([\s]*-->)?([\s\S]+?)(<!--[\s]*)?" & FixRegStr(s_ms) & "/#:" & t & "" & FixRegStr(s_me) & "([\s]*-->)?"
-			'取循环块
-			If Easp_Test(s,ruleblock) Then
-				o_blockTag(i) = t
-				Set b = Easp_Match(s,ruleblock)(0)
-				o_block(t & "__b") = ruleblock
-				o_block(t & "__s") = b.SubMatches(2)
-				o_block(t) = b.SubMatches(2)
-				Set b = Nothing
-				i = i + 1
-			End If
-		Next
-		Set Matches = Nothing
-	End Sub
-	
-	Public Sub Load(ByVal f)
-		s_html = LoadInc(f,"")
-		Getblock(s_html)
-	End Sub
 	'载入模板文件并将无限级include模板载入
 	Private Function LoadInc(ByVal f, ByVal p)
 		Dim h,pa,rule,inc,Match,incFile,incStr
@@ -95,14 +206,14 @@ Class EasyAsp_tpl
 		Else
 			h = Easp.Read( pa & f )
 		End If
-		rule = "(<!--[\s]*)?" & FixRegStr(s_ms) & "#include:(.+?)" & FixRegStr(s_me) & "([\s]*-->)?"
-		If Easp_Test(h,rule) Then
+		rule = "(<!--[\s]*)?" & s_ms & "#include:(.+?)" & s_me & "([\s]*-->)?"
+		If Easp.Test(h,rule) Then
 			If Easp.isN(p) Then
 				If Instr(f,"/")>0 Then p = Left(f,InstrRev(f,"/"))
 			Else
 				If Instr(f,"/")>0 Then p = pa & Left(f,InstrRev(f,"/"))
 			End If
-			Set inc = Easp_Match(h,rule)
+			Set inc = Easp.regMatch(h,rule)
 			For Each Match In inc
 				incFile = Match.SubMatches(1)
 				incStr = LoadInc(incFile, p)
@@ -112,94 +223,78 @@ Class EasyAsp_tpl
 		End If
 		LoadInc = h
 	End Function
-	'加载附加模板
-	Public Sub Include(ByVal tag, ByVal f)
-		Dim s
-		s = LoadInc(f)
-		Getblock(s)
-		s_html = Replace(s_html, s_ms & tag & s_me, s)
+	Private Sub SetBlocks()
+		Dim Matches, Match, rule, n, i, j
+		i = 0
+		rule = "(<!--[\s]*)?" & s_ms & "#:(.+?)" & s_me
+		If Not Easp.Test(s_html, rule) Then Exit Sub
+		Set Matches = Easp.regMatch(s_html,rule)
+		For Each Match In Matches
+			n = Match.SubMatches(1)
+			If o_blocks.Exists(i) Then o_blocks.Remove i
+			o_blocks.Add i, n
+			i = i + 1
+		Next
+		For j = i-1 To 0 Step -1
+			Begin o_blocks.item(j)
+		Next
 	End Sub
-	
-	Public Default Sub Tag(ByVal t, ByVal s)
-		Dim tag,curtag,i
-		If Instr(t,".")>0 Then
-			tag = Split(t,".")
-			curtag = tag(Ubound(tag)-1)
-			If o_block.Exists(curtag) Then
-'				For i = 0 To Ubound(tag)-1
-'					If If Easp.isN(o_block(tag(i))) Then o_block(tag(i)) = o_block(tag(i) & "__s")
-'				Next
-				o_blockdata.Add t, s
-				Easp.Trace(o_blockdata)
+	'初始化循环块
+	Private Sub Begin(ByVal b)
+		Dim Matches, Match, rule, data
+		rule = "(<!--[\s]*)?(" & s_ms & ")#:(" & b & ")(" & s_me & ")([\s]*-->)?([\s\S]+?)(<!--[\s]*)?\2/#:\3\4([\s]*-->)?"
+		Set Matches = Easp.regMatch(s_html, rule)
+		Set Match = Matches
+		For Each Match In Matches
+			data = Match.SubMatches(5)
+			If o_blockdata.Exists(b) Then
+				o_blockdata.Remove(b)
+				o_block.Remove(b)
 			End If
+			o_blockdata.Add b, data
+			o_block.Add b, b
+			s_html = Easp.regReplace(s_html, rule, Chr(0) & b & Chr(0))
+		Next
+	End Sub
+	'取循环块原始模板数据
+	Private Function BlockData(b)
+		Dim tmp, s
+		If o_blockdata.Exists(b) Then
+			tmp = o_blockdata.Item(b)
+			s = UpdateBlockTag(tmp)
+			BlockData = s
 		Else
-			o_data.Add t, cStr(s)
+			BlockData = "<!--" & b & "-->"
 		End If
-	End Sub
-
-	Public Sub [Update](ByVal t)
-		Dim i,tmp,tag,curtag,ftag
-		tmp = o_block(t&"__s")
-		For Each i In o_blockdata
-			tag = Split(i,".")
-			curtag = tag(Ubound(tag)-1)
-			If curtag = t Then
-				tmp = Replace(tmp, s_ms & i & s_me, o_blockdata(i))
-				o_blockdata.Remove i
-				If Ubound(tag)>1 Then ftag = tag(Ubound(tag)-2)
+	End Function
+	'取循环块临时数据
+	Private Function BlockTag(b)
+		Dim tmp, s
+		If o_blockdata.Exists(b) Then
+			tmp = o_blocktag.Item(b)
+			s = UpdateBlockTag(tmp)
+			BlockTag = s
+			o_blocktag.Remove(b)
+		Else
+			BlockTag = "<!--" & b & "-->"
+		End If
+	End Function
+	'更新循环块标签
+	Private Function UpdateBlockTag(s)
+		Dim Matches, Match, data, rule
+		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)
+		For Each Match In Matches
+			data = Match.SubMatches(0)
+			If o_tag.Exists(data) Then
+				rule = Match.Value
+				If Easp.isN(o_tag.Item(data)) Then
+					s = Easp.regReplace(s, rule, "")
+				Else
+					s = Easp.regReplace(s, rule, o_tag.Item(data))
+				End If
 			End If
 		Next
-		o_block(t) = Easp.IIF(o_block(t)=o_block(t&"__s") ,tmp ,o_block(t) & tmp)
-		If Easp.Has(ftag) Then
-			o_block(ftag) = Easp.RegReplace(o_block(ftag),o_block(t & "__b"),o_block(t))
-		End If
-	End Sub
-	
-	Public Function MakeTag(ByVal t, ByVal f)
-		Dim s,e,a,i
-		Select Case Lcase(t)
-			Case "css"
-				s = "<link href="""
-				e = """ rel=""stylesheet"" type=""text/css"" />"
-			Case "js"
-				s = "<scr"&"ipt type=""text/javascript"" src="""
-				e = """></scr"&"ipt>"
-			Case "author", "keywords", "description", "copyright"
-				MakeTag = MakeTagMeta(t,f)
-				Exit Function
-		End Select
-		a = Split(f,"|")
-		For i = 0 To Ubound(a)
-			a(i) = s & Trim(a(i)) & e
-		Next
-		MakeTag = Join(a,vbCrLf)
+		UpdateBlockTag = s
 	End Function
-	Private Function MakeTagMeta(ByVal t, ByVal s)
-		MakeTagMeta = "<meta name=""" & t & """ content=""" & s & """ />"
-	End Function
-	
-	Public Sub Show()
-		Dim i,k
-		If o_blockTag.Count>0 Then
-			For Each i In o_blockTag
-				s_html = Easp.regReplace(s_html,o_block(o_blockTag(i)&"__b"),o_block(o_blockTag(i)))
-			Next
-		End If
-		If o_data.Count > 0 Then
-			For Each k In o_data
-				'Easp.WN k & " - " & Easp.HtmlEncode(o_data(k))
-				s_html = Replace(s_html,s_ms&k&s_me,o_data(k))
-			Next
-		End If
-		Easp.W s_html
-	End Sub
-	
-	Public Sub Trace()
-		Easp.wn "<br />========================"
-		Easp.Trace(o_blockdata)
-		Easp.wn "<br />========================"
-		Easp.Trace(o_block)
-		Easp.wn "<br />========================"
-	End Sub
 End Class
 %>
