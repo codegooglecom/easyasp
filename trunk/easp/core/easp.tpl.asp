@@ -265,7 +265,7 @@ Class EasyAsp_Tpl
 			s = UpdateBlockTag(tmp)
 			BlockData = s
 		Else
-			BlockData = "<!--" & b & "-->"
+			BlockData = "<!--" & Chr(0) & b & Chr(0) & "-->"
 		End If
 	End Function
 	'取循环块临时数据
@@ -277,7 +277,7 @@ Class EasyAsp_Tpl
 			BlockTag = s
 			o_blocktag.Remove(b)
 		Else
-			BlockTag = "<!--" & b & "-->"
+			BlockTag = "<!--" & Chr(0) & b & Chr(0) & "-->"
 		End If
 	End Function
 	'更新循环块标签

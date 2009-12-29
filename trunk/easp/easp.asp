@@ -48,7 +48,7 @@ Class EasyAsp
 	Public db,fso,upload,tpl,aes,[error]
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq
 	Private s_url, s_rwtS, s_rwtU
-	Private o_md5, o_rwt, o_ext, o_regex, o_fso, o_strm
+	Private o_md5, o_rwt, o_ext, o_regex
 	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
@@ -62,8 +62,6 @@ Class EasyAsp
 		b_debug		= False
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
-		Set o_fso	= Server.CreateObject(s_fsoName)
-		Set o_strm	= Server.CreateObject("ADODB.Stream")
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
@@ -86,8 +84,6 @@ Class EasyAsp
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 		Set o_regex = Nothing
-		Set o_fso	= Nothing
-		Set o_strm	= Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
 		p = IIF(Left(p,1)= "/", p, "/" & p)
@@ -1027,9 +1023,9 @@ Class EasyAsp
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
-		Dim Fso, p, f, tmpStr,o_strm
+		Dim Fso, p, f, tmpStr, o_strm
 		p = filePath
-		If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
+		If Instr(p,":")=0 Then p = Server.MapPath(p)
 		Set Fso = Server.CreateObject(s_fsoName)
 		If Fso.FileExists(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
