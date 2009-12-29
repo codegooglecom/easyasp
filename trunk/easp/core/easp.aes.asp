@@ -772,14 +772,14 @@ Class EasyAsp_AES
 	End Function
 	'Easp AES Encode
 	Public Function Encode(ByVal s)
-		s = Easp_Escape(s)
-		p = Easp_Escape(s_pass)
+		s = Easp.Escape(s)
+		p = Easp.Escape(s_pass)
 		Encode = AESEncrypt(s,p)
 	End Function
 	'Easp AES Decode
 	Public Function Decode(ByVal s)
-		p = Easp_Escape(s_pass)
-		Decode = Easp_UnEscape(AESDecrypt(s,p))
+		p = Easp.Escape(s_pass)
+		Decode = Easp.UnEscape(AESDecrypt(s,p))
 	End Function
 End Class
 %>

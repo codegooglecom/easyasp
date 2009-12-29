@@ -33,6 +33,10 @@ Option Explicit
 '   18. 优化Easp.JsEncode方法，会对双字节字符进行编码，更加严谨且无乱码问题；
 '   19. 新增Easp.ReplacePart方法，用于替换符合某个正则的字符串中的某一编组；
 '   20. 新增Easp.ReplaceUrl方法，用于替换url参数中的某一参数值并返回字符串；
+'   21. 新增Easp.Error类，用于异常(Exception)的处理和错误信息的抛出；
+'   22. 修改Easp.db.dbConn属性为Easp.db.Conn；
+'   23. 新增Easp.tpl类，用于模板处理，功能强大，支持无限级模板嵌套和嵌套循环；
+'   24. 新增Easp.upload类，用于上传文件，支持多文件上传，暂时不支持进度条；
 '######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp : Set Easp = New EasyASP : Easp.Init()
@@ -44,20 +48,25 @@ Class EasyAsp
 	Public db,fso,upload,tpl,aes,[error]
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq
 	Private s_url, s_rwtS, s_rwtU
-	Private o_md5, o_rwt, o_ext
+	Private o_md5, o_rwt, o_ext, o_regex, o_fso, o_strm
 	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= "/easp/plugin/"
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
-		s_charset	= "GB2312"
+		s_charset	= "GBK"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		b_cooen		= True
 		b_debug		= False
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
+		Set o_fso	= Server.CreateObject(s_fsoName)
+		Set o_strm	= Server.CreateObject("ADODB.Stream")
+		Set o_regex = New Regexp
+		o_regex.Global = True
+		o_regex.IgnoreCase = True
 		Set [error]	= New EasyAsp_obj
 		Set db		= New EasyAsp_obj
 		Set o_md5	= New EasyAsp_obj
@@ -76,6 +85,9 @@ Class EasyAsp
 		Set [error]	= Nothing
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
+		Set o_regex = Nothing
+		Set o_fso	= Nothing
+		Set o_strm	= Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
 		p = IIF(Left(p,1)= "/", p, "/" & p)
@@ -167,17 +179,39 @@ Class EasyAsp
 	End Sub
 	'判断是否为空值
 	Function isN(ByVal s)
-		isN = Easp_isN(s)
+		isN = False
+		Select Case VarType(s)
+			Case vbEmpty, vbNull
+				isN = True : Exit Function
+			Case vbString
+				If s="" Then isN = True : Exit Function
+			Case vbObject
+				Select Case TypeName(s)
+					Case "Nothing","Empty"
+						isN = True : Exit Function
+					Case "Recordset"
+						If s.State = 0 Then isN = True : Exit Function
+						If s.Bof And s.Eof Then isN = True : Exit Function
+					Case "Dictionary"
+						If s.Count = 0 Then isN = True : Exit Function
+				End Select
+			Case vbArray,8194,8204,8209
+				If Ubound(s)=-1 Then isN = True : Exit Function
+		End Select
 	End Function
 	Function Has(ByVal s)
-		Has = Not Easp_isN(s)
+		Has = Not isN(s)
 	End Function
 	'判断三元表达式
 	Function IIF(ByVal Cn, ByVal T, ByVal F)
-		IIF = Easp_IIF(Cn,T,F)
+		If Cn Then
+			IIF = T
+		Else
+			IIF = F
+		End If
 	End Function
 	Function IfThen(ByVal Cn, ByVal T)
-		IfThen = Easp_IIF(Cn,T,"")
+		IfThen = IIF(Cn,T,"")
 	End Function
 	'服务器端输出javascript
 	Sub Js(ByVal s)
@@ -200,15 +234,69 @@ Class EasyAsp
 	End Sub
 	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
-		JsEncode = Easp_JsEncode(s)
+		Dim i, j, aL1, aL2, c, p, t
+		aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
+		aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
+		For i = 1 To Len(s)
+			p = True
+			c = Mid(s, i, 1)
+			For j = 0 To 7
+				If c = Chr(aL1(j)) Then
+					t = t & "\" & Chr(aL2(j))
+					p = False
+					Exit For
+				End If
+			Next
+			If p Then 
+				Dim a
+				a = AscW(c)
+				If a > 31 And a < 127 Then
+					t = t & c
+				ElseIf a > -1 Or a < 65535 Then
+					t = t & "\u" & String(4 - Len(Hex(a)), "0") & Hex(a)
+				End If 
+			End If
+		Next
+		JsEncode = t
 	End Function
 	'特殊字符编码
-	Function Escape(ByVal s)
-		Escape = Easp_Escape(s)
+	Function Escape(ByVal ss)
+		Dim i,c,a,s : s = ""
+		If isN(ss) Then Escape = "" : Exit Function
+		For i = 1 To Len(ss)
+			c = Mid(ss,i,1)
+			a = ASCW(c)
+			If (a>=48 and a<=57) or (a>=65 and a<=90) or (a>=97 and a<=122) Then
+				s = s & c
+			ElseIf InStr("@*_+-./",c)>0 Then
+				s = s & c
+			ElseIf a>0 and a<16 Then
+				s = s & "%0" & Hex(a)
+			ElseIf a>=16 and a<256 Then
+				s = s & "%" & Hex(a)
+			Else
+				s = s & "%u" & Hex(a)
+			End If
+		Next
+		Escape = s
 	End Function
 	'特殊字符解码
-	Function UnEscape(ByVal s)
-		UnEscape = Easp_UnEscape(s)
+	Function UnEscape(ByVal ss)
+		Dim x, s
+		x = InStr(ss,"%")
+		s = ""
+		Do While x>0
+			s = s & Mid(ss,1,x-1)
+			If LCase(Mid(ss,x+1,1))="u" Then
+				s = s & ChrW(CLng("&H"&Mid(ss,x+2,4)))
+				ss = Mid(ss,x+6)
+			Else
+				s = s & Chr(CLng("&H"&Mid(ss,x+1,2)))
+				ss = Mid(ss,x+3)
+			End If
+			x=InStr(ss,"%")
+		Loop
+		UnEscape = s & ss
 	End Function
 	'格式化日期时间
 	Function DateTime(ByVal iTime, ByVal iFormat)
@@ -522,7 +610,7 @@ Class EasyAsp
 		End If
 		GetUrl = url
 	End Function
-	'获取本页URL地址并带上新的URL参数
+	'获取本页URL参数并带上新的URL参数
 	Function GetUrlWith(ByVal p, ByVal v)
 		Dim u,s,n
 		s = IIF(p=-1,GetUrl(-1)&"/","")
@@ -611,12 +699,54 @@ Class EasyAsp
 		GetScriptTime = FormatNumber((Timer()-t)*1000, 2, -1)
 	End Function
 	'取指定长度的随机字符串
-	Function RandStr(ByVal f)
-		RandStr = Easp_RandStr(f)
+	Function RandStr(ByVal cfg)
+		Dim a, p, l, t, reg, m, mi, ma
+		cfg = Replace(Replace(Replace(cfg,"\<",Chr(0)),"\>",Chr(1)),"\:",Chr(2))
+		a = ""
+		If Easp_Test(cfg, "(<\d+>|<\d+-\d+>)") Then
+			t = cfg
+			p = Easp_Param(cfg)
+			If Not isN(p(1)) Then
+				a = p(1) : t = p(0) : p = ""
+			End If
+			Set reg = RegMatch(cfg, "(<\d+>|<\d+-\d+>)")
+			For Each m In reg
+				p = m.SubMatches(0)
+				l = Mid(p,2,Len(p)-2)
+				If Easp_Test(l,"^\d+$") Then
+					t = Replace(t,p,Easp_RandString(l,a),1,1)
+				Else
+					mi = CLeft(l,"-")
+					ma = CRight(l,"-")
+					t =  Replace(t,p,Rand(mi, ma),1,1)
+				End If
+			Next
+			Set reg = Nothing
+		ElseIf Easp_Test(cfg,"^\d+-\d+$") Then
+			mi = CLeft(cfg,"-")
+			ma = CRight(cfg,"-")
+			t = Rand(mi, ma)
+		ElseIf Easp_Test(cfg, "^(\d+)|(\d+:.)$") Then
+			l = cfg : p = Easp_Param(cfg)
+			If Not isN(p(1)) Then
+				a = p(1) : l = p(0) : p = ""
+			End If
+			t = Easp_RandString(l, a)
+		Else
+			t = cfg
+		End If
+		RandStr = Replace(Replace(Replace(t,Chr(0),"<"),Chr(1),">"),Chr(2),":")
+	End Function
+	Private Function Easp_RandString(ByVal length, ByVal allowStr)
+		Dim i
+		If IsN(allowStr) Then allowStr = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		For i = 1 To length
+			Randomize() : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
+		Next
 	End Function
 	'取一个随机数
-	Function Rand(ByVal n, ByVal m)
-		Rand = Easp_Rand(n,m)
+	Function Rand(ByVal min, ByVal max)
+		Randomize() : Rand = Int((max - min + 1) * Rnd + min)
 	End Function
 	'格式化数字
 	Function toNumber(ByVal n, ByVal d)
@@ -807,8 +937,8 @@ Class EasyAsp
 	Function [Test](ByVal s, ByVal p)
 		Dim Pa
 		Select Case Lcase(p)
-			Case "date"		Test = IIF(isDate(s),True,False) : Exit Function
-			Case "idcard"	Test = IIF(isIDCard(s),True,False) : Exit Function
+			Case "date"		[Test] = IIF(isDate(s),True,False) : Exit Function
+			Case "idcard"	[Test] = IIF(isIDCard(s),True,False) : Exit Function
 			Case "english"	Pa = "^[A-Za-z]+$"
 			Case "chinese"	Pa = "^[\u0391-\uFFE5]+$"
 			Case "username"	Pa = "^[a-zA-Z]\w{2,19}$"
@@ -838,7 +968,9 @@ Class EasyAsp
 	End Function
 	'正则匹配捕获
 	Function regMatch(ByVal s, ByVal rule)
-		Set regMatch =  Easp_Match(s,rule)
+		o_regex.Pattern = rule
+		Set regMatch = o_regex.Execute(s)
+		o_regex.Pattern = ""
 	End Function
 	'替换正则编组
 	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
@@ -848,7 +980,7 @@ Class EasyAsp
 		End If
 		Dim Match,i,j,ma,pos,uleft,ul
 		i = Int(Mid(part,2))-1
-		Set Match = Easp_Match(txt,rule)(0)
+		Set Match = RegMatch(txt,rule)(0)
 		For j = 0 To Match.SubMatches.Count-1
 			ma = Match.SubMatches(j)
 			pos = Instr(txt,ma)
@@ -900,25 +1032,18 @@ Class EasyAsp
 		If Not (Mid(filePath,2,1)=":") Then p = Server.MapPath(filePath)
 		Set Fso = Server.CreateObject(s_fsoName)
 		If Fso.FileExists(p) Then
-			If s_charset = "GB2312" Then
-				Set f = Fso.OpenTextFile(p)
-				tmpStr = f.ReadAll
-				f.Close()
-				Set f = Nothing
-			Else
-				Set o_strm = Server.CreateObject("ADODB.Stream")
-				With o_strm
-					.Type = 2
-					.Mode = 3
-					.Open
-					.LoadFromFile p
-					.Charset = s_charset
-					.Position = 2
-					tmpStr = .ReadText
-					.Close
-				End With
-				Set o_strm = Nothing
-			End If
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 2
+				.Mode = 3
+				.Open
+				.LoadFromFile p
+				.Charset = s_charset
+				.Position = 2
+				tmpStr = .ReadText
+				.Close
+			End With
+			Set o_strm = Nothing
 		Else
 			tmpStr = "文件未找到:" & filePath
 		End If
@@ -1074,18 +1199,40 @@ Class EasyAsp
 		End Select
 		W s
 	End Sub
+	Private Function Easp_Test(ByVal s, ByVal p)
+		If IsN(s) Then Easp_Test = False : Exit Function
+		o_regex.Pattern = p
+		Easp_Test = o_regex.Test(CStr(s))
+		o_regex.Pattern = ""
+	End Function
+	Private Function Easp_Replace(ByVal s, ByVal rule, Byval Result, ByVal isM)
+		Dim tmpStr,Reg : tmpStr = s
+		If Has(s) Then
+			If isM = 1 Then o_regex.Multiline = True
+			o_regex.Pattern = rule
+			tmpStr = o_regex.Replace(tmpStr,Result)
+			If isM = 1 Then o_regex.Multiline = False
+			o_regex.Pattern = ""
+		End If
+		Easp_Replace = tmpStr
+	End Function
+	'取字符串的两头
+	Private Function Easp_LR(ByVal s, ByVal m, ByVal t)
+		Dim n : n = Instr(s,m)
+		If n>0 Then
+			If t = 0 Then
+				Easp_LR = Left(s,n-1)
+			ElseIf t = 1 Then
+				Easp_LR = Mid(s,n+1)
+			End If
+		Else
+			Easp_LR = s
+		End If
+	End Function
 End Class
 Class EasyAsp_obj : End Class
 
-'EasyASP及子类通用函数部分
-Function Easp_IIF(ByVal Cn, ByVal T, ByVal F)
-	If Cn Then
-		Easp_IIF = T
-	Else
-		Easp_IIF = F
-	End If
-End Function
-Function Easp_Param(ByVal s)
+Private Function Easp_Param(ByVal s)
 	Dim arr(1),t : t = Instr(s,":")
 	If t > 0 Then
 		arr(0) = Left(s,t-1) : arr(1) = Mid(s,t+1)
@@ -1093,183 +1240,6 @@ Function Easp_Param(ByVal s)
 		arr(0) = s : arr(1) = ""
 	End If
 	Easp_Param = arr
-End Function
-Function Easp_isN(ByVal s)
-	Easp_isN = False
-	Select Case VarType(s)
-		Case vbEmpty, vbNull
-			Easp_isN = True : Exit Function
-		Case vbString
-			If s="" Then Easp_isN = True : Exit Function
-		Case vbObject
-			Select Case TypeName(s)
-				Case "Nothing","Empty"
-					Easp_isN = True : Exit Function
-				Case "Recordset"
-					If s.State = 0 Then Easp_isN = True : Exit Function
-					If s.Bof And s.Eof Then Easp_isN = True : Exit Function
-				Case "Dictionary"
-					If s.Count = 0 Then Easp_isN = True : Exit Function
-			End Select
-		Case vbArray,8194,8204,8209
-			If Ubound(s)=-1 Then Easp_isN = True : Exit Function
-	End Select
-End Function
-Function Easp_JsEncode(ByVal s)
-	Dim i, j, aL1, aL2, c, p, t
-	aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
-	aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
-	For i = 1 To Len(s)
-		p = True
-		c = Mid(s, i, 1)
-		For j = 0 To 7
-			If c = Chr(aL1(j)) Then
-				t = t & "\" & Chr(aL2(j))
-				p = False
-				Exit For
-			End If
-		Next
-		If p Then 
-			Dim a
-			a = AscW(c)
-			If a > 31 And a < 127 Then
-				t = t & c
-			ElseIf a > -1 Or a < 65535 Then
-				t = t & "\u" & String(4 - Len(Hex(a)), "0") & Hex(a)
-			End If 
-		End If
-	Next
-	Easp_JsEncode = t
-End Function
-Function Easp_Escape(ByVal ss)
-	Dim i,c,a,s : s = ""
-	If Easp_isN(ss) Then Easp_Escape = "" : Exit Function
-	For i = 1 To Len(ss)
-		c = Mid(ss,i,1)
-		a = ASCW(c)
-		If (a>=48 and a<=57) or (a>=65 and a<=90) or (a>=97 and a<=122) Then
-			s = s & c
-		ElseIf InStr("@*_+-./",c)>0 Then
-			s = s & c
-		ElseIf a>0 and a<16 Then
-			s = s & "%0" & Hex(a)
-		ElseIf a>=16 and a<256 Then
-			s = s & "%" & Hex(a)
-		Else
-			s = s & "%u" & Hex(a)
-		End If
-	Next
-	Easp_Escape = s
-End Function
-Function Easp_UnEscape(ByVal ss)
-	Dim x, s
-	x = InStr(ss,"%")
-	s = ""
-	Do While x>0
-		s = s & Mid(ss,1,x-1)
-		If LCase(Mid(ss,x+1,1))="u" Then
-			s = s & ChrW(CLng("&H"&Mid(ss,x+2,4)))
-			ss = Mid(ss,x+6)
-		Else
-			s = s & Chr(CLng("&H"&Mid(ss,x+1,2)))
-			ss = Mid(ss,x+3)
-		End If
-		x=InStr(ss,"%")
-	Loop
-	Easp_UnEscape = s & ss
-End Function
-Function Easp_RandStr(ByVal cfg)
-	Dim a, p, l, t, reg, m, mi, ma
-	cfg = Replace(Replace(Replace(cfg,"\<",Chr(0)),"\>",Chr(1)),"\:",Chr(2))
-	a = ""
-	If Easp_Test(cfg, "(<\d+>|<\d+-\d+>)") Then
-		t = cfg
-		p = Easp_Param(cfg)
-		If Not Easp_isN(p(1)) Then
-			a = p(1) : t = p(0) : p = ""
-		End If
-		Set reg = Easp_Match(cfg, "(<\d+>|<\d+-\d+>)")
-		For Each m In reg
-			p = m.SubMatches(0)
-			l = Mid(p,2,Len(p)-2)
-			If Easp_Test(l,"^\d+$") Then
-				t = Replace(t,p,Easp_RandString(l,a),1,1)
-			Else
-				mi = Easp_LR(l,"-",0)
-				ma = Easp_LR(l,"-",1)
-				t =  Replace(t,p,Easp_Rand(mi, ma),1,1)
-			End If
-		Next
-		Set reg = Nothing
-	ElseIf Easp_Test(cfg,"^\d+-\d+$") Then
-		mi = Easp_LR(cfg,"-",0)
-		ma = Easp_LR(cfg,"-",1)
-		t = Easp_Rand(mi, ma)
-	ElseIf Easp_Test(cfg, "^(\d+)|(\d+:.)$") Then
-		l = cfg : p = Easp_Param(cfg)
-		If Not Easp_isN(p(1)) Then
-			a = p(1) : l = p(0) : p = ""
-		End If
-		t = Easp_RandString(l, a)
-	Else
-		t = cfg
-	End If
-	Easp_RandStr = Replace(Replace(Replace(t,Chr(0),"<"),Chr(1),">"),Chr(2),":")
-End Function
-Function Easp_RandString(ByVal length, ByVal allowStr)
-	Dim i
-	If Easp_IsN(allowStr) Then allowStr = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	For i = 1 To length
-		Randomize() : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
-	Next
-End Function
-Function Easp_Rand(ByVal min, ByVal max)
-    Randomize() : Easp_Rand = Int((max - min + 1) * Rnd + min)
-End Function
-Function Easp_Test(ByVal s, ByVal p)
-	If Easp_IsN(s) Then Easp_Test = False : Exit Function
-	Dim Reg
-	Set Reg = New RegExp
-	Reg.Global = True
-	Reg.Pattern = p
-	Easp_Test = Reg.Test(CStr(s))
-	Set Reg = Nothing
-End Function
-Function Easp_Replace(ByVal s, ByVal rule, Byval Result, ByVal isM)
-	Dim tmpStr,Reg : tmpStr = s
-	If Not Easp_isN(s) Then
-		Set Reg = New Regexp
-		Reg.Global = True
-		Reg.IgnoreCase = True
-		If isM = 1 Then Reg.Multiline = True
-		Reg.Pattern = rule
-		tmpStr = Reg.Replace(tmpStr,Result)
-		Set Reg = Nothing
-	End If
-	Easp_Replace = tmpStr
-End Function
-'正则匹配
-Function Easp_Match(ByVal s, ByVal rule)
-	Dim Reg
-	Set Reg = New Regexp
-	Reg.Global = True
-	Reg.IgnoreCase = True
-	Reg.Pattern = rule
-	Set Easp_Match = Reg.Execute(s)
-	Set Reg = Nothing
-End Function
-'取字符串的两头
-Function Easp_LR(ByVal s, ByVal m, ByVal t)
-	Dim n : n = Instr(s,m)
-	If n>0 Then
-		If t = 0 Then
-			Easp_LR = Left(s,n-1)
-		ElseIf t = 1 Then
-			Easp_LR = Mid(s,n+1)
-		End If
-	Else
-		Easp_LR = s
-	End If
 End Function
 %>
 <!--#include file="core/easp.error.asp"-->

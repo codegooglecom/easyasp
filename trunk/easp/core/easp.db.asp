@@ -91,7 +91,7 @@ Class EasyAsp_db
 	End Property
 	'属性：返回当前页码
 	Public Property Get PageIndex()
-		PageIndex = Easp_IIF(Easp_isN(i_pageIndex),GetCurrentPage,i_pageIndex)
+		PageIndex = Easp.IIF(Easp.isN(i_pageIndex),GetCurrentPage,i_pageIndex)
 	End Property
 	'属性：返回总记录数
 	Public Property Get PageRecordCount()
@@ -144,6 +144,7 @@ Class EasyAsp_db
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />(""" & ConnStr & """)"
 			Easp.Error.Raise 12
 			objConn.Close
 			Set objConn = Nothing
@@ -181,13 +182,13 @@ Class EasyAsp_db
 		On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
 		tmp = Easp_Param(TableName)
-		If Not Easp_isN(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
-		Set rs = GRS("Select " & Easp_IIF(fID<>"", "Max("&fID&")", "Top 1 *") & " From ["&TableName&"]")
+		If Not Easp.isN(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
+		Set rs = GRS("Select " & Easp.IIF(fID<>"", "Max("&fID&")", "Top 1 *") & " From ["&TableName&"]")
 		If rs.eof Then
 			AutoID = 1 : Exit Function
 		Else
 			If fID<>"" Then
-				If Easp_isN(rs.Fields.Item(0).Value) Then AutoID = 1 : Exit Function
+				If Easp.isN(rs.Fields.Item(0).Value) Then AutoID = 1 : Exit Function
 				AutoID = rs.Fields.Item(0).Value + 1 : Exit Function
 			Else
 				Dim newRs
@@ -208,10 +209,10 @@ Class EasyAsp_db
 		Dim strSelect, FieldsList, ShowN, o, p
 		FieldsList = "" : ShowN = 0
 		o = Easp_Param(TableName)
-		If Not Easp_isN(o(1)) Then
+		If Not Easp.isN(o(1)) Then
 			TableName = Trim(o(0)) : FieldsList = Trim(o(1)) : o = ""
 			p = Easp_Param(FieldsList)
-			If Not Easp_isN(p(1)) Then
+			If Not Easp.isN(p(1)) Then
 				FieldsList = Trim(p(0)) : ShowN = Int(Trim(p(1))) : p = ""
 			Else
 				If isNumeric(FieldsList) Then ShowN = Int(FieldsList) : FieldsList = ""
@@ -219,7 +220,7 @@ Class EasyAsp_db
 		End If
 		strSelect = "Select "
 		If ShowN > 0 Then strSelect = strSelect & "Top " & ShowN & " "
-		strSelect = strSelect & Easp_IIF(FieldsList <> "", FieldsList, "* ")
+		strSelect = strSelect & Easp.IIF(FieldsList <> "", FieldsList, "* ")
 		strSelect = strSelect & " From [" & TableName & "]"
 		If isArray(Condition) Then
 			strSelect = strSelect & " Where " & ValueToSql(TableName,Condition,1)
@@ -236,13 +237,13 @@ Class EasyAsp_db
 		wGR = wGetRecord(TableName, Condition, OrderField)
 	End Function
 	'根据sql语句返回记录集
-	Public Function GetRecordBySQL(ByVal str)
+	Public Function GetRecordBySQL(ByVal s)
 		On Error Resume Next
 		If i_queryType = 1 Then
 			Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
 				.ActiveConnection = o_conn
-				.CommandText = str
+				.CommandText = s
 				Set GetRecordBySQL = .Execute
 			End With
 			Set cmd = Nothing
@@ -252,16 +253,19 @@ Class EasyAsp_db
 				.ActiveConnection = o_conn
 				.CursorType = 1
 				.LockType = 1
-				.Source = str
+				.Source = s
 				.Open
 			End With
 			Set GetRecordBySQL = rs
 		End If
-		If Err.number <> 0 Then Easp.Error.Raise 11
-		Err.Clear
+		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />" & s
+			Easp.Error.Raise 11
+			Err.Clear
+		End If
 	End Function
-	Public Function GRS(ByVal strSelect)
-		Set GRS = GetRecordBySQL(strSelect)
+	Public Function GRS(ByVal s)
+		Set GRS = GetRecordBySQL(s)
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
@@ -269,7 +273,7 @@ Class EasyAsp_db
 		Dim tmpStr, rs, fi, i, j, o, isE,tName,tValue : i = 0
 		isE = False
 		o = Easp_Param(jName)
-		If Not Easp_isN(o(1)) Then
+		If Not Easp.isN(o(1)) Then
 			jName = o(0)
 			isE = True
 		End If
@@ -284,9 +288,9 @@ Class EasyAsp_db
 					If j<>0 Then tmpStr = tmpStr & ", "
 					tName = fi.Name : tValue = fi.Value
 					If isE Then
-						tmpStr = tmpStr & """" & Easp_Escape(tName) & """:""" & Easp_Escape(Easp_jsEncode(tValue)) & """"
+						tmpStr = tmpStr & """" & Easp.Escape(tName) & """:""" & Easp.Escape(Easp.jsEncode(tValue)) & """"
 					Else
-						tmpStr = tmpStr & """" & tName & """:""" & Easp_jsEncode(tValue) & """"
+						tmpStr = tmpStr & """" & tName & """:""" & Easp.jsEncode(tValue) & """"
 					End If
 					j = j + 1
 				Next
@@ -305,11 +309,11 @@ Class EasyAsp_db
 		Dim tb, fi, tmpStr, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
-		tmpStr = Easp_RandStr(length)
+		tmpStr = Easp.RandStr(length)
 		Do While (True)
 			Set rs = GR(tb&":"&fi&":1",fi&"='"&tmpStr&"'","")
 			If Not rs.Bof And Not rs.Eof Then
-				tmpStr = Easp_RandStr(length)
+				tmpStr = Easp.RandStr(length)
 			Else
 				RandStr = tmpStr
 				Exit Do
@@ -324,11 +328,11 @@ Class EasyAsp_db
 		Dim tb, fi, tmpInt, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
-		tmpInt = Easp_Rand(min,max)
+		tmpInt = Easp.Rand(min,max)
 		Do While (True)
 			Set rs = GR(tb&":"&fi&":1",Array(fi&":"&tmpInt),"")
 			If Not rs.Bof And Not rs.Eof Then
-				tmpInt = Easp_Rand(min,max)
+				tmpInt = Easp.Rand(min,max)
 			Else
 				Rand = tmpInt
 				Exit Do
@@ -350,10 +354,10 @@ Class EasyAsp_db
 	Public Function GetRandRecord(ByVal TableName,ByVal Condition)
 		Dim sql,o,p,fi,IdField,showN,where
 		o = Easp_Param(TableName)
-		If Not Easp_isN(o(1)) Then
+		If Not Easp.isN(o(1)) Then
 			TableName = o(0)
 			p = Easp_Param(o(1))
-			If Easp_isN(p(1)) Then
+			If Easp.isN(p(1)) Then
 				Easp.Error.Raise 18
 				Exit Function
 			Else
@@ -368,7 +372,7 @@ Class EasyAsp_db
 			Easp.Error.Raise 19
 			Exit Function
 		End If
-		Condition = Easp_IIF(Easp_isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
+		Condition = Easp.IIF(Easp.isN(Condition),""," Where " & ValueToSql(TableName,Condition,1))
 		sql = "Select Top " & showN & " " & fi & " From ["&TableName&"]" & Condition
 		Select Case s_dbType
 			Case "ACCESS" : Randomize
@@ -378,7 +382,7 @@ Class EasyAsp_db
 			Case "MYSQL"
 				sql = "Select " & fi & " From " & TableName & Condition & " Order By rand() limit " & showN
 			Case "ORACLE"
-				sql = "Select " & fi & " From (Select " & fi & " From "&TableName&" Order By dbms_random.value) " & Easp_IIF(Easp_isN(Condition),"Where",Condition & " And") & " rownum < " & Int(showN)+1
+				sql = "Select " & fi & " From (Select " & fi & " From "&TableName&" Order By dbms_random.value) " & Easp.IIF(Easp.isN(Condition),"Where",Condition & " And") & " rownum < " & Int(showN)+1
 		End Select
 		Set GetRandRecord = GRS(sql)
 	End Function
@@ -388,14 +392,17 @@ Class EasyAsp_db
 	'添加一个新的纪录
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
 		On Error Resume Next
-		Dim o : o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
-		DoExecute wAddRecord(TableName,ValueList)
+		Dim o,s : o = Easp_Param(TableName)
+		If Not Easp.isN(o(1)) Then TableName = o(0)
+		s = wAddRecord(TableName,ValueList)
+		DoExecute s
 		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 20
 			AddRecord = 0
 			Exit Function
 		End If
-		If Not Easp_isN(o(1)) Then
+		If Not Easp.isN(o(1)) Then
 			AddRecord = AutoID(o(0)&":"&o(1))-1
 		Else
 			AddRecord = 1
@@ -403,7 +410,7 @@ Class EasyAsp_db
 	End Function
 	Public Function wAddRecord(ByVal TableName,ByVal ValueList)
 		Dim TempSQL, TempFiled, TempValue, o
-		o = Easp_Param(TableName) : If Not Easp_isN(o(1)) Then TableName = o(0)
+		o = Easp_Param(TableName) : If Not Easp.isN(o(1)) Then TableName = o(0)
 		TempFiled = ValueToSql(TableName,ValueList,2)
 		TempValue = ValueToSql(TableName,ValueList,3)
 		TempSQL = "Insert Into [" & TableName & "] (" & TempFiled & ") Values (" & TempValue & ")"
@@ -418,8 +425,10 @@ Class EasyAsp_db
 	'修改某一纪录
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
 		On Error Resume Next
-		DoExecute wUpdateRecord(TableName,Condition,ValueList)
+		Dim s : s = wUpdateRecord(TableName,Condition,ValueList)
+		DoExecute s
 		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 21
 			UpdateRecord = 0
 			Exit Function
@@ -430,7 +439,7 @@ Class EasyAsp_db
 		Dim TmpSQL
 		TmpSQL = "Update ["&TableName&"] Set "
 		TmpSQL = TmpSQL & ValueToSql(TableName,ValueList,0)
-		If Not Easp_isN(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
+		If Not Easp.isN(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
 		wUpdateRecord = TmpSQL
 	End Function
 	Public Function UR(ByVal TableName,ByVal Condition,ByVal ValueList)
@@ -442,8 +451,10 @@ Class EasyAsp_db
 	'删除指定的纪录
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
 		On Error Resume Next
-		DoExecute wDeleteRecord(TableName,Condition)
+		Dim s : s = wDeleteRecord(TableName,Condition)
+		DoExecute s
 		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 22
 			DeleteRecord = 0
 			Exit Function
@@ -454,7 +465,7 @@ Class EasyAsp_db
 		Dim IDFieldName, IDValues, Sql, p : IDFieldName = "" : IDValues = ""
 		If Not isArray(Condition) Then
 			p = Easp_Param(Condition)
-			If Not Easp_isN(p(1)) Then
+			If Not Easp.isN(p(1)) Then
 				IDFieldName = p(0)
 				If Instr(IDFieldName," ")=0 Then
 					IDValues = p(1)
@@ -463,7 +474,7 @@ Class EasyAsp_db
 				End If
 			End If
 		End If
-		Sql = "Delete From ["&TableName&"] Where " & Easp_IIF(IDFieldName="", ValueToSql(TableName,Condition,1), "["&IDFieldName&"] In (" & IDValues & ")")
+		Sql = "Delete From ["&TableName&"] Where " & Easp.IIF(IDFieldName="", ValueToSql(TableName,Condition,1), "["&IDFieldName&"] In (" & IDValues & ")")
 		wDeleteRecord = Sql
 	End Function
 	Public Function DR(ByVal TableName,ByVal Condition)
@@ -507,7 +518,7 @@ Class EasyAsp_db
 			Exit Function
 		End If
 		p = Easp_Param(spName)
-		If Not Easp_isN(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
+		If Not Easp.isN(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
 		Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
 				.ActiveConnection = o_conn
@@ -518,7 +529,7 @@ Class EasyAsp_db
 				outParam = "return"
 				If Not IsArray(spParam) Then
 					If spParam<>"" Then
-						spParam = Easp_IIF(Instr(spParam,",")>0, spParam = Split(spParam,","), Array(spParam))
+						spParam = Easp.IIF(Instr(spParam,",")>0, spParam = Split(spParam,","), Array(spParam))
 					End If
 				End If
 				If IsArray(spParam) Then
@@ -542,7 +553,7 @@ Class EasyAsp_db
 					Next
 				End If
 			End With
-			outParam = Easp_IIF(Instr(outParam,",")>0, Split(outParam,","), Array(outParam))
+			outParam = Easp.IIF(Instr(outParam,",")>0, Split(outParam,","), Array(outParam))
 			If spType = "1" or spType = "OUT" Then
 				cmd.Execute : doSP = cmd
 			ElseIf spType = "2" or spType = "RS" Then
@@ -569,19 +580,22 @@ Class EasyAsp_db
 		Set ObjRs = Nothing
 	End Function
 	'执行指定的SQL语句,可返回记录集
-	Public Function Exec(ByVal str)
+	Public Function Exec(ByVal s)
 		On Error Resume Next
 		If Lcase(Left(str,6)) = "select" Then
 			Dim i : i = i_queryType
 			i_queryType = 1
-			Set Exec = GRS(str)
+			Set Exec = GRS(s)
 			i_queryType = i
 		Else
-			Exec = 1 : DoExecute(str)
+			Exec = 1 : DoExecute(s)
 			If Err.number <> 0 Then Exec = 0
 		End If
-		If Err.number <> 0 Then Easp.Error.Raise 25
-		Err.Clear
+		If Err.number <> 0 Then
+			Easp.Error.Msg = "<br />" & s
+			Easp.Error.Raise 25
+			Err.Clear
+		End If
 	End Function
 	
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
@@ -594,23 +608,23 @@ Class EasyAsp_db
 			For i = 0 to Ubound(ValueList)
 				CurrentField = Easp_Param(ValueList(i))(0)
 				CurrentValue = Easp_Param(ValueList(i))(1)
-				If i <> 0 Then StrTemp = StrTemp & Easp_IIF(sType=1, " And ", ", ")
+				If i <> 0 Then StrTemp = StrTemp & Easp.IIF(sType=1, " And ", ", ")
 				If sType = 2 Then
 					StrTemp = StrTemp & "[" & CurrentField & "]"
 				Else
 					Select Case rsTemp.Fields(CurrentField).Type
 						Case 8,129,130,133,134,200,201,202,203
-							StrTemp = StrTemp & Easp_IIF(sType = 3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
+							StrTemp = StrTemp & Easp.IIF(sType = 3, "'"&CurrentValue&"'", "[" & CurrentField & "] = '"&CurrentValue&"'")
 						Case 7,135
-							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL","'"&CurrentValue&"'")
-							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
+							CurrentValue = Easp.IIF(Easp.IsN(CurrentValue),"NULL","'"&CurrentValue&"'")
+							StrTemp = StrTemp & Easp.IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
 						Case 11
 							Dim tmpTF, tmpTFV : tmpTFV = UCase(cstr(Trim(CurrentValue)))
-							tmpTF = Easp_IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp_IIF(s_dbType="ACCESS","True","1"), Easp_IIF(s_dbType="ACCESS",Easp_IIF(tmpTFV="","NULL","False"),Easp_IIF(tmpTFV="","NULL","0")))
-							StrTemp = StrTemp & Easp_IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
+							tmpTF = Easp.IIF(tmpTFV="TRUE" or tmpTFV = "1", Easp.IIF(s_dbType="ACCESS","True","1"), Easp.IIF(s_dbType="ACCESS",Easp.IIF(tmpTFV="","NULL","False"),Easp.IIF(tmpTFV="","NULL","0")))
+							StrTemp = StrTemp & Easp.IIF(sType = 3, tmpTF, "[" & CurrentField & "] = " & tmpTF)
 						Case Else
-							CurrentValue = Easp_IIF(Easp_IsN(CurrentValue),"NULL",CurrentValue)
-							StrTemp = StrTemp & Easp_IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
+							CurrentValue = Easp.IIF(Easp.IsN(CurrentValue),"NULL",CurrentValue)
+							StrTemp = StrTemp & Easp.IIF(sType = 3, CurrentValue, "[" & CurrentField & "] = " & CurrentValue)
 					End Select
 				End If
 			Next
@@ -635,9 +649,9 @@ Class EasyAsp_db
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
 		o = Easp_Param(Cstr(PageSetup))
 		pType = o(0)
-		If Not Easp_isN(o(1)) Then
+		If Not Easp.isN(o(1)) Then
 			p = Easp_Param(o(1))
-			If Not Easp_isN(p(1)) Then
+			If Not Easp.isN(p(1)) Then
 				s_pageParam = Lcase(p(0))
 				i_pageSize = Int(p(1))
 			Else
@@ -654,7 +668,7 @@ Class EasyAsp_db
 				If isArray(Condition) Then
 					Dim Table,Fi,Where
 					o = Easp_Param(Condition(0))
-					If Not Easp_isN(o(1)) Then
+					If Not Easp.isN(o(1)) Then
 						Table = o(0) : Fi = o(1)
 					Else
 						Table = Condition(0) : Fi = "*"
@@ -664,10 +678,10 @@ Class EasyAsp_db
 					Else
 						Where = Condition(1)
 					End If
-					i_recordCount = Int(RT(Table, Easp_IIF(Easp_isN(Where),"1=1",Where), "Count(0)"))
+					i_recordCount = Int(RT(Table, Easp.IIF(Easp.isN(Where),"1=1",Where), "Count(0)"))
 					n = i_recordCount / i_pageSize
-					i_pageCount = Easp_IIF(n=Int(n), n, Int(n)+1)
-					i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
+					i_pageCount = Easp.IIF(n=Int(n), n, Int(n)+1)
+					i_pageIndex = Easp.IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
 					If s_dbType = "1" or s_dbType = "ACCESS" Then
 						Set rs = GR(Table&":"&Fi,Where,Condition(2))
 						rs.PageSize = i_pageSize
@@ -675,22 +689,22 @@ Class EasyAsp_db
 						Set GetPageRecord = rs : Exit Function
 					ElseIf s_dbType = "2" or s_dbType = "MYSQL" Then
 						Sql = "Select "& fi & " From [" & Table & "]"
-						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
-						If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+						If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
+						If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 						Sql = Sql & " Limit " & i_pageSize*(i_pageIndex-1) & ", " & i_pageSize
 					Else
 						If Ubound(Condition)<>3 Then Easp.Error.Raise 27
 						Sql = "Select Top " & i_pageSize & " " & fi
 						Sql = Sql & " From [" & Table & "]"
-						If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
+						If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
 						If i_pageIndex > 1 Then
-							Sql = Sql & " " & Easp_IIF(Easp_isN(Where), "Where", "And") & " " & Condition(3) & " Not In ("
+							Sql = Sql & " " & Easp.IIF(Easp.isN(Where), "Where", "And") & " " & Condition(3) & " Not In ("
 							Sql = Sql & "Select Top " & i_pageSize * (i_pageIndex-1) & " " & Condition(3) & " From [" & Table & "]"
-							If Not Easp_isN(Where) Then Sql = Sql & " Where " & Where
-							If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+							If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
+							If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 							Sql = Sql & ") "
 						End If
-						If Not Easp_isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+						If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 					End If
 					Set GetPageRecord = GRS(Sql)
 				Else
@@ -721,7 +735,7 @@ Class EasyAsp_db
 					Set GetPageRecord = spResult(0)
 					i_recordCount = int(spResult(1)("@@RecordCount"))
 					i_pageCount = int(spResult(1)("@@PageCount"))
-					i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
+					i_pageIndex = Easp.IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
 				Else
 					Easp.Error.Raise 31
 				End If
@@ -730,7 +744,7 @@ Class EasyAsp_db
 			i_recordCount = rs.RecordCount
 			rs.PageSize = i_pageSize
 			i_pageCount = rs.PageCount
-			i_pageIndex = Easp_IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
+			i_pageIndex = Easp.IIF(i_pageIndex > i_pageCount, i_pageCount, i_pageIndex)
 			If i_recordCount>0 Then rs.AbsolutePage = i_pageIndex
 			Set GetPageRecord = rs
 		End If
@@ -744,7 +758,7 @@ Class EasyAsp_db
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
 		Dim pJump, pJumpLong, pJumpStart, pJumpEnd, pJumpValue
 		Dim i, j, tmpStr, pStart, pEnd, cfg, pcfg(1)
-		tmpStr = Easp_IIF(PagerHtml="",o_pageDic("default_html"),PagerHtml)
+		tmpStr = Easp.IIF(PagerHtml="",o_pageDic("default_html"),PagerHtml)
 		Set cfg = Server.CreateObject("Scripting.Dictionary")
 		cfg("recordcount")	= i_recordCount
 		cfg("pageindex")	= i_pageIndex
@@ -765,7 +779,7 @@ Class EasyAsp_db
 		cfg("jumpplus")		= ""
 		cfg("jumpaction")	= ""
 		cfg("jumplong")		= 50
-		PagerConfig = Easp_IIF(isArray(PagerConfig),PagerConfig, Easp_IIF(Easp_isN(PagerConfig),o_pageDic("default_config"),Array(PagerConfig,"pagerconfig:1")))
+		PagerConfig = Easp.IIF(isArray(PagerConfig),PagerConfig, Easp.IIF(Easp.isN(PagerConfig),o_pageDic("default_config"),Array(PagerConfig,"pagerconfig:1")))
 		If isArray(PagerConfig) Then
 			Dim ConfigName, ConfigValue
 			For i = 0 To Ubound(PagerConfig)
@@ -799,7 +813,7 @@ Class EasyAsp_db
 				For i = 1 To cfg("listsidelong")
 					pListStart = pListStart & " <a href="""&Replace(cfg("link"),"*",i)&""">" & Replace(cfg("list"),"*",i) & "</a> "
 				Next
-				pListStart = pListStart & Easp_IIF(cfg("listsidelong")+1=pStart,"",cfg("more") & " ")
+				pListStart = pListStart & Easp.IIF(cfg("listsidelong")+1=pStart,"",cfg("more") & " ")
 			ElseIf cfg("listsidelong") >= pStart And pStart > 1 Then
 				For i = 1 To (pStart - 1)
 					pListStart = pListStart & " <a href="""&Replace(cfg("link"),"*",i)&""">" & Replace(cfg("list"),"*",i) & "</a> "
@@ -833,31 +847,31 @@ Class EasyAsp_db
 		Select Case LCase(cfg("jump"))
 			Case "input"
 				pJumpValue = "this.value"
-				pJump = "<input type=""text"" size=""3"" title=""请输入要跳转到的页数并回车""" & Easp_IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
+				pJump = "<input type=""text"" size=""3"" title=""请输入要跳转到的页数并回车""" & Easp.IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
 				pJump = pJump & " onkeydown=""javascript:if(event.charCode==13||event.keyCode==13){if(!isNaN(" & pJumpValue & ")){"
-				pJump = pJump & Easp_IIF(cfg("jumpaction")="",Easp_IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*", pJumpValue))
+				pJump = pJump & Easp.IIF(cfg("jumpaction")="",Easp.IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*", pJumpValue))
 				pJump = pJump & "}return false;}"" />"
 			Case "select"
 				pJumpValue = "this.options[this.selectedIndex].value"
-				pJump = "<select" & Easp_IIF(cfg("jumpplus")="",""," "&cfg("jumpplus")) & " onchange=""javascript:"
-				pJump = pJump & Easp_IIF(cfg("jumpaction")="",Easp_IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*",pJumpValue))
+				pJump = "<select" & Easp.IIF(cfg("jumpplus")="",""," "&cfg("jumpplus")) & " onchange=""javascript:"
+				pJump = pJump & Easp.IIF(cfg("jumpaction")="",Easp.IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*",pJumpValue))
 				pJump = pJump & """ title=""请选择要跳转到的页数""> "
 				If cfg("jumplong")=0 Then
 					For i = 1 To cfg("pagecount")
-						pJump = pJump & "<option value=""" & i & """" & Easp_IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
+						pJump = pJump & "<option value=""" & i & """" & Easp.IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
 					Next
 				Else
 					pJumpLong = Int(cfg("jumplong") / 2)
-					pJumpStart = Easp_IIF(cfg("pageindex")-pJumpLong<1, 1, cfg("pageindex")-pJumpLong)
-					pJumpStart = Easp_IIF(cfg("pagecount")-cfg("pageindex")<pJumpLong, pJumpStart-(pJumpLong-(cfg("pagecount")-cfg("pageindex")))+1, pJumpStart)
-					pJumpStart = Easp_IIF(pJumpStart<1,1,pJumpStart)
+					pJumpStart = Easp.IIF(cfg("pageindex")-pJumpLong<1, 1, cfg("pageindex")-pJumpLong)
+					pJumpStart = Easp.IIF(cfg("pagecount")-cfg("pageindex")<pJumpLong, pJumpStart-(pJumpLong-(cfg("pagecount")-cfg("pageindex")))+1, pJumpStart)
+					pJumpStart = Easp.IIF(pJumpStart<1,1,pJumpStart)
 					j = 1
 					For i = pJumpStart To cfg("pageindex")
-						pJump = pJump & "<option value=""" & i & """" & Easp_IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
+						pJump = pJump & "<option value=""" & i & """" & Easp.IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
 						j = j + 1
 					Next
-					pJumpLong = Easp_IIF(cfg("pagecount")-cfg("pageindex")<pJumpLong, pJumpLong, pJumpLong + (pJumpLong-j)+1)
-					pJumpEnd = Easp_IIF(cfg("pageindex")+pJumpLong>cfg("pagecount"), cfg("pagecount"), cfg("pageindex")+pJumpLong)
+					pJumpLong = Easp.IIF(cfg("pagecount")-cfg("pageindex")<pJumpLong, pJumpLong, pJumpLong + (pJumpLong-j)+1)
+					pJumpEnd = Easp.IIF(cfg("pageindex")+pJumpLong>cfg("pagecount"), cfg("pagecount"), cfg("pageindex")+pJumpLong)
 					For i = cfg("pageindex")+1 To pJumpEnd
 						pJump = pJump & "<option value=""" & i & """>" & i & "</option> "
 					Next
@@ -882,8 +896,8 @@ Class EasyAsp_db
 	'配置分页样式
 	Public Sub SetPager(ByVal PagerName, ByVal PagerHtml, ByRef PagerConfig)
 		If PagerName = "" Then PagerName = "default"
-		If Not Easp_isN(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
-		If Not Easp_isN(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
+		If Not Easp.isN(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
+		If Not Easp.isN(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
 	End Sub
 	'调用分页样式
 	Public Function GetPager(ByVal PagerName)

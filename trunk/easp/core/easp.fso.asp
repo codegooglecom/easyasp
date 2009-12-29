@@ -83,25 +83,18 @@ Class EasyAsp_Fso
 	Public Function Read(ByVal filePath)
 		Dim p, f, o_strm, tmpStr : p = absPath(filePath)
 		If isFile(p) Then
-			If s_charset = "GB2312" Then
-				Set f = Fso.OpenTextFile(p)
-				tmpStr = f.ReadAll
-				f.Close()
-				Set f = Nothing
-			Else
-				Set o_strm = Server.CreateObject("ADODB.Stream")
-				With o_strm
-					.Type = 2
-					.Mode = 3
-					.Open
-					.LoadFromFile p
-					.Charset = s_charset
-					.Position = 2
-					tmpStr = .ReadText
-					.Close
-				End With
-				Set o_strm = Nothing
-			End If
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 2
+				.Mode = 3
+				.Open
+				.LoadFromFile p
+				.Charset = s_charset
+				.Position = 2
+				tmpStr = .ReadText
+				.Close
+			End With
+			Set o_strm = Nothing
 		Else
 			tmpStr = ""
 			Easp.Error.Msg = "(" & filePath & ")"
@@ -115,24 +108,17 @@ Class EasyAsp_Fso
 		Dim f,p,t : p = absPath(filePath)
 		CreateFile = MD(Left(p,InstrRev(p,"\")-1))
 		If CreateFile Then
-			If s_charset = "GB2312" Then
-				Set f = Fso.CreateTextFile(p,b_overwrite)
-				f.Write fileContent
-				f.Close()
-				Set f =Nothing
-			Else
-				Set o_strm = Server.CreateObject("ADODB.Stream")
-				With o_strm
-					.Type = 2
-					.Open
-					.Charset = s_charset
-					.Position = o_strm.Size
-					.WriteText = fileContent
-					.SaveToFile p,Easp_IIF(b_overwrite,2,1)
-					.Close
-				End With
-				Set o_strm = Nothing
-			End If
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 2
+				.Open
+				.Charset = s_charset
+				.Position = o_strm.Size
+				.WriteText = fileContent
+				.SaveToFile p,Easp.IIF(b_overwrite,2,1)
+				.Close
+			End With
+			Set o_strm = Nothing
 		End If
 		If Err.Number<>0 Then
 			CreateFile = False
@@ -144,7 +130,7 @@ Class EasyAsp_Fso
 	'按正则表达式更新文件内容
 	Public Function UpdateFile(ByVal filePath, ByVal rule, ByVal result)
 		Dim tmpStr : filePath = absPath(filePath)
-		tmpStr = Easp_Replace(Read(filePath),rule,result,0)
+		tmpStr = Easp.regReplace(Read(filePath),rule,result)
 		UpdateFile = CreateFile(filePath,tmpStr)
 	End Function
 	'追加文件内容
@@ -244,17 +230,17 @@ Class EasyAsp_Fso
 		End If
 		at = f.Attributes : a = UCase(attrType)
 		If Instr(a,"+")>0 Or Instr(a,"-")>0 Then
-			a = Easp_IIF(Instr(a," ")>0,Split(a," "),Split(a,","))
+			a = Easp.IIF(Instr(a," ")>0,Split(a," "),Split(a,","))
 			For i = 0 To Ubound(a)
 				Select Case a(i)
-					Case "+R" at = Easp_IIF(at And 1,at,at+1)
-					Case "-R" at = Easp_IIF(at And 1,at-1,at)
-					Case "+H" at = Easp_IIF(at And 2,at,at+2)
-					Case "-H" at = Easp_IIF(at And 2,at-2,at)
-					Case "+S" at = Easp_IIF(at And 4,at,at+4)
-					Case "-S" at = Easp_IIF(at And 4,at-4,at)
-					Case "+A" at = Easp_IIF(at And 32,at,at+32)
-					Case "-A" at = Easp_IIF(at And 32,at-32,at)
+					Case "+R" at = Easp.IIF(at And 1,at,at+1)
+					Case "-R" at = Easp.IIF(at And 1,at-1,at)
+					Case "+H" at = Easp.IIF(at And 2,at,at+2)
+					Case "-H" at = Easp.IIF(at And 2,at-2,at)
+					Case "+S" at = Easp.IIF(at And 4,at,at+4)
+					Case "-S" at = Easp.IIF(at And 4,at-4,at)
+					Case "+A" at = Easp.IIF(at And 32,at,at+32)
+					Case "-A" at = Easp.IIF(at And 32,at-32,at)
 				End Select
 			Next
 			f.Attributes = at
@@ -266,7 +252,7 @@ Class EasyAsp_Fso
 					Case "S" n = n + 4
 				End Select
 			Next
-			f.Attributes = Easp_IIF(at And 32,n+32,n)
+			f.Attributes = Easp.IIF(at And 32,n+32,n)
 		End If
 		Set f = Nothing
 		If Err.Number<>0 Then
@@ -395,7 +381,7 @@ Class EasyAsp_Fso
 	Private Function absPath(ByVal p)
 		If Instr(p,":")=0 Then
 			If isWildcards(p) Then
-				p = Server.MapPath(Easp_IIF(Left(p,1)="/", "/", Easp.GetUrl(2) & "/")) & Replace(p,"/","\")
+				p = Server.MapPath(Easp.IIF(Left(p,1)="/", "/", Easp.GetUrl(2) & "/")) & Replace(p,"/","\")
 			Else
 				p = Server.MapPath(p)
 			End If
@@ -436,35 +422,35 @@ Class EasyAsp_Fso
 				ElseIf FOF = 1 Then
 					FOFO = MD(tf)
 				End If
-				Execute("Fso."&ot&of&" ff,tf"&Easp_IIF(MOC=0,",b_overwrite",""))
+				Execute("Fso."&ot&of&" ff,tf"&Easp.IIF(MOC=0,",b_overwrite",""))
 			Else
 				Execute("Fso."&ot&of&" ff,b_force")
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp.IIF(MOC=2,"",os&"到 "&toPath)&" )"
 				Easp.Error.Raise 63
 			End If
 		ElseIf isWildcards(ff) Then
 			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
 				FOFO = False
-				Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp.IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
 				Easp.Error.Raise 63
 			End If
 			If MOC<>2 Then
 				FOFO = MD(tf)
-				Execute("Fso."&ot&of&" ff,tf"&Easp_IIF(MOC=0,",b_overwrite",""))
+				Execute("Fso."&ot&of&" ff,tf"&Easp.IIF(MOC=0,",b_overwrite",""))
 			Else
 				Execute("Fso."&ot&of&" ff,b_force")
 			End If
 			If Err.Number<>0 Then
 				FOFO = False
-				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp_IIF(MOC=2,"",os&"到 "&toPath)&" )"
+				Easp.Error.Msg = "<br />" & os & oi & "失败！" & "( "&frompath&" "&Easp.IIF(MOC=2,"",os&"到 "&toPath)&" )"
 				Easp.Error.Raise 63
 			End If
 		Else
 			FOFO = False
-			Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp_IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
+			Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp.IIF(MOC=2,"","源")&oi&"不存在( "&frompath&" )"
 			Easp.Error.Raise 63
 		End If
 		Err.Clear()
@@ -472,13 +458,13 @@ Class EasyAsp_Fso
 	'格式化文件大小
 	Private Function formatSize(Byval fileSize, ByVal level)
 		Dim s : s = Int(fileSize) : level = UCase(level)
-		formatSize = Easp_IIF(s/(1073741824)>0.01,FormatNumber(s/(1073741824),2,-1,0,-1),"0.01") & " GB"
+		formatSize = Easp.IIF(s/(1073741824)>0.01,FormatNumber(s/(1073741824),2,-1,0,-1),"0.01") & " GB"
 		If s = 0 Then formatSize = "0 GB"
 		If level = "G" Or (level="AUTO" And s>1073741824) Then Exit Function
-		formatSize = Easp_IIF(s/(1048576)>0.1,FormatNumber(s/(1048576),1,-1,0,-1),"0.1") & " MB"
+		formatSize = Easp.IIF(s/(1048576)>0.1,FormatNumber(s/(1048576),1,-1,0,-1),"0.1") & " MB"
 		If s = 0 Then formatSize = "0 MB"
 		If level = "M" Or (level="AUTO" And s>1048576) Then Exit Function
-		formatSize = Easp_IIF((s/1024)>1,Int(s/1024),1) & " KB"
+		formatSize = Easp.IIF((s/1024)>1,Int(s/1024),1) & " KB"
 		If s = 0 Then formatSize = "0 KB"
 		If Level = "K" Or (level="AUTO" And s>1024) Then Exit Function
 		If level = "B" or level = "AUTO" Then
