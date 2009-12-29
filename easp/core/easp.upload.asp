@@ -168,7 +168,7 @@ Class EasyAsp_upload
 					.Type = 2
 					.CharSet = s_charset
 					sFormValue = .ReadText
-					Form(sFormName)	= Easp_IIF(Form.Exists(sFormName),Form(sFormName)&", "&sFormValue,sFormValue)
+					Form(sFormName)	= Easp.IIF(Form.Exists(sFormName),Form(sFormName)&", "&sFormValue,sFormValue)
 					.Close
 				End With
 			End If
@@ -263,7 +263,7 @@ Class EasyAsp_upload
 			CheckOneFile = False : Exit Function
 		End If
 		If File(sItem).Size < 1 Then
-			Easp.Error.Msg = "上传文件不能为空("&Easp_IIF(Easp_isN(cp),sItem,cp)&")"
+			Easp.Error.Msg = "上传文件不能为空("&Easp.IIF(Easp.isN(cp),sItem,cp)&")"
 			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
@@ -282,10 +282,10 @@ Class EasyAsp_upload
 	End Function
 	
 	Private Function isAllowed(ByVal sExt)
-		If Easp_isN(s_allowed) Then
-			isAllowed = Easp_isN(s_denied) Or Not Easp_Test(sExt,"^("&s_denied&")$")
+		If Easp.isN(s_allowed) Then
+			isAllowed = Easp.isN(s_denied) Or Not Easp.Test(sExt,"^("&s_denied&")$")
 		Else
-			isAllowed = Easp_Test(sExt,"^("&s_allowed&")$")
+			isAllowed = Easp.Test(sExt,"^("&s_allowed&")$")
 		End If
 	End Function
 	

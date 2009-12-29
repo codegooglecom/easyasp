@@ -31,6 +31,7 @@ Class EasyAsp_Tpl
 		FilePath = s_path
 	End Property
 	Public Property Let FilePath(ByVal f)
+		If Right(f,1)<>"/" Then f = f & "/"
 		s_path = f
 	End Property
 	'加载模板方法一
@@ -85,7 +86,7 @@ Class EasyAsp_Tpl
 		o_tag.Add s, v
 	End Sub
 	'在已替换标签后添加新内容
-	Public Sub Append(s, v)
+	Public Sub Append(ByVal s, ByVal v)
 		Dim tmp
 		If o_tag.Exists(s) Then
 			tmp = o_tag.Item(s) & v
@@ -95,8 +96,36 @@ Class EasyAsp_Tpl
 			o_tag.Add s, v
 		End If
 	End Sub
+	'更新循环块数据
+	Public Sub [Update](ByVal b)
+		Dim Matches, Match, tmp, s, rule, data
+		s = BlockData(b)
+		rule = Chr(0) & "(\w+)" & Chr(0)
+		Set Matches = Easp.regMatch(s, rule)
+		Set Match = Matches
+		For Each Match In Matches
+			data = Match.SubMatches(0)
+			If o_blocktag.Exists(data) Then
+				s = Easp.regReplace(s, rule, o_blocktag.Item(data))
+				o_blocktag.Remove(data)
+			End If
+		Next
+		If o_blocktag.Exists(b) Then
+			tmp = o_blocktag.Item(b) & s
+			o_blocktag.Remove b
+			o_blocktag.Add b, tmp
+		Else
+			o_blocktag.Add b, s
+		End If
+		Set Matches = Easp.regMatch(s_html, Chr(0) & b & Chr(0))
+		Set Match = Matches
+		For Each Match In Matches
+			s = BlockTag(b)
+			s_html = Easp.regReplace(s_html, Chr(0) & b & Chr(0), s & Chr(0) & b & Chr(0))
+		Next
+	End Sub
 	'获取最终html
-	Public Function GetHtml
+	Public Function GetHtml()
 		Dim Matches, Match, n
 		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
 		For Each Match In Matches
@@ -124,36 +153,8 @@ Class EasyAsp_Tpl
 		GetHtml = s_html
 	End Function
 	'输出模板内容
-	Public Sub Show
+	Public Sub Show()
 		Easp.W GetHtml
-	End Sub
-	'更新循环块数据
-	Public Sub [Update](b)
-		Dim Matches, Match, tmp, s, rule, data
-		s = BlockData(b)
-		rule = Chr(0) & "(\w+)" & Chr(0)
-		Set Matches = Easp.regMatch(s, rule)
-		Set Match = Matches
-		For Each Match In Matches
-			data = Match.SubMatches(0)
-			If o_blocktag.Exists(data) Then
-				s = Easp.regReplace(s, rule, o_blocktag.Item(data))
-				o_blocktag.Remove(data)
-			End If
-		Next
-		If o_blocktag.Exists(b) Then
-			tmp = o_blocktag.Item(b) & s
-			o_blocktag.Remove b
-			o_blocktag.Add b, tmp
-		Else
-			o_blocktag.Add b, s
-		End If
-		Set Matches = Easp.regMatch(s_html, Chr(0) & b & Chr(0))
-		Set Match = Matches
-		For Each Match In Matches
-			s = BlockTag(b)
-			s_html = Easp.regReplace(s_html, Chr(0) & b & Chr(0), s & Chr(0) & b & Chr(0))
-		Next
 	End Sub
 	'生成html标签
 	Public Function MakeTag(ByVal t, ByVal f)
@@ -257,7 +258,7 @@ Class EasyAsp_Tpl
 		Next
 	End Sub
 	'取循环块原始模板数据
-	Private Function BlockData(b)
+	Private Function BlockData(ByVal b)
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
 			tmp = o_blockdata.Item(b)
@@ -268,7 +269,7 @@ Class EasyAsp_Tpl
 		End If
 	End Function
 	'取循环块临时数据
-	Private Function BlockTag(b)
+	Private Function BlockTag(ByVal b)
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
 			tmp = o_blocktag.Item(b)
@@ -280,7 +281,7 @@ Class EasyAsp_Tpl
 		End If
 	End Function
 	'更新循环块标签
-	Private Function UpdateBlockTag(s)
+	Private Function UpdateBlockTag(ByVal s)
 		Dim Matches, Match, data, rule
 		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)
 		For Each Match In Matches
