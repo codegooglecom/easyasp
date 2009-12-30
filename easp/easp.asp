@@ -1,44 +1,17 @@
 <%
-Option Explicit
+'Option Explicit
 '######################################################################
 '## easp.asp
 '## -------------------------------------------------------------------
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/15 15:51
+'## Update Date :   2009/12/30 11:24
 '## Description :   EasyAsp Class
 '##
-'## Update Info	:
-'    1. 修改Easp.CutString为Easp.CutStr，Easp.GetCookie为Easp.Cookie；
-'    2. 增加Easp.Str和Easp.WStr输出字符串；
-'    3. 增加Easp.JsCode方法，返回生成的javascript代码字符串；
-'    4. 增加Easp.Rewrite和Easp.RewriteRule方法，用于伪Rewrite的实现；
-'    5. 增加Easp.Get和Easp.Post方法，可全面取代Easp.R系列函数，更加安全；
-'    6. 增加Easp.Use方法，用于引用Easp的官方类库，如Easp.Aes、Easp.Fso、
-'       Easp.Upload等，此方法为动态加载，可多次调用但只引用一次文件；
-'    7. 增加Easp.MD5和Easp.MD5_16方法，用于Md5加密，此方法为动态加载文件；
-'    8. 增加Easp.CLeft和Easp.CRight方法，用于取特殊字符隔开的左右字符串；
-'    9. 修改Easp.IfThen方法，现在只有两个参数，用于条件为真的赋值；
-'   10. 增加Easp.Ext方法，用于动态载入和使用Easp的插件；
-'   11. 优化Easp.isN方法，增加了判断Recordset和Dictionary是否为空；
-'   12. 增加Easp.Has方法，用于判断对象是否不为空，与Easp.isN刚好相反；
-'   13. 增加Easp.Aes类，用于对中英文字符串的AES算法加密，可使用中文密码(钥)；
-'   14. 优化Easp.Cookie/SetCookie，可对cookie按AES算法加密，防伪造；
-'       同时方法参数有所变化，原来的分隔符:更改为>，且支持Easp.Get的参数方式；
-'   15. 新增Easp.Fso类，用于FSO文件操作，功能非常全面和易于使用；
-'   16. 优化Easp.GetUrlWith方法，可以将参数带到其它页面；
-'   17. 优化Easp.CheckForm方法，rule规则如果以:开头，并用||隔开，则可以验
-'       证多个表示"或"关系的规则项，符合其中任意一个规则则验证通过；
-'   18. 优化Easp.JsEncode方法，会对双字节字符进行编码，更加严谨且无乱码问题；
-'   19. 新增Easp.ReplacePart方法，用于替换符合某个正则的字符串中的某一编组；
-'   20. 新增Easp.ReplaceUrl方法，用于替换url参数中的某一参数值并返回字符串；
-'   21. 新增Easp.Error类，用于异常(Exception)的处理和错误信息的抛出；
-'   22. 修改Easp.db.dbConn属性为Easp.db.Conn；
-'   23. 新增Easp.tpl类，用于模板处理，功能强大，支持无限级模板嵌套和嵌套循环；
-'   24. 新增Easp.upload类，用于上传文件，支持多文件上传，暂时不支持进度条；
 '######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
+Dim Easp_DbQueryTimes : Easp_DbQueryTimes = 0
 Dim Easp : Set Easp = New EasyASP : Easp.Init()
 Dim EasyAsp_s_html
 %>
@@ -117,19 +90,24 @@ Class EasyAsp
 	Public Property Get CookieEncode()
 		CookieEncode = b_cooen
 	End Property
-	Public Property Get [Debug]
-		[Debug] = b_debug
-	End Property
 	Public Property Let [Debug](ByVal b)
 		b_debug = b
 		[error].debug = b
+	End Property
+	Public Property Get [Debug]
+		[Debug] = b_debug
+	End Property
+	Public Property Get DbQueryTimes
+		DbQueryTimes = Easp_DbQueryTimes
+	End Property
+	Public Property Get ScriptTime
+		ScriptTime = toNumber(GetScriptTime(0)/1000,3)
 	End Property
 
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
-		Set tpl = New EasyAsp_tpl
 	End Sub
 
 	Private Function rqsv(ByVal s)
@@ -1240,4 +1218,3 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
-<!--#include file="core/easp.tpl.asp"-->

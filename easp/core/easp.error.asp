@@ -3,7 +3,7 @@
 '## easp.error.asp
 '## -------------------------------------------------------------------
 '## Feature     :   EasyAsp Exception Class
-'## Version     :   v2.2
+'## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2009/12/15 15:48
 '## Description :   EasyAsp“Ï≥£¥¶¿Ì

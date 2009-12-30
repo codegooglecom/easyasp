@@ -1,4 +1,14 @@
 <%
+'######################################################################
+'## easp.md5.asp
+'## -------------------------------------------------------------------
+'## Feature     :   MD5 Encryption
+'## Version     :   v2.2 Alpha
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/30 11:55
+'## Description :   EasyAspµÄMd5¼ÓÃÜÀà
+'##
+'######################################################################
 Private Const BITS_TO_A_BYTE = 8
 Private Const BYTES_TO_A_WORD = 4
 Private Const BITS_TO_A_WORD = 32
