@@ -1,4 +1,14 @@
 <%
+'######################################################################
+'## easp.upload.asp
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp Upload Class
+'## Version     :   v2.2 Alpha
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/30 11:57
+'## Description :   EasyAsp无组件上传类
+'##
+'######################################################################
 Class EasyAsp_upload
 	Public  File, Form
 	Private o_strm

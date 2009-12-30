@@ -1,4 +1,14 @@
 <%
+'######################################################################
+'## easp.tpl.asp
+'## -------------------------------------------------------------------
+'## Feature     :   EasyAsp Templates Class
+'## Version     :   v2.2 Alpha
+'## Author      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/30 11:56
+'## Description :   EasyAspÄ£°åÀà
+'##
+'######################################################################
 Class EasyAsp_Tpl	
 	Private s_html, s_unknown, s_dict, s_path, s_m, s_ms, s_me
 	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks

@@ -1,8 +1,15 @@
 <% 
-'AES Encryption With ASP
-'Author£ºRoderick Divilbiss
-'Update£ºColdstone @ 2009/12/3 21:49
-'EasyAsp: http://easp.ambox.cn
+'######################################################################
+'## easp.aes.asp
+'## -------------------------------------------------------------------
+'## Feature     :   AES Encryption
+'## Version     :   v2.2 alpha
+'## Author      :   Roderick Divilbiss
+'## Update      :   Coldstone(coldstone[at]qq.com)
+'## Update Date :   2009/12/30 11:24
+'## Description :   EasyAspµÄAES¼ÓÃÜÀà
+'##
+'######################################################################
 Class EasyAsp_AES
 	Private m_lOnBits(30)
 	Private m_l2Power(30)

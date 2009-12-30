@@ -10,8 +10,10 @@
 ''FSO组件名称:
 'Easp.FsoName = "Scripting.FileSystemObject"
 ''文件编码:
-'Easp.CharSet = "GB2312"
+'Easp.CharSet = "GBK"
 ''配置数据库连接:
+''Access:
 'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","")
-'Easp.db.Conn = Easp.db.OpenConn(0,"EduFile","jpzxoa:jpzx_SQL_1860@192.168.133.2")
+''MS SQL Server:
+'Easp.db.Conn = Easp.db.OpenConn(0,"Data","sa:admin@127.0.0.1")
 %>

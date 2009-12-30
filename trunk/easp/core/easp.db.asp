@@ -2,10 +2,10 @@
 '######################################################################
 '## easp.db.asp
 '## -------------------------------------------------------------------
-'## Feature     :   EasyAsp Database Control
-'## Version     :   v2.2
+'## Feature     :   Database Control
+'## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/15 15:48
+'## Update Date :   2009/12/30 11:52
 '## Description :   EasyAsp数据库操作类
 '##
 '######################################################################
@@ -258,6 +258,7 @@ Class EasyAsp_db
 			End With
 			Set GetRecordBySQL = rs
 		End If
+		Easp_DbQueryTimes = Easp_DbQueryTimes + 1
 		If Err.number <> 0 Then
 			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 11
