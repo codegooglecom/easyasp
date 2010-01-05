@@ -505,10 +505,12 @@ Class EasyAsp
 	Function CutStr(ByVal s, ByVal strlen)
 		Dim l,t,i,j,d,f,n
 		s = Replace(s,vbCrLf,"")
+		s = Replace(s,vbTab,"")
 		l = len(s) : t = 0 : d = "¡­" : f = Easp_Param(strlen)
-		If Has(f(1)) Then
-			strlen = Int(f(0)) : d = f(1) : f = ""
+		If Instr(strlen,":")>0 Then
+			d = IIF(Has(f(1)),f(1),"")
 		End If
+		strlen = Int(f(0)) : f = ""
 		For j = 1 To Len(d)
 			n = IIF(Abs(Ascw(Mid(d,j,1)))>255, n+2, n+1)
 		Next
@@ -658,8 +660,8 @@ Class EasyAsp
 			s = Replace(s, "&lt;", "<")
 			s = Replace(s, "&amp;", Chr(38))
 			s = Replace(s, "&#38;", Chr(38))
-			HtmlDecode = s
 		End If
+		HtmlDecode = s
 	End Function
 	'¹ýÂËHTML±êÇ©
 	Function HtmlFilter(ByVal s)
