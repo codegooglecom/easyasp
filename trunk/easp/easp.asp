@@ -208,6 +208,7 @@ Class EasyAsp
 	End Sub
 	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
+		If isN(s) Then JsEncode = "" : Exit Function
 		Dim i, j, aL1, aL2, c, p, t
 		aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
 		aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
@@ -235,8 +236,8 @@ Class EasyAsp
 	End Function
 	'特殊字符编码
 	Function Escape(ByVal ss)
-		Dim i,c,a,s : s = ""
 		If isN(ss) Then Escape = "" : Exit Function
+		Dim i,c,a,s : s = ""
 		For i = 1 To Len(ss)
 			c = Mid(ss,i,1)
 			a = ASCW(c)
@@ -256,6 +257,7 @@ Class EasyAsp
 	End Function
 	'特殊字符解码
 	Function UnEscape(ByVal ss)
+		If isN(ss) Then UnEscape = "" : Exit Function
 		Dim x, s
 		x = InStr(ss,"%")
 		s = ""
@@ -842,18 +844,18 @@ Class EasyAsp
 		End If
 	End Sub
 	'设置缓存记录
-	Sub SetApp(AppName,AppData)
+	Sub SetApp(ByVal AppName,ByVal AppData)
 		Application.Lock
 		Application.Contents.Item(AppName) = AppData
 		Application.UnLock
 	End Sub
 	'获取一个缓存记录
-	Function GetApp(AppName)
+	Function GetApp(ByVal AppName)
 		If IsN(AppName) Then GetApp = "" : Exit Function
 		GetApp = Application.Contents.Item(AppName)
 	End Function
 	'删除一个缓存记录
-	Sub RemoveApp(AppName)
+	Sub RemoveApp(ByVal AppName)
 		Application.Lock
 		Application.Contents.Remove(AppName)
 		Application.UnLock
