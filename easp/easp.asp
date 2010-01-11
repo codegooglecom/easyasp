@@ -451,7 +451,7 @@ Class EasyAsp
 		If Instr(t,":")>0 Then
 			d = CRight(t,":") : t = CLeft(t,":")
 		End If
-		If Instr(",sa,da,na,", "," & Left(LCase(t),2) & ",")>0 Then
+		If Instr(",sa,da,na,se,de,ne,", "," & Left(LCase(t),2) & ",")>0 Then
 			'如果有分隔符且要警告
 			If Len(t)>2 Then
 				spl = Mid(t,3) : t = LCase(Left(t,2)) : l = True
@@ -470,22 +470,26 @@ Class EasyAsp
 		For i = 0 To Ubound(li)
 			If i<>0 Then tmp = tmp & spl
 			Select Case t
-				Case "s","sa"
+				Case "s","sa","se"
 				'字符串类型
 					If isN(li(i)) Then li(i) = d
 					tmp = tmp & Replace(li(i),"'","''")
 					If l Then arr(i) = Replace(li(i),"'","''")
-				Case "d","da"
+				Case "d","da","de"
 				'日期类型
 					If t = "da" Then
 						If Not isDate(li(i)) And Has(li(i)) Then Alert("不正确的日期值！")
+					ElseIf t = "de" Then
+						If Not isDate(li(i)) And Has(li(i)) Then [error].Throw("不正确的日期值！")
 					End If
 					tmp = IIF(isDate(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isDate(li(i)), li(i), d)
-				Case "n","na"
+				Case "n","na","ne"
 				'数字类型
 					If t = "na" Then
 						If Not isNumeric(li(i)) And Has(li(i)) Then Alert("不正确的数值！")
+					ElseIf t = "ne" Then
+						If Not isNumeric(li(i)) And Has(li(i)) Then [error].Throw("不正确的数值！")
 					End If
 					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
