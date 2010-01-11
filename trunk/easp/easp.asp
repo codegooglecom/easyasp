@@ -19,7 +19,7 @@ Dim EasyAsp_s_html
 <%
 Class EasyAsp
 	Public db,fso,upload,tpl,aes,[error]
-	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq
+	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
 	Private s_url, s_rwtS, s_rwtU
 	Private o_md5, o_rwt, o_ext, o_regex
 	Private b_cooen, i_rule, b_debug
@@ -29,6 +29,7 @@ Class EasyAsp
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "GBK"
+		s_bom		= "keep"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		b_cooen		= True
@@ -83,6 +84,12 @@ Class EasyAsp
 	End Property
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
+	End Property
+	Public Property Let UTF8BOM(ByVal s)
+		s_bom = Lcase(s)
+	End Property
+	Public Property Get UTF8BOM()
+		UTF8BOM = s_bom
 	End Property
 	Public Property Let CookieEncode(ByVal b)
 		b_cooen = b
@@ -1022,6 +1029,18 @@ Class EasyAsp
 				.Close
 			End With
 			Set o_strm = Nothing
+			If s_charset = "UTF-8" Then
+				Select Case s_bom
+					Case "keep"
+						'Do Nothing
+					Case "remove"
+						tmpStr = RegReplace(tmpStr, "^\xef\xbb\xbf", "")
+					Case "add"
+						If Not Test(tmpStr, "^\xef\xbb\xbf") Then
+							tmpStr = Chr(&hef) & Chr(&hbb) & Chr(&hbf) & tmpStr
+						End If
+				End Select
+			End If
 		Else
 			tmpStr = "ÎÄ¼þÎ´ÕÒµ½:" & filePath
 		End If
