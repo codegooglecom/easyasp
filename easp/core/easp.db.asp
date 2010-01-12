@@ -583,7 +583,7 @@ Class EasyAsp_db
 	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal s)
 		On Error Resume Next
-		If Lcase(Left(str,6)) = "select" Then
+		If Lcase(Left(s,6)) = "select" Then
 			Dim i : i = i_queryType
 			i_queryType = 1
 			Set Exec = GRS(s)
