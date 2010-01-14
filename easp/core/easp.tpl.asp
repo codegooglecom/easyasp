@@ -93,7 +93,7 @@ Class EasyAsp_Tpl
 	'替换标签(默认方法)
 	Public Default Sub Tag(ByVal s, ByVal v)
 		If o_tag.Exists(s) Then o_tag.Remove s
-		o_tag.Add s, v
+		o_tag.Add s, Cstr(v)
 	End Sub
 	'在已替换标签后添加新内容
 	Public Sub Append(ByVal s, ByVal v)
@@ -101,9 +101,9 @@ Class EasyAsp_Tpl
 		If o_tag.Exists(s) Then
 			tmp = o_tag.Item(s) & v
 			o_tag.Remove s
-			o_tag.Add s, tmp
+			o_tag.Add s, Cstr(tmp)
 		Else
-			o_tag.Add s, v
+			o_tag.Add s, Cstr(v)
 		End If
 	End Sub
 	'更新循环块数据
@@ -123,9 +123,9 @@ Class EasyAsp_Tpl
 		If o_blocktag.Exists(b) Then
 			tmp = o_blocktag.Item(b) & s
 			o_blocktag.Remove b
-			o_blocktag.Add b, tmp
+			o_blocktag.Add b, Cstr(tmp)
 		Else
-			o_blocktag.Add b, s
+			o_blocktag.Add b, Cstr(s)
 		End If
 		Set Matches = Easp.regMatch(s_html, Chr(0) & b & Chr(0))
 		Set Match = Matches
@@ -262,8 +262,8 @@ Class EasyAsp_Tpl
 				o_blockdata.Remove(b)
 				o_block.Remove(b)
 			End If
-			o_blockdata.Add b, data
-			o_block.Add b, b
+			o_blockdata.Add b, Cstr(data)
+			o_block.Add b, Cstr(b)
 			s_html = Easp.regReplace(s_html, rule, Chr(0) & b & Chr(0))
 		Next
 	End Sub
