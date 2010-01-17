@@ -25,7 +25,7 @@ Class EasyAsp
 	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
-		s_plugin	= "/easp/plugin/"
+		s_plugin	= s_path & "plugin/"
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "GBK"
@@ -60,15 +60,14 @@ Class EasyAsp
 		Set o_regex = Nothing
 	End Sub
 	Public Property Let basePath(ByVal p)
-		p = IIF(Left(p,1)= "/", p, "/" & p)
-		p = IIF(Right(p,1)="/", p, p & "/")
-		s_path = p
+		s_path = FixAbsPath(p)
+		s_plugin = s_path & "plugin/"
 	End Property
 	Public Property Get basePath()
 		basePath = s_path
 	End Property
 	Public Property Let pluginPath(ByVal p)
-		s_plugin = p
+		s_plugin = FixAbsPath(p)
 	End Property
 	Public Property Get pluginPath()
 		pluginPath = s_plugin
@@ -116,6 +115,12 @@ Class EasyAsp
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
 	End Sub
+
+	Private Function FixAbsPath(ByVal p)
+		p = IIF(Left(p,1)= "/", p, "/" & p)
+		p = IIF(Right(p,1)="/", p, p & "/")
+		FixAbsPath = p
+	End Function
 
 	Private Function rqsv(ByVal s)
 		rqsv = Request.ServerVariables(s)
@@ -367,6 +372,7 @@ Class EasyAsp
 		Dim rp,arr,i,rs,ru
 		If Left(s,1) = "^" Then s = Mid(s,2)
 		If Right(s,1) = "$" Then s = Left(s,Len(s)-1)
+		If IsN(p) Then p = GetUrl(0)
 		arr = Split(p,"|")
 		For i = 0 To Ubound(arr)
 			rp = RegEncode(arr(i))
