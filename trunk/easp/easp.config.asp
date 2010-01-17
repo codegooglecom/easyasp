@@ -11,8 +11,8 @@
 'Easp.FsoName = "Scripting.FileSystemObject"
 ''文件编码:
 'Easp.CharSet = "GBK"
-''UTF-8文件的BOM处理方式：
-'Easp.UTF8BOM = "keep"
+''UTF-8文件的BOM处理方式，仅当Easp.CharSet为UTF-8时生效：
+'Easp.FileBOM = "remove"
 ''配置数据库连接:
 ''Access:
 'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","")

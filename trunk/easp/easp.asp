@@ -6,7 +6,7 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/17 8:50
+'## Update Date :   2010/1/17 13:47
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -522,8 +522,10 @@ Class EasyAsp
 		If Instr(strlen,":")>0 Then
 			d = IIF(Has(f(1)),f(1),"")
 		End If
-		strlen = Int(f(0)) : f = ""
-		n = IIF(Abs(Ascw(d))>255,2,1)
+		strlen = Int(f(0)) : f = "" : n = 0
+		For j = 1 To Len(d)
+			n = IIF(Abs(Ascw(Mid(d,j,1)))>255, n+2, n+1)
+		Next
 		strlen = strlen - n
 		For i = 1 to l
 			t = IIF(Abs(Ascw(Mid(s,i,1)))>255, t+2, t+1)
