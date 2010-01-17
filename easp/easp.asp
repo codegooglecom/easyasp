@@ -6,7 +6,7 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/30 11:24
+'## Update Date :   2010/1/17 8:50
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -29,7 +29,7 @@ Class EasyAsp
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "GBK"
-		s_bom		= "keep"
+		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
 		b_cooen		= True
@@ -85,11 +85,11 @@ Class EasyAsp
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
 	End Property
-	Public Property Let UTF8BOM(ByVal s)
+	Public Property Let FileBOM(ByVal s)
 		s_bom = Lcase(s)
 	End Property
-	Public Property Get UTF8BOM()
-		UTF8BOM = s_bom
+	Public Property Get FileBOM()
+		FileBOM = s_bom
 	End Property
 	Public Property Let CookieEncode(ByVal b)
 		b_cooen = b
@@ -369,12 +369,10 @@ Class EasyAsp
 		If Right(s,1) = "$" Then s = Left(s,Len(s)-1)
 		arr = Split(p,"|")
 		For i = 0 To Ubound(arr)
-			If Left(arr(i),1) <> "/" Then Exit For
-			rp = Replace(arr(i),".","\.")
+			rp = RegEncode(arr(i))
 			rs = "^" & rp & "\?" & s & "$"
 			ru = arr(i) & "?" & u
-			o_rwt.Add ("rule" & i_rule), Array(rs,ru)
-			i_rule = i_rule + 1
+			RewriteRule rs, ru
 			rp = ""
 		Next
 	End Sub
@@ -382,6 +380,7 @@ Class EasyAsp
 	Function isRewrite()
 		Dim rule,i
 		isRewrite = False
+		If i_rule = 1 Then Exit Function
 		If Has(o_rwt) Then
 			s_url = GetUrl(1)
 			For Each i In o_rwt
@@ -512,21 +511,19 @@ Class EasyAsp
 		End If
 	end Function
 	Sub CheckDataFromA()
-		If Not CheckDataFrom Then alert "禁止从站点外部提交数据！"
+		If Not CheckDataFrom Then Alert "禁止从站点外部提交数据！"
 	end Sub
 	'截取长字符串左边部分并以特殊符号代替
 	Function CutStr(ByVal s, ByVal strlen)
 		Dim l,t,i,j,d,f,n
 		s = Replace(s,vbCrLf,"")
 		s = Replace(s,vbTab,"")
-		l = len(s) : t = 0 : d = "…" : f = Easp_Param(strlen)
+		l = len(s) : t = 0 : d = Chr(-24147) : f = Easp_Param(strlen)
 		If Instr(strlen,":")>0 Then
 			d = IIF(Has(f(1)),f(1),"")
 		End If
 		strlen = Int(f(0)) : f = ""
-		For j = 1 To Len(d)
-			n = IIF(Abs(Ascw(Mid(d,j,1)))>255, n+2, n+1)
-		Next
+		n = IIF(Abs(Ascw(d))>255,2,1)
 		strlen = strlen - n
 		For i = 1 to l
 			t = IIF(Abs(Ascw(Mid(s,i,1)))>255, t+2, t+1)
@@ -961,6 +958,15 @@ Class EasyAsp
 		Set regMatch = o_regex.Execute(s)
 		o_regex.Pattern = ""
 	End Function
+	'正则表达式特殊字符转义
+	Function RegEncode(ByVal s)
+		Dim re,i
+		re = Split("\,$,(,),*,+,.,[,?,^,{,|",",")
+		For i = 0 To Ubound(re)
+			s = Replace(s,re(i),"\"&re(i))
+		Next
+		RegEncode = s
+	End Function
 	'替换正则编组
 	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
 		If Not Easp_Test(txt, rule) Then
@@ -1038,10 +1044,12 @@ Class EasyAsp
 					Case "keep"
 						'Do Nothing
 					Case "remove"
-						tmpStr = RegReplace(tmpStr, "^\xef\xbb\xbf", "")
+						If Test(tmpStr, "^\uFEFF") Then
+							tmpStr = RegReplace(tmpStr, "^\uFEFF", "")
+						End If
 					Case "add"
-						If Not Test(tmpStr, "^\xef\xbb\xbf") Then
-							tmpStr = Chr(&hef) & Chr(&hbb) & Chr(&hbf) & tmpStr
+						If Not Test(tmpStr, "^\uFEFF") Then
+							tmpStr = Chrw(&hFEFF) & tmpStr
 						End If
 				End Select
 			End If
@@ -1110,10 +1118,10 @@ Class EasyAsp
 		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
 		If LCase(o) = "md5" Then o = "o_md5"
-		t = Eval("LCase(TypeName("&o&"))")
+		t = Eval("LCase(TypeName(" & o & "))")
 		If t = "easyasp_obj" Then
 			Include s_path & "core/" & p
-			Execute("Set "&o&" = New EasyAsp_"&f)
+			Execute("Set " & o & " = New EasyAsp_" & f)
 		End If
 	End Sub
 	'加载插件
@@ -1186,7 +1194,7 @@ Class EasyAsp
 						Else
 							s = "<h3>[Dictionary]</h3>"
 							For Each i In o
-								s = s & "<b>" & i & "</b>" & ": " & htmlEncode(o(i)) & "<br />"
+								s = s & "<b>" & i & "</b>" & ": " & htmlEncode(Cstr(o.item(i))) & "<br />"
 							Next
 						End If
 				End Select
@@ -1224,7 +1232,7 @@ Class EasyAsp
 			If t = 0 Then
 				Easp_LR = Left(s,n-1)
 			ElseIf t = 1 Then
-				Easp_LR = Mid(s,n+1)
+				Easp_LR = Mid(s,n+Len(m))
 			End If
 		Else
 			Easp_LR = s
