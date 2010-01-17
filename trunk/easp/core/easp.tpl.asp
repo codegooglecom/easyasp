@@ -196,18 +196,9 @@ Class EasyAsp_Tpl
 	End Function
 	'获取Tag标识
 	Private Sub getMaskSE(ByVal m)
-		s_ms = FixRegStr(Easp.CLeft(m,"*"))
-		s_me = FixRegStr(Easp.CRight(m,"*"))
+		s_ms = Easp.RegEncode(Easp.CLeft(m,"*"))
+		s_me = Easp.RegEncode(Easp.CRight(m,"*"))
 	End Sub
-	'正则表达式特殊字符转义
-	Private Function FixRegStr(ByVal s)
-		Dim re,i
-		re = Split("$,(,),*,+,.,[,?,\,^,{,|",",")
-		For i = 0 To Ubound(re)
-			s = Replace(s,re(i),"\"&re(i))
-		Next
-		FixRegStr = s
-	End Function
 	'载入模板文件并将无限级include模板载入
 	Private Function LoadInc(ByVal f, ByVal p)
 		Dim h,pa,rule,inc,Match,incFile,incStr

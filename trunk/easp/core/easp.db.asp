@@ -5,7 +5,7 @@
 '## Feature     :   Database Control
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/30 11:52
+'## Update Date :   2010/1/15 0:08
 '## Description :   EasyAsp数据库操作类
 '##
 '######################################################################
