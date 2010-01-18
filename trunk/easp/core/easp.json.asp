@@ -26,14 +26,6 @@ Class EasyAsp_JSON
 	Private Sub Class_Terminate
 		Set Collection = Nothing
 	End Sub
-	'JSON Kind
-'	Public Property Let Kind(k)
-'		Select Case LCase(k)
-'			Case "0", "object" iKind = 0
-'			Case "1", "array"  iKind = 1
-'		End Select
-'	End Property
-
 	' counter
 	Private Property Get Counter 
 		Counter = Count
