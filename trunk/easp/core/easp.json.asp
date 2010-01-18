@@ -11,11 +11,7 @@
 '##
 '######################################################################
 Class EasyAsp_JSON
-	Public Collection
-	Public Count
-	Public QuotedVars
-	Public Kind  ' 0 = object, 1 = array
-
+	Public Collection, Count, QuotedVars, Kind  ' 0 = object, 1 = array
 	Private Sub Class_Initialize
 		Set Collection = CreateObject("Scripting.Dictionary")
 		QuotedVars = False
@@ -26,14 +22,20 @@ Class EasyAsp_JSON
 	Private Sub Class_Terminate
 		Set Collection = Nothing
 	End Sub
-	' counter
+
+	Public Function [New](ByVal k)
+		Set [New] = New EasyASP_JSON
+		Select Case LCase(k)
+			Case "0", "object" [New].Kind = 0
+			Case "1", "array"  [New].Kind = 1
+		End Select
+	End Function
+
 	Private Property Get Counter 
 		Counter = Count
 		Count = Count + 1
 	End Property
 
-	' - data maluplation
-	' -- pair
 	Public Property Let Pair(p, v)
 		If IsNull(p) Then p = Counter
 		Collection(p) = v
@@ -42,7 +44,7 @@ Class EasyAsp_JSON
 	Public Property Set Pair(p, v)
 		If IsNull(p) Then p = Counter
 		If TypeName(v) <> "EasyAsp_JSON" Then
-			Easp.Error.Msg = "( Now Type: " & TypeName(v) & " )"
+			Easp.Error.Msg = "( " & v & " is '" & TypeName(v) & "' )"
 			Easp.Error.Raise 10
 		End If
 		Set Collection(p) = v
@@ -57,14 +59,6 @@ Class EasyAsp_JSON
 		End If
 	End Property
 
-	Public Function [New](ByVal k)
-		Set [New] = New EasyASP_JSON
-		Select Case LCase(k)
-			Case "0", "object" [New].Kind = 0
-			Case "1", "array"  [New].Kind = 1
-		End Select
-	End Function
-	' -- pair
 	Public Sub Clean
 		Collection.RemoveAll
 	End Sub
@@ -72,16 +66,12 @@ Class EasyAsp_JSON
 	Public Sub Remove(vProp)
 		Collection.Remove vProp
 	End Sub
-	' data maluplation
 
-	' converting
 	Public Function toJSON(vPair)
 		Select Case VarType(vPair)
 			Case 1	' Null
 				toJSON = "null"
 			Case 7	' Date
-				' yaz saati problemi var
-				' jsValue = "new Date(" & Round((vVal - #01/01/1970 02:00#) * 86400000) & ")"
 				toJSON = "'" & CStr(vPair) & "'"
 			Case 8	' String
 				toJSON = "'" & Easp.JSEncode(vPair) & "'"
@@ -91,20 +81,15 @@ Class EasyAsp_JSON
 				If vPair.Kind Then toJSON = toJSON & "[" Else toJSON = toJSON & "{"
 				For Each i In vPair.Collection
 					If bFI Then bFI = False Else toJSON = toJSON & ","
-
 					If vPair.Kind Then 
 						toJSON = toJSON & toJSON(vPair(i))
 					Else
-						If QuotedVars Then
-							toJSON = toJSON & "'" & i & "':" & toJSON(vPair(i))
-						Else
-							toJSON = toJSON & i & ":" & toJSON(vPair(i))
-						End If
+						toJSON = toJSON & Easp.IIF(QuotedVars, "'" & i & "'", i) & ":" & toJSON(vPair(i))
 					End If
 				Next
 				If vPair.Kind Then toJSON = toJSON & "]" Else toJSON = toJSON & "}"
 			Case 11
-				If vPair Then toJSON = "true" Else toJSON = "false"
+				toJSON = Easp.IIF(vPair, "true", "false")
 			Case 12, 8192, 8204
 				toJSON = RenderArray(vPair, 1, "")
 			Case Else
@@ -115,19 +100,15 @@ Class EasyAsp_JSON
 	Function RenderArray(arr, depth, parent)
 		Dim first : first = LBound(arr, depth)
 		Dim last : last = UBound(arr, depth)
-
 		Dim index, rendered
 		Dim limiter : limiter = ","
-
 		RenderArray = "["
 		For index = first To last
 			If index = last Then
 				limiter = ""
 			End If 
-
 			On Error Resume Next
 			rendered = RenderArray(arr, depth + 1, parent & index & "," )
-
 			If Err = 9 Then
 				On Error GoTo 0
 				RenderArray = RenderArray & toJSON(Eval("arr(" & parent & index & ")")) & limiter
