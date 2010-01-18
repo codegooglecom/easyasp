@@ -271,36 +271,32 @@ Class EasyAsp_db
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
 		On Error Resume Next
-		Dim tmpStr, rs, fi, i, j, o, isE,tName,tValue : i = 0
-		isE = False
+		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue
 		o = Easp_Param(jName)
-		If Not Easp.isN(o(1)) Then
-			jName = o(0)
-			isE = True
+		If Easp.Has(o(1)) Then
+			jName = o(0) : totalName = o(1)
 		End If
-		Set rs = jRs
-		tmpStr = "{ """&jName&""" : ["
-		rs.MoveFirst()
-		If Not rs.bof And Not rs.eof Then
+		Set rs = jRs.Clone
+		Easp.Use "JSON"
+		Set o = Easp.Json.New(0)
+		total = 0
+		If Easp.Has(rs) Then
+			total = rs.RecordCount
+			If Easp.Has(totalName) Then o(totalName) = total
+			Set o(jName) = Easp.Json.New(1)
 			While Not rs.Eof
-				j = 0 : If i<>0 Then tmpStr = tmpStr & ", "
-				tmpStr = tmpStr & "{"
+				Set o(jName)(Null) = Easp.Json.New(0)
 				For Each fi In rs.Fields
-					If j<>0 Then tmpStr = tmpStr & ", "
-					tName = fi.Name : tValue = fi.Value
-					If isE Then
-						tmpStr = tmpStr & """" & Easp.Escape(tName) & """:""" & Easp.Escape(Easp.jsEncode(tValue)) & """"
-					Else
-						tmpStr = tmpStr & """" & tName & """:""" & Easp.jsEncode(tValue) & """"
-					End If
-					j = j + 1
+					o(jName)(Null)(fi.Name) = fi.Value
 				Next
-				tmpStr = tmpStr & "}"
-				i = i + 1 : rs.MoveNext()
+				rs.MoveNext
 			Wend
 		End If
-		tmpStr = tmpStr & "]}"
 		If Err.number <> 0 Then Easp.Error.Raise 15
+		tmpStr = o.JsString
+		Set o(jName)(Null) = Nothing
+		Set o(jName) = Nothing
+		Set o = Nothing
 		rs.Close() : Set rs = Nothing
 		Json = tmpStr
 	End Function
