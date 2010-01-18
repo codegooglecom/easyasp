@@ -99,7 +99,7 @@ Class EasyAsp_Tpl
 	Public Sub Append(ByVal s, ByVal v)
 		Dim tmp
 		If o_tag.Exists(s) Then
-			tmp = o_tag.Item(s) & v
+			tmp = o_tag.Item(s) & Cstr(v)
 			o_tag.Remove s
 			o_tag.Add s, Cstr(tmp)
 		Else

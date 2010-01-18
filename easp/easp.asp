@@ -510,9 +510,10 @@ Class EasyAsp
 	Function CheckDataFrom()
 		Dim v1, v2
 		CheckDataFrom = False
-		v1 = Cstr(rqsv("HTTP_REFERER"))
-		v2 = Cstr(rqsv("SERVER_NAME"))
-		If Mid(v1,8,Len(v2)) = v2 Then
+		v1 = Lcase(Cstr(rqsv("HTTP_REFERER")))
+		v2 = Lcase(Cstr(rqsv("SERVER_NAME")))
+		v1 = Mid(v1,Instr(v1,"://")+3,len(v2))
+		If v1 = v2 Then
 			CheckDataFrom = True
 		End If
 	end Function
