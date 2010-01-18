@@ -525,7 +525,7 @@ Class EasyAsp
 		Dim l,t,i,j,d,f,n
 		s = Replace(s,vbCrLf,"")
 		s = Replace(s,vbTab,"")
-		l = len(s) : t = 0 : d = Chr(-24147) : f = Easp_Param(strlen)
+		l = len(s) : t = 0 : d = ChrW(8230) : f = Easp_Param(strlen)
 		If Instr(strlen,":")>0 Then
 			d = IIF(Has(f(1)),f(1),"")
 		End If
