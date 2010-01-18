@@ -18,7 +18,7 @@ Dim EasyAsp_s_html
 <!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl,aes,[error]
+	Public db,fso,upload,tpl,aes,[error],json
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
 	Private s_url, s_rwtS, s_rwtU
 	Private o_md5, o_rwt, o_ext, o_regex
@@ -46,8 +46,10 @@ Class EasyAsp
 		Set upload	= New EasyAsp_obj
 		Set tpl		= New EasyAsp_obj
 		Set aes		= New EasyAsp_obj
+		Set json	= New EasyAsp_obj
 	End Sub
 	Private Sub Class_Terminate()
+		Set json	= Nothing
 		Set aes		= Nothing
 		Set tpl		= Nothing
 		Set upload	= Nothing
