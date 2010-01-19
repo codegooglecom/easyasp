@@ -5,7 +5,7 @@
 '## Feature     :   JSON For ASP
 '## Version     :   v2.2 alpha
 '## Author      :   Tu?ul Topuz @ 2009 [VBS JSON 2.0.3]
-'## Update      :   Coldstone(coldstone[at]qq.com) & Mr.Zhang
+'## Update      :   Coldstone(coldstone[at]qq.com) & Mr.Zhang & Liaoyizhi
 '## Update Date :   2010/1/18 22:28
 '## Description :   Create JSON strings in EasyASP
 '##
@@ -78,16 +78,12 @@ Class EasyAsp_JSON
 			Case 9	' Object
 				Dim bFI,i 
 				bFI = True
-				If vPair.Kind Then toJSON = toJSON & "[" Else toJSON = toJSON & "{"
+				toJSON = toJSON & Easp.IIF(vPair.Kind, "[", "{")
 				For Each i In vPair.Collection
 					If bFI Then bFI = False Else toJSON = toJSON & ","
-					If vPair.Kind Then 
-						toJSON = toJSON & toJSON(vPair(i))
-					Else
-						toJSON = toJSON & Easp.IIF(QuotedVars, "'" & i & "'", i) & ":" & toJSON(vPair(i))
-					End If
+					toJSON = toJSON & Easp.IfThen(vPair.Kind=0, Easp.IIF(QuotedVars, "'" & i & "'", i) & ":") & toJSON(vPair(i))
 				Next
-				If vPair.Kind Then toJSON = toJSON & "]" Else toJSON = toJSON & "}"
+				toJSON = toJSON & Easp.IIF(vPair.Kind, "]", "}")
 			Case 11
 				toJSON = Easp.IIF(vPair, "true", "false")
 			Case 12, 8192, 8204
