@@ -6,7 +6,7 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/19 13:38
+'## Update Date :   2010/1/20 0:09
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -934,22 +934,22 @@ Class EasyAsp
 	Function [Test](ByVal s, ByVal p)
 		Dim Pa
 		Select Case Lcase(p)
-			Case "date"		[Test] = IIF(isDate(s),True,False) : Exit Function
-			Case "idcard"	[Test] = IIF(isIDCard(s),True,False) : Exit Function
+			Case "date"		[Test] = isDate(s) : Exit Function
+			Case "idcard"	[Test] = isIDCard(s) : Exit Function
+			Case "number"	[Test] = isNumeric(s) : Exit Function
 			Case "english"	Pa = "^[A-Za-z]+$"
 			Case "chinese"	Pa = "^[\u0391-\uFFE5]+$"
 			Case "username"	Pa = "^[a-zA-Z]\w{2,19}$"
 			Case "email"	Pa = "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
 			Case "int"		Pa = "^[-\+]?\d+$"
-			Case "number"	Pa = "^\d+$"
 			Case "double"	Pa = "^[-\+]?\d+(\.\d+)?$"
 			Case "price"	Pa = "^\d+(\.\d+)?$"
 			Case "zip"		Pa = "^[1-9]\d{5}$"
 			Case "qq"		Pa = "^[1-9]\d{4,9}$"
-			Case "phone"	Pa = "^((\(\d{2,3}\))|(\d{3}\-))?(\(0\d{2,3}\)|0\d{2,3}-)?[1-9]\d{6,7}(\-\d{1,4})?$"
-			Case "mobile"	Pa = "^((\(\d{2,3}\))|(\d{3}\-))?(1[35][0-9]|189)\d{8}$"
-			Case "url"		Pa = "^(http|https|ftp):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\""])*$"
-			Case "domain"	Pa = "^[A-Za-z0-9\-\.]+\.([A-Za-z]{2,4}|[A-Za-z]{2,4}\.[A-Za-z]{2})$"
+			Case "phone"	Pa = "^((\(\+?\d{2,3}\))|(\+?\d{2,3}\-))?(\(0?\d{2,3}\)|0?\d{2,3}-)?[1-9]\d{4,7}(\-\d{1,4})?$"
+			Case "mobile"	Pa = "^(\+\d{2,3})?0?1(3\d|5\d|8[0789])\d{8}$"
+			Case "url"		Pa = "^((https|http|ftp|rtsp|mms)://)?(([\w!~\*'\(\).&=\+\$%-]+:)?[\w!~\*'\(\).&=\+\$%-]+@)?((\d{1,3}\.){3}\d{1,3}|([\w!~\*'\(\)-]+\.)*([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.[a-zA-Z]{2,6})(:\d{1,5})?((/?)|(/.+)+/?)$"
+			Case "domain"	Pa = "^(([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}|[a-zA-Z]{2,4}\.[a-zA-Z]{2})$"
 			Case "ip"		Pa = "^(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5]).(0|[1-9]\d?|[0-1]\d{2}|2[0-4]\d|25[0-5])$"
 			Case Else Pa = p
 		End Select
