@@ -62,7 +62,11 @@ Class EasyAsp_db
 		End If
 	End Property
 	Public Property Get Conn()
-		Set Conn = o_conn
+		If TypeName(o_conn) = "Connection" Then
+			Set Conn = o_conn
+		Else
+			Easp.Error.Raise 13
+		End If
 	End Property
 	'属性：当前数据库类型
 	Public Property Get DatabaseType()
@@ -125,8 +129,7 @@ Class EasyAsp_db
 		s_dbType = UCase(Cstr(dbType))
 		Select Case s_dbType
 			Case "0","MSSQL"
-				If port = "" Then port = "1433"
-				TempStr = "Provider=sqloledb;Data Source="&s&","&port&";Initial Catalog="&strDB&";User Id="&u&";Password="&p&";"
+				TempStr = "Provider=sqloledb;Data Source=" & s & Easp.IfThen(Easp.Has(port), "," & port) & ";Initial Catalog="&strDB&";User Id="&u&";Password="&p&";"
 			Case "1","ACCESS"
 				Dim tDb : If Instr(strDB,":")>0 Then : tDb = strDB : Else : tDb = Server.MapPath(strDB) : End If
 				TempStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source="&tDb&";Jet OLEDB:Database Password="&p&";"
