@@ -863,20 +863,20 @@ Class EasyAsp
 		End If
 	End Sub
 	'设置缓存记录
-	Sub SetApp(ByVal AppName,ByVal AppData)
+	Sub SetApp(ByVal AppName,ByRef AppData)
 		Application.Lock
-		Application.Contents.Item(AppName) = AppData
+		Application(AppName) = AppData
 		Application.UnLock
 	End Sub
 	'获取一个缓存记录
 	Function GetApp(ByVal AppName)
 		If IsN(AppName) Then GetApp = "" : Exit Function
-		GetApp = Application.Contents.Item(AppName)
+		GetApp = Application(AppName)
 	End Function
 	'删除一个缓存记录
 	Sub RemoveApp(ByVal AppName)
 		Application.Lock
-		Application.Contents.Remove(AppName)
+		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
 	'验证身份证号码
