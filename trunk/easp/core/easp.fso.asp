@@ -378,7 +378,7 @@ Class EasyAsp_Fso
 	End Function
 	'===私有方法===
 	'取文件夹绝对路径
-	Function absPath(ByVal p)
+	Private Function absPath(ByVal p)
 		If Easp.IsN(p) Then absPath = "" : Exit Function
 		If Instr(p,":")=0 Then
 			If isWildcards(p) Then
