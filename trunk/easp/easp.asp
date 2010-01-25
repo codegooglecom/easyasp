@@ -116,6 +116,13 @@ Class EasyAsp
 		Set [error] = New EasyAsp_Error
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
+'{init}
+		Set fso = New EasyAsp_Fso
+		Set tpl = New EasyAsp_Tpl
+		Set upload = New EasyAsp_Upload
+		Set aes = New EasyAsp_AES
+		Set json = New EasyAsp_Json
+'{/init}
 	End Sub
 
 	Private Function FixAbsPath(ByVal p)
@@ -1264,3 +1271,10 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
+<!-- {inc} -->
+<!--#include file="core/easp.fso.asp"-->
+<!--#include file="core/easp.upload.asp"-->
+<!--#include file="core/easp.tpl.asp"-->
+<!--#include file="core/easp.json.asp"-->
+<!--#include file="core/easp.aes.asp"-->
+<!-- {/inc} -->
