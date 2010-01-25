@@ -185,7 +185,7 @@ Class EasyAsp_db
 		On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
 		tmp = Easp_Param(TableName)
-		If Not Easp.isN(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
+		If Easp.Has(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
 		Set rs = GRS("Select " & Easp.IIF(fID<>"", "Max("&fID&")", "Top 1 *") & " From ["&TableName&"]")
 		If rs.eof Then
 			AutoID = 1 : Exit Function
@@ -212,10 +212,10 @@ Class EasyAsp_db
 		Dim strSelect, FieldsList, ShowN, o, p
 		FieldsList = "" : ShowN = 0
 		o = Easp_Param(TableName)
-		If Not Easp.isN(o(1)) Then
+		If Easp.Has(o(1)) Then
 			TableName = Trim(o(0)) : FieldsList = Trim(o(1)) : o = ""
 			p = Easp_Param(FieldsList)
-			If Not Easp.isN(p(1)) Then
+			If Easp.Has(p(1)) Then
 				FieldsList = Trim(p(0)) : ShowN = Int(Trim(p(1))) : p = ""
 			Else
 				If isNumeric(FieldsList) Then ShowN = Int(FieldsList) : FieldsList = ""
@@ -354,7 +354,7 @@ Class EasyAsp_db
 	Public Function GetRandRecord(ByVal TableName,ByVal Condition)
 		Dim sql,o,p,fi,IdField,showN,where
 		o = Easp_Param(TableName)
-		If Not Easp.isN(o(1)) Then
+		If Easp.Has(o(1)) Then
 			TableName = o(0)
 			p = Easp_Param(o(1))
 			If Easp.isN(p(1)) Then
@@ -393,7 +393,7 @@ Class EasyAsp_db
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
 		On Error Resume Next
 		Dim o,s : o = Easp_Param(TableName)
-		If Not Easp.isN(o(1)) Then TableName = o(0)
+		If Easp.Has(o(1)) Then TableName = o(0)
 		s = wAddRecord(TableName,ValueList)
 		DoExecute s
 		If Err.number <> 0 Then
@@ -402,7 +402,7 @@ Class EasyAsp_db
 			AddRecord = 0
 			Exit Function
 		End If
-		If Not Easp.isN(o(1)) Then
+		If Easp.Has(o(1)) Then
 			AddRecord = AutoID(o(0)&":"&o(1))-1
 		Else
 			AddRecord = 1
@@ -410,7 +410,7 @@ Class EasyAsp_db
 	End Function
 	Public Function wAddRecord(ByVal TableName,ByVal ValueList)
 		Dim TempSQL, TempFiled, TempValue, o
-		o = Easp_Param(TableName) : If Not Easp.isN(o(1)) Then TableName = o(0)
+		o = Easp_Param(TableName) : If Easp.Has(o(1)) Then TableName = o(0)
 		TempFiled = ValueToSql(TableName,ValueList,2)
 		TempValue = ValueToSql(TableName,ValueList,3)
 		TempSQL = "Insert Into [" & TableName & "] (" & TempFiled & ") Values (" & TempValue & ")"
@@ -439,7 +439,7 @@ Class EasyAsp_db
 		Dim TmpSQL
 		TmpSQL = "Update ["&TableName&"] Set "
 		TmpSQL = TmpSQL & ValueToSql(TableName,ValueList,0)
-		If Not Easp.isN(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
+		If Easp.Has(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
 		wUpdateRecord = TmpSQL
 	End Function
 	Public Function UR(ByVal TableName,ByVal Condition,ByVal ValueList)
@@ -465,7 +465,7 @@ Class EasyAsp_db
 		Dim IDFieldName, IDValues, Sql, p : IDFieldName = "" : IDValues = ""
 		If Not isArray(Condition) Then
 			p = Easp_Param(Condition)
-			If Not Easp.isN(p(1)) Then
+			If Easp.Has(p(1)) Then
 				IDFieldName = p(0)
 				If Instr(IDFieldName," ")=0 Then
 					IDValues = p(1)
@@ -518,7 +518,7 @@ Class EasyAsp_db
 			Exit Function
 		End If
 		p = Easp_Param(spName)
-		If Not Easp.isN(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
+		If Easp.Has(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
 		Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
 				.ActiveConnection = o_conn
@@ -649,9 +649,9 @@ Class EasyAsp_db
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
 		o = Easp_Param(Cstr(PageSetup))
 		pType = o(0)
-		If Not Easp.isN(o(1)) Then
+		If Easp.Has(o(1)) Then
 			p = Easp_Param(o(1))
-			If Not Easp.isN(p(1)) Then
+			If Easp.Has(p(1)) Then
 				s_pageParam = Lcase(p(0))
 				i_pageSize = Int(p(1))
 			Else
@@ -668,7 +668,7 @@ Class EasyAsp_db
 				If isArray(Condition) Then
 					Dim Table,Fi,Where
 					o = Easp_Param(Condition(0))
-					If Not Easp.isN(o(1)) Then
+					If Easp.Has(o(1)) Then
 						Table = o(0) : Fi = o(1)
 					Else
 						Table = Condition(0) : Fi = "*"
@@ -689,22 +689,22 @@ Class EasyAsp_db
 						Set GetPageRecord = rs : Exit Function
 					ElseIf s_dbType = "2" or s_dbType = "MYSQL" Then
 						Sql = "Select "& fi & " From [" & Table & "]"
-						If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
-						If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+						If Easp.Has(Where) Then Sql = Sql & " Where " & Where
+						If Easp.Has(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 						Sql = Sql & " Limit " & i_pageSize*(i_pageIndex-1) & ", " & i_pageSize
 					Else
 						If Ubound(Condition)<>3 Then Easp.Error.Raise 27
 						Sql = "Select Top " & i_pageSize & " " & fi
 						Sql = Sql & " From [" & Table & "]"
-						If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
+						If Easp.Has(Where) Then Sql = Sql & " Where " & Where
 						If i_pageIndex > 1 Then
 							Sql = Sql & " " & Easp.IIF(Easp.isN(Where), "Where", "And") & " " & Condition(3) & " Not In ("
 							Sql = Sql & "Select Top " & i_pageSize * (i_pageIndex-1) & " " & Condition(3) & " From [" & Table & "]"
-							If Not Easp.isN(Where) Then Sql = Sql & " Where " & Where
-							If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+							If Easp.Has(Where) Then Sql = Sql & " Where " & Where
+							If Easp.Has(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 							Sql = Sql & ") "
 						End If
-						If Not Easp.isN(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
+						If Easp.Has(Condition(2)) Then Sql = Sql & " Order By " & Condition(2)
 					End If
 					Set GetPageRecord = GRS(Sql)
 				Else
@@ -896,8 +896,8 @@ Class EasyAsp_db
 	'配置分页样式
 	Public Sub SetPager(ByVal PagerName, ByVal PagerHtml, ByRef PagerConfig)
 		If PagerName = "" Then PagerName = "default"
-		If Not Easp.isN(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
-		If Not Easp.isN(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
+		If Easp.Has(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
+		If Easp.Has(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
 	End Sub
 	'调用分页样式
 	Public Function GetPager(ByVal PagerName)
