@@ -71,8 +71,8 @@ Class EasyAsp_Fso
 
 	'文件或文件夹是否存在
 	Public Function isExists(ByVal path)
-		path = absPath(path) : isExists = False
-		If Fso.FileExists(path) or Fso.FolderExists(path) Then isExists = True
+		isExists = False
+		If isFile(path) or isFolder(path) Then isExists = True
 	End Function
 	'文件是否存在
 	Public Function isFile(ByVal filePath)
@@ -379,6 +379,7 @@ Class EasyAsp_Fso
 	'===私有方法===
 	'取文件夹绝对路径
 	Function absPath(ByVal p)
+		If Easp.IsN(p) Then absPath = "" : Exit Function
 		If Instr(p,":")=0 Then
 			If isWildcards(p) Then
 				p = Server.MapPath(Easp.IIF(Left(p,1)="/", "/", Easp.GetUrl(2) & "/")) & Replace(p,"/","\")
