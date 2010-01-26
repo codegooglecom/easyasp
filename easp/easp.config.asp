@@ -1,8 +1,6 @@
 <%
 ''Easp类文件路径:
 'Easp.BasePath = "/easp/"
-''Easp插件目录:
-'Easp.PluginPath = "/easp/plugin/"
 ''是否开启调试模式：
 'Easp.Debug = True
 ''Cookies是否加密:
