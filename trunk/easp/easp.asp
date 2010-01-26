@@ -6,7 +6,7 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/20 0:09
+'## Update Date :   2010/01/26 14:54:41
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -116,13 +116,6 @@ Class EasyAsp
 		Set [error] = New EasyAsp_Error
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
-'{init}
-		Set fso = New EasyAsp_Fso
-		Set tpl = New EasyAsp_Tpl
-		Set upload = New EasyAsp_Upload
-		Set aes = New EasyAsp_AES
-		Set json = New EasyAsp_Json
-'{/init}
 	End Sub
 
 	Private Function FixAbsPath(ByVal p)
@@ -1040,9 +1033,14 @@ Class EasyAsp
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
-		Dim Fso, p, f, tmpStr, o_strm
+		Dim Fso, p, f, tmpStr, o_strm, s_char
+		s_char = s_charset
+		If Instr(filePath,">")>0 Then
+			s_char = UCase(Trim(CRight(filePath,">")))
+			filePath = Trim(CLeft(filePath,">"))
+		End If
 		p = filePath
-		If Instr(p,":")=0 Then p = Server.MapPath(p)
+		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
 		Set Fso = Server.CreateObject(s_fsoName)
 		If Fso.FileExists(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
@@ -1051,7 +1049,7 @@ Class EasyAsp
 				.Mode = 3
 				.Open
 				.LoadFromFile p
-				.Charset = s_charset
+				.Charset = s_char
 				.Position = 2
 				tmpStr = .ReadText
 				.Close
@@ -1271,10 +1269,3 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
-<!-- {inc} -->
-<!--#include file="core/easp.fso.asp"-->
-<!--#include file="core/easp.upload.asp"-->
-<!--#include file="core/easp.tpl.asp"-->
-<!--#include file="core/easp.json.asp"-->
-<!--#include file="core/easp.aes.asp"-->
-<!-- {/inc} -->

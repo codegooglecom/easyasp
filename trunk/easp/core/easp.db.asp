@@ -5,7 +5,7 @@
 '## Feature     :   Database Control
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/15 0:08
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAsp数据库操作类
 '##
 '######################################################################
@@ -200,10 +200,7 @@ Class EasyAsp_db
 				newRs.Close() : Set newRs = Nothing
 			End If
 		End If
-		If Err.number <> 0 Then
-			Easp.Error.Msg = "(表名： """ & TableName & """)"
-			Easp.Error.Raise 14
-		End If
+		If Err.number <> 0 Then Easp.Error.Raise 14
 		rs.Close() : Set rs = Nothing
 		AutoID = tmpID
 	End Function
@@ -266,7 +263,7 @@ Class EasyAsp_db
 		End If
 		Easp_DbQueryTimes = Easp_DbQueryTimes + 1
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />" & Easp.HtmlEncode(s)
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 11
 			Err.Clear
 		End If
@@ -298,10 +295,7 @@ Class EasyAsp_db
 				rs.MoveNext
 			Wend
 		End If
-		If Err.number <> 0 Then
-			Easp.Error.Msg = "(名称: """ & jName & """)"
-			Easp.Error.Raise 15
-		End If
+		If Err.number <> 0 Then Easp.Error.Raise 15
 		tmpStr = o.JsString
 		Set o(jName)(Null) = Nothing
 		Set o(jName) = Nothing
@@ -318,7 +312,7 @@ Class EasyAsp_db
 		tmpStr = Easp.RandStr(length)
 		Do While (True)
 			Set rs = GR(tb&":"&fi&":1",fi&"='"&tmpStr&"'","")
-			If Easp.Has(rs) Then
+			If Not rs.Bof And Not rs.Eof Then
 				tmpStr = Easp.RandStr(length)
 			Else
 				RandStr = tmpStr
@@ -337,7 +331,7 @@ Class EasyAsp_db
 		tmpInt = Easp.Rand(min,max)
 		Do While (True)
 			Set rs = GR(tb&":"&fi&":1",Array(fi&":"&tmpInt),"")
-			If Easp.Has(rs) Then
+			If Not rs.Bof And Not rs.Eof Then
 				tmpInt = Easp.Rand(min,max)
 			Else
 				Rand = tmpInt
@@ -403,7 +397,7 @@ Class EasyAsp_db
 		s = wAddRecord(TableName,ValueList)
 		DoExecute s
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />" & Easp.HtmlEncode(s)
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 20
 			AddRecord = 0
 			Exit Function
@@ -434,7 +428,7 @@ Class EasyAsp_db
 		Dim s : s = wUpdateRecord(TableName,Condition,ValueList)
 		DoExecute s
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />" & Easp.HtmlEncode(s)
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 21
 			UpdateRecord = 0
 			Exit Function
@@ -460,7 +454,7 @@ Class EasyAsp_db
 		Dim s : s = wDeleteRecord(TableName,Condition)
 		DoExecute s
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />" & Easp.HtmlEncode(s)
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 22
 			DeleteRecord = 0
 			Exit Function
@@ -598,7 +592,7 @@ Class EasyAsp_db
 			If Err.number <> 0 Then Exec = 0
 		End If
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />" & Easp.HtmlEncode(s)
+			Easp.Error.Msg = "<br />" & s
 			Easp.Error.Raise 25
 			Err.Clear
 		End If
@@ -722,10 +716,12 @@ Class EasyAsp_db
 				If isArray(Condition) Then
 					If pType = "" Then pType = s_pageSpName
 					Select Case pType
-						Case "easp_sp_pager"	'使用自带分页存储过程分页
+						Case "easp_sp_pager"
+						'使用自带分页存储过程分页
 							If Ubound(Condition)<>5 Then Easp.Error.Raise 29
 							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&i_pageSize,"@PageIndex:"&i_pageIndex,"@@RecordCount","@@PageCount"))
-						Case Else	'使用自定义分页存储过程
+						Case Else
+						'使用自定义分页存储过程
 							spReturn = Array(False,False)
 							For i = 0 To Ubound(Condition)
 								If LCase(Condition(i)) = "@@recordcount" Then spReturn(0) = True

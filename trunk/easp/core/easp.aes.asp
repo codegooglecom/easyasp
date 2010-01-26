@@ -6,7 +6,7 @@
 '## Version     :   v2.2 alpha
 '## Author      :   Roderick Divilbiss
 '## Update      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/30 11:24
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAspµƒAESº”√‹¿‡
 '##
 '######################################################################

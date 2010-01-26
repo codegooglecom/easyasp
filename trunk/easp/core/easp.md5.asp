@@ -5,7 +5,7 @@
 '## Feature     :   MD5 Encryption
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/30 11:55
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAspµƒMd5º”√‹¿‡
 '##
 '######################################################################
