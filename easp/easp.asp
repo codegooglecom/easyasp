@@ -6,7 +6,7 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/01/26 14:54:41
+'## Update Date :   2010/1/20 0:09
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -28,7 +28,7 @@ Class EasyAsp
 		s_plugin	= s_path & "plugin/"
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
-		s_charset	= "GBK"
+		s_charset	= "UTF-8"
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
@@ -116,6 +116,13 @@ Class EasyAsp
 		Set [error] = New EasyAsp_Error
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		Set db = New EasyAsp_db
+'{init}
+		Set fso = New EasyAsp_Fso
+		Set tpl = New EasyAsp_Tpl
+		Set upload = New EasyAsp_Upload
+		Set aes = New EasyAsp_AES
+		Set json = New EasyAsp_Json
+'{/init}
 	End Sub
 
 	Private Function FixAbsPath(ByVal p)
@@ -1269,3 +1276,10 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
+<!-- {inc} -->
+<!--#include file="core/easp.fso.asp"-->
+<!--#include file="core/easp.upload.asp"-->
+<!--#include file="core/easp.tpl.asp"-->
+<!--#include file="core/easp.json.asp"-->
+<!--#include file="core/easp.aes.asp"-->
+<!-- {/inc} -->
