@@ -92,7 +92,7 @@ Class EasyAsp_JSON
 		End select
 	End Function
 	'递归数组生成Json字符串
-	Function RenderArray(arr, depth, parent)
+	Private Function RenderArray(arr, depth, parent)
 		Dim first : first = LBound(arr, depth)
 		Dim last : last = UBound(arr, depth)
 		Dim index, rendered
