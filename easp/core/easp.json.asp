@@ -22,7 +22,6 @@ Class EasyAsp_JSON
 			QuotedVars = True
 		End If
 		Count = 0
-		Easp.Error(10) = "不是有效的Easp JSON对象！"
 	End Sub
 
 	Private Sub Class_Terminate
