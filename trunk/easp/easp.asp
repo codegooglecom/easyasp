@@ -121,7 +121,7 @@ Class EasyAsp
 		Set tpl = New EasyAsp_Tpl
 		Set upload = New EasyAsp_Upload
 		Set aes = New EasyAsp_AES
-		Set json = New EasyAsp_Json
+		Set json = New EasyAsp_JSON
 '{/init}
 	End Sub
 
