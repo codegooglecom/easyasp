@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Upload Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/30 11:57
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAsp无组件上传类
 '##
 '######################################################################
@@ -186,7 +186,7 @@ Class EasyAsp_upload
 		Loop
 		oTotalData = ""
 		Set oFormStream = Nothing
-		'CheckFile()
+		'##CheckFile()
 	End Sub
 	
 	Public Sub SaveAs(sItem, sFileName)
@@ -211,7 +211,7 @@ Class EasyAsp_upload
 			o_strm.Position = File(sItem).Start
 			o_strm.CopyTo oFileStream, File(sItem).Size
 			.Position	= 0
-			'.SaveToFile sFileName, 2   '暂时不保存文件
+			'##.SaveToFile sFileName, 2   '暂时不保存文件
 			.Close
 		End With
 		Set oFileStream = Nothing

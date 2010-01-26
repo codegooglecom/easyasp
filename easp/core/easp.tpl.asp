@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Templates Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/15 0:05
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAspƒ£∞Â¿‡
 '##
 '######################################################################

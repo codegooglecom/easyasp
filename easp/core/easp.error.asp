@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Exception Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/15 15:48
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAsp“Ï≥£¥¶¿Ì
 '##
 '######################################################################

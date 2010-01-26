@@ -6,12 +6,13 @@
 '## Version     :   v2.2 alpha
 '## Author      :   Tu?ul Topuz @ 2009 [VBS JSON 2.0.3]
 '## Update      :   Coldstone(coldstone[at]qq.com) & Mr.Zhang & Liaoyizhi
-'## Update Date :   2010/1/18 22:28
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   Create JSON strings in EasyASP
 '##
 '######################################################################
 Class EasyAsp_JSON
-	Public Collection, Count, QuotedVars, Kind  ' 0 = object, 1 = array
+	Public Collection, Count, QuotedVars, Kind
+	'Kind : 0 = object, 1 = array
 	Private Sub Class_Initialize
 		Set Collection = CreateObject("Scripting.Dictionary")
 		QuotedVars = False
@@ -69,13 +70,13 @@ Class EasyAsp_JSON
 
 	Public Function toJSON(vPair)
 		Select Case VarType(vPair)
-			Case 1	' Null
+			Case 1
 				toJSON = "null"
-			Case 7	' Date
+			Case 7
 				toJSON = "'" & CStr(vPair) & "'"
-			Case 8	' String
+			Case 8
 				toJSON = "'" & Easp.JSEncode(vPair) & "'"
-			Case 9	' Object
+			Case 9
 				Dim bFI,i 
 				bFI = True
 				toJSON = toJSON & Easp.IIF(vPair.Kind, "[", "{")

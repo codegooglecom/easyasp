@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp FileSystemObject Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2009/12/15 15:47
+'## Update Date :   2010/01/26 16:08:30
 '## Description :   EasyAsp文件操作类
 '##
 '######################################################################
@@ -81,7 +81,13 @@ Class EasyAsp_Fso
 	End Function
 	'读取文件内容
 	Public Function Read(ByVal filePath)
-		Dim p, f, o_strm, tmpStr : p = absPath(filePath)
+		Dim p, f, o_strm, tmpStr, s_char
+		s_char = s_charset
+		If Instr(filePath,">")>0 Then
+			s_char = UCase(Trim(Easp.CRight(filePath,">")))
+			filePath = Trim(Easp.CLeft(filePath,">"))
+		End If
+		p = absPath(filePath)
 		If isFile(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
 			With o_strm
@@ -89,7 +95,7 @@ Class EasyAsp_Fso
 				.Mode = 3
 				.Open
 				.LoadFromFile p
-				.Charset = s_charset
+				.Charset = s_char
 				.Position = 2
 				tmpStr = .ReadText
 				.Close
@@ -105,14 +111,20 @@ Class EasyAsp_Fso
 	'创建文件并写入内容
 	Public Function CreateFile(ByVal filePath, ByVal fileContent)
 		On Error Resume Next
-		Dim f,p,t : p = absPath(filePath)
+		Dim f,p,t, s_char
+		s_char = s_charset
+		If Instr(filePath,">")>0 Then
+			s_char = UCase(Trim(Easp.CRight(filePath,">")))
+			filePath = Trim(Easp.CLeft(filePath,">"))
+		End If
+		p = absPath(filePath)
 		CreateFile = MD(Left(p,InstrRev(p,"\")-1))
 		If CreateFile Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
 			With o_strm
 				.Type = 2
 				.Open
-				.Charset = s_charset
+				.Charset = s_char
 				.Position = o_strm.Size
 				.WriteText = fileContent
 				.SaveToFile p,Easp.IIF(b_overwrite,2,1)
