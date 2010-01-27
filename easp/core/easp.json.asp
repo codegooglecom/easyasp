@@ -117,8 +117,12 @@ Class EasyAsp_JSON
 	Public Property Get jsString
 		jsString = toJSON(Me)
 	End Property
-	'将Json字符串输出
-	Sub Flush
+	'输出为Json文件
+	Public Sub Flush
+		Response.Clear()
+		Response.Charset = "UTF-8"
+		Response.ContentType = "application/json"
+		Easp.NoCache()
 		Easp.W jsString
 	End Sub
 	'复制Json对象
