@@ -28,7 +28,7 @@ Class EasyAsp
 		s_plugin	= s_path & "plugin/"
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
-		s_charset	= "UTF-8"
+		s_charset	= "GBK"
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
