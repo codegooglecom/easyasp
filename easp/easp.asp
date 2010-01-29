@@ -531,6 +531,8 @@ Class EasyAsp
 	end Sub
 	'截取长字符串左边部分并以特殊符号代替
 	Function CutStr(ByVal s, ByVal strlen)
+		If IsN(s) Then CutStr = "" : Exit Function
+		If IsN(strlen) or strlen = "0" Then CutStr = s : Exit Function
 		Dim l,t,i,j,d,f,n
 		s = Replace(s,vbCrLf,"")
 		s = Replace(s,vbTab,"")

@@ -123,7 +123,7 @@ Class EasyAsp_JSON
 		Response.Charset = "UTF-8"
 		Response.ContentType = "application/json"
 		Easp.NoCache()
-		Easp.W jsString
+		Easp.WE jsString
 	End Sub
 	'∏¥÷∆Json∂‘œÛ
 	Public Function Clone
