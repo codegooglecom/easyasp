@@ -460,6 +460,7 @@ Class EasyAsp
 	End Function
 	'安全获取值新版
 	Function Safe(ByVal s, ByVal t)
+		If IsN(s) Then Safe = Empty : Exit Function
 		Dim spl,d,l,li,i,tmp,arr() : l = False
 		'如果类型中有默认值
 		If Instr(t,":")>0 Then
