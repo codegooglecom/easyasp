@@ -391,16 +391,24 @@ Class EasyAsp_Fso
 	'===私有方法===
 	'取文件夹绝对路径
 	Private Function absPath(ByVal p)
+		Dim pt
 		If Easp.IsN(p) Then absPath = "" : Exit Function
-		If Instr(p,":")=0 Then
+		If Mid(p,2,1)<>":" Then
 			If isWildcards(p) Then
-				p = Server.MapPath(Easp.IIF(Left(p,1)="/", "/", Easp.GetUrl(2) & "/")) & Replace(p,"/","\")
+				p = Replace(p,"*","[.$.[e.a.s.p.s.t.a.r].#.]")
+				p = Replace(p,"?","[.$.[e.a.s.p.q.u.e.s].#.]")
+				p = Server.MapPath(p)
+				p = Replace(p,"[.$.[e.a.s.p.q.u.e.s].#.]","?")
+				p = Replace(p,"[.$.[e.a.s.p.s.t.a.r].#.]","*")
 			Else
 				p = Server.MapPath(p)
 			End If
 		End If
 		If Right(p,1) = "\" Then p = Left(p,Len(p)-1)
 		absPath = p
+	End Function
+	Public Function MapPath(p)
+		MapPath = absPath(p)
 	End Function
 	'路径是否包含通配符
 	Private Function isWildcards(ByVal path)
@@ -410,11 +418,15 @@ Class EasyAsp_Fso
 	'文件或文件夹操作原型
 	Private Function FOFO(ByVal fromPath, ByVal toPath, ByVal FOF, ByVal MOC)
 		On Error Resume Next
+		FOFO = True
 		Dim ff,tf,oc,of,oi,ot,os
+		'ff 来源路径				 'tf 目标路径
 		ff = absPath(fromPath) : tf = absPath(toPath)
 		If FOF = 0 Then
+		'如果是文件
 			oc = isFile(ff) : of = "File" : oi = "文件"
 		ElseIf FOF = 1 Then
+		'如果是文件夹
 			oc = isFolder(ff) : of = "Folder" : oi = "文件夹"
 		End If
 		If MOC = 0 Then
@@ -425,18 +437,26 @@ Class EasyAsp_Fso
 			ot = "Delete" : os = "删除"
 		End If
 		If oc Then
+		'如果文件或文件夹存在
 			If MOC<>2 Then
+			'如果复制和移动
 				If FOF = 0 Then
+				'如果是文件
 					If Right(toPath,1)="/" or Right(toPath,1)="\" Then
+					'如果目标路径是文件夹，直接建立
 						FOFO = MD(tf) : tf = tf & "\"
 					Else
+					'如果目标路径是文件，建立文件夹
 						FOFO = MD(Left(tf,InstrRev(tf,"\")-1))
 					End If
 				ElseIf FOF = 1 Then
+				'如果是文件夹则先建立目标文件夹
 					FOFO = MD(tf)
 				End If
+				'执行复制或者移动，如果是复制要考虑是否覆盖
 				Execute("Fso."&ot&of&" ff,tf"&Easp.IIF(MOC=0,",b_overwrite",""))
 			Else
+				'删除，考虑是否删除只读
 				Execute("Fso."&ot&of&" ff,b_force")
 			End If
 			If Err.Number<>0 Then
@@ -445,15 +465,18 @@ Class EasyAsp_Fso
 				Easp.Error.Raise 63
 			End If
 		ElseIf isWildcards(ff) Then
-			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
-				FOFO = False
-				Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp.IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
-				Easp.Error.Raise 63
-			End If
+		'如果有通配符
+'			If Not isFolder(Left(ff,InstrRev(ff,"\")-1)) Then
+'				FOFO = False
+'				Easp.Error.Msg = "<br />" & os & oi & "失败！" & Easp.IIF(MOC=2,"","源") & oi & "不存在( "&frompath&" )"
+'				Easp.Error.Raise 63
+'			End If
 			If MOC<>2 Then
+			'复制和移动
 				FOFO = MD(tf)
 				Execute("Fso."&ot&of&" ff,tf"&Easp.IIF(MOC=0,",b_overwrite",""))
 			Else
+			'删除
 				Execute("Fso."&ot&of&" ff,b_force")
 			End If
 			If Err.Number<>0 Then
