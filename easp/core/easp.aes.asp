@@ -7,7 +7,7 @@
 '## Author      :   Roderick Divilbiss
 '## Update      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAspµƒAESº”√‹¿‡
+'## Description :   Encrypt strings with AES in EasyASP
 '##
 '######################################################################
 Class EasyAsp_AES

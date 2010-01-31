@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAspµƒMd5º”√‹¿‡
+'## Description :   Encrypt strings with MD5 in EasyASP
 '##
 '######################################################################
 Private Const BITS_TO_A_BYTE = 8

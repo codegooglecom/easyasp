@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAsp无组件上传类
+'## Description :   Upload file(s) with EasyASP
 '##
 '######################################################################
 Class EasyAsp_upload

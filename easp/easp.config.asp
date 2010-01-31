@@ -1,17 +1,29 @@
 <%
-''Easp类文件路径:
-'Easp.BasePath = "/easp/"
-''是否开启调试模式：
+'######################################################################
+'## easp.config.asp
+'## -------------------------------------------------------------------
+'## EasyASP 配置文件
+'######################################################################
+
+'必须正确设置'easp.asp'文件在网站中的路径，以"/"开头:
+Easp.BasePath = "/easp/"
+
+'设置文件编码 (通常为'GBK'或者'UTF-8'):
+Easp.CharSet = "GBK"
+
+''打开开发者调试模式：
 'Easp.Debug = True
-''Cookies是否加密:
-'Easp.CookieEncode = True
-''FSO组件名称:
+
+''不加密Cookies数据:
+'Easp.CookieEncode = False
+
+''设置FSO组件的名称（如果服务器上修改过）:
 'Easp.FsoName = "Scripting.FileSystemObject"
-''文件编码:
-'Easp.CharSet = "GBK"
-''UTF-8文件的BOM处理方式，仅当Easp.CharSet为UTF-8时生效：
+
+''设置如何处理载入的UTF-8文件的BOM信息(keep/remove/add)：
 'Easp.FileBOM = "remove"
-''配置数据库连接:
+
+''配置数据库连接：
 ''Access:
 'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","")
 ''MS SQL Server:

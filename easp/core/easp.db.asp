@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAsp数据库操作类
+'## Description :   EasyAsp database controller
 '##
 '######################################################################
 Class EasyAsp_db
@@ -109,6 +109,10 @@ Class EasyAsp_db
 	Public Property Let PageSpName(ByVal str)
 		s_pageSpName = str
 	End Property
+	'建新实例
+	Public Function [New]()
+		Set [New] = New EasyASP_db
+	End Function
 	'生成数据库连接字符串
 	Public Function OpenConn(ByVal dbType, ByVal strDB, ByVal strServer)
 		Dim TempStr, objConn, s, u, p, port
