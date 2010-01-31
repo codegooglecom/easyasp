@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAsp文件操作类
+'## Description :   EasyAsp Files System Operator
 '##
 '######################################################################
 Class EasyAsp_Fso
@@ -81,8 +81,12 @@ Class EasyAsp_Fso
 	End Function
 	'读取文件内容
 	Public Function Read(ByVal filePath)
-		Dim p, f, o_strm, tmpStr, s_char
+		Dim p, f, o_strm, tmpStr, s_char, t
 		s_char = s_charset
+		If Instr(filePath,"|")>0 Then
+			t = LCase(Trim(Easp.CRight(filePath,"|")))
+			filePath = Easp.CLeft(filePath,"|")
+		End If
 		If Instr(filePath,">")>0 Then
 			s_char = UCase(Trim(Easp.CRight(filePath,">")))
 			filePath = Trim(Easp.CLeft(filePath,">"))
@@ -101,10 +105,28 @@ Class EasyAsp_Fso
 				.Close
 			End With
 			Set o_strm = Nothing
+			If s_char = "UTF-8" Then
+				Select Case Easp.FileBOM
+					Case "keep"
+						'Do Nothing
+					Case "remove"
+						If Easp.Test(tmpStr, "^\uFEFF") Then
+							tmpStr = Easp.RegReplace(tmpStr, "^\uFEFF", "")
+						End If
+					Case "add"
+						If Not Easp.Test(tmpStr, "^\uFEFF") Then
+							tmpStr = Chrw(&hFEFF) & tmpStr
+						End If
+				End Select
+			End If
 		Else
 			tmpStr = ""
-			Easp.Error.Msg = "(" & filePath & ")"
-			Easp.Error.Raise 51
+			If Easp.IsN(t) Then
+				Easp.Error.Msg = "(" & filePath & ")"
+				Easp.Error.Raise 51
+			ElseIf t="easp" Then
+				tmpStr = "File Not Found: " & filePath
+			End If
 		End If
 		Read = tmpStr
 	End Function
@@ -451,10 +473,12 @@ Class EasyAsp_Fso
 					End If
 				ElseIf FOF = 1 Then
 				'如果是文件夹则先建立目标文件夹
+					tf = tf & "\"
 					FOFO = MD(tf)
 				End If
 				'执行复制或者移动，如果是复制要考虑是否覆盖
-				Execute("Fso."&ot&of&" ff,tf"&Easp.IIF(MOC=0,",b_overwrite",""))
+				Execute("Fso."&ot&of&" ff,tf"&Easp.IfThen(MOC=0,",b_overwrite"))
+				Easp.wn("Fso."&ot&of&" "&ff&","&tf&","&b_overwrite&"")
 			Else
 				'删除，考虑是否删除只读
 				Execute("Fso."&ot&of&" ff,b_force")

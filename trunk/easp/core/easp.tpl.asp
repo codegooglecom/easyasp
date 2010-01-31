@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAsp模板类
+'## Description :   Use Templates with EasyAsp
 '##
 '######################################################################
 Class EasyAsp_Tpl	
@@ -77,6 +77,10 @@ Class EasyAsp_Tpl
 				s_unknown = "keep"
 		End Select
 	End Property
+	'建新实例
+	Public Function [New]()
+		Set [New] = New EasyASP_Tpl
+	End Function
 
 	'加载模板方法二
 	Public Sub Load(ByVal f)

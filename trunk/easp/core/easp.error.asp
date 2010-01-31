@@ -6,7 +6,7 @@
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/01/26 16:08:30
-'## Description :   EasyAsp“Ï≥£¥¶¿Ì
+'## Description :   Deal with the EasyAsp Exception
 '##
 '######################################################################
 Class EasyAsp_Error

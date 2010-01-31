@@ -124,13 +124,11 @@ Class EasyAsp
 		Set json = New EasyAsp_JSON
 '{/init}
 	End Sub
-
 	Private Function FixAbsPath(ByVal p)
 		p = IIF(Left(p,1)= "/", p, "/" & p)
 		p = IIF(Right(p,1)="/", p, p & "/")
 		FixAbsPath = p
 	End Function
-
 	Private Function rqsv(ByVal s)
 		rqsv = Request.ServerVariables(s)
 	End Function
@@ -254,6 +252,17 @@ Class EasyAsp
 			End If
 		Next
 		JsEncode = t
+	End Function
+	'转换字符为HTML实体
+	Function ASCII(s)
+		If IsN(s) Then ASCII = "" : Exit Function
+		Dim tmp,i,t
+		For i = 1 To len(s)
+			t = AscW(Mid(s,i,1))
+			If t<0 Then t = t + 65536
+			tmp = tmp & "&#" & t & ";"
+		Next
+		ASCII = tmp
 	End Function
 	'特殊字符编码
 	Function Escape(ByVal ss)
@@ -1043,47 +1052,8 @@ Class EasyAsp
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
-		Dim Fso, p, f, tmpStr, o_strm, s_char
-		s_char = s_charset
-		If Instr(filePath,">")>0 Then
-			s_char = UCase(Trim(CRight(filePath,">")))
-			filePath = Trim(CLeft(filePath,">"))
-		End If
-		p = filePath
-		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
-		Set Fso = Server.CreateObject(s_fsoName)
-		If Fso.FileExists(p) Then
-			Set o_strm = Server.CreateObject("ADODB.Stream")
-			With o_strm
-				.Type = 2
-				.Mode = 3
-				.Open
-				.LoadFromFile p
-				.Charset = s_char
-				.Position = 2
-				tmpStr = .ReadText
-				.Close
-			End With
-			Set o_strm = Nothing
-			If s_charset = "UTF-8" Then
-				Select Case s_bom
-					Case "keep"
-						'Do Nothing
-					Case "remove"
-						If Test(tmpStr, "^\uFEFF") Then
-							tmpStr = RegReplace(tmpStr, "^\uFEFF", "")
-						End If
-					Case "add"
-						If Not Test(tmpStr, "^\uFEFF") Then
-							tmpStr = Chrw(&hFEFF) & tmpStr
-						End If
-				End Select
-			End If
-		Else
-			tmpStr = "文件未找到:" & filePath
-		End If
-		Set Fso = Nothing
-		Read = tmpStr
+		Use "Fso"
+		Read = Fso.Read(filePath & "|easp")
 	End Function
 	'读取包含文件内容（无限级）
 	Private Function IncRead(ByVal filePath)
@@ -1279,10 +1249,8 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
-<!-- {inc} -->
 <!--#include file="core/easp.fso.asp"-->
 <!--#include file="core/easp.upload.asp"-->
 <!--#include file="core/easp.tpl.asp"-->
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->
-<!-- {/inc} -->
