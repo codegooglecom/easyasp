@@ -1053,7 +1053,7 @@ Class EasyAsp
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
-		Dim p, f, o_strm, tmpStr, s_char, t
+		Dim p, f, o_fso, o_strm, tmpStr, s_char, t
 		s_char = s_charset
 		If Instr(filePath,"|")>0 Then
 			t = LCase(Trim(CRight(filePath,"|")))
@@ -1067,8 +1067,8 @@ Class EasyAsp
 		If Mid(p,2,1)<>":" Then
 			p = Server.MapPath(p)
 		End If
-		Set Fso = Server.CreateObject(s_fsoName)
-		If Fso.FileExists(p) Then
+		Set o_fso = Server.CreateObject(s_fsoName)
+		If o_fso.FileExists(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
 			With o_strm
 				.Type = 2
@@ -1104,7 +1104,7 @@ Class EasyAsp
 				tmpStr = "File Not Found: '" & filePath & "'"
 			End If
 		End If
-		Set Fso = Nothing
+		Set o_fso = Nothing
 		Read = tmpStr
 	End Function
 	'读取包含文件内容（无限级）
