@@ -14,35 +14,35 @@ Class EasyAsp_db
 	Private i_queryType, i_errNumber, i_pageIndex, i_pageSize, i_pageCount, i_recordCount
 	Private o_conn, o_pageDic
 	Private Sub Class_Initialize()
-		Easp.Error(11) = "ÎŞĞ§µÄ²éÑ¯Ìõ¼ş£¬ÎŞ·¨»ñÈ¡¼ÇÂ¼¼¯£¡"
-		Easp.Error(12) = "Êı¾İ¿â·şÎñÆ÷¶ËÁ¬½Ó´íÎó£¬Çë¼ì²éÊı¾İ¿âÁ¬½ÓĞÅÏ¢£¨ÓÃ»§Ãû/ÃÜÂë/·şÎñÆ÷µØÖ·/¶Ë¿ÚºÅ/Êı¾İ¿âÃû£©ÊÇ·ñÕıÈ·£¡"
-		Easp.Error(13) = "ÎŞĞ§µÄÊı¾İ¿âÁ¬½Ó£¡"
-		Easp.Error(14) = "ÎŞĞ§µÄ²éÑ¯Ìõ¼ş£¬ÎŞ·¨»ñÈ¡ĞÂµÄIDºÅ£¡"
-		Easp.Error(15) = "Éú³ÉJson¸ñÊ½´úÂë³ö´í£¡"
-		Easp.Error(16) = "Éú³É²»ÖØ¸´µÄËæ»ú×Ö·û´®³ö´í£¡"
-		Easp.Error(17) = "Éú³É²»ÖØ¸´µÄËæ»úÊı³ö´í£¡"
-		Easp.Error(18) = "»ñÈ¡Ëæ»ú¼ÇÂ¼Ê§°Ü£¬ÇëÊäÈëÒªÈ¡µÄ¼ÇÂ¼ÊıÁ¿£¡"
-		Easp.Error(19) = "»ñÈ¡Ëæ»ú¼ÇÂ¼Ê§°Ü£¬ÇëÔÚ±íÃûºóÊäÈë:ID×Ö¶ÎµÄÃû³Æ£¡"
-		Easp.Error(20) = "ÏòÊı¾İ¿âÌí¼Ó¼ÇÂ¼³ö´í£¡"
-		Easp.Error(21) = "¸üĞÂÊı¾İ¿â¼ÇÂ¼³ö´í£¡"
-		Easp.Error(22) = "´ÓÊı¾İ¿âÉ¾³ıÊı¾İ³ö´í£¡"
-		Easp.Error(23) = "´ÓÊı¾İ¿â»ñÈ¡Êı¾İ³ö´í£¡"
-		Easp.Error(32) = "½öÖ§³Ö´ÓMS SQL ServerÊı¾İ¿âµ÷ÓÃ´æ´¢¹ı³Ì£¡"
-		Easp.Error(24) = "µ÷ÓÃ´æ´¢¹ı³Ì³ö´í£¡"
-		Easp.Error(25) = "Ö´ĞĞSQLÓï¾ä³ö´í£¡"
-		Easp.Error(26) = "Éú³ÉSQLÓï¾ä³ö´í£¡"
-		Easp.Error(27) = "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¬Êı×é±ØĞëÊÇ4¸öÔªËØ£¨±ØĞëÌá¹©Êı¾İ¿â±íµÄÖ÷¼ü£©£¡"
-		Easp.Error(28) = "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¬Ê¹ÓÃÊı×éÌõ¼ş»ñÈ¡·ÖÒ³Êı¾İÊ±Ìõ¼ş²ÎÊı±ØĞëÎªÊı×é£¡"
-		Easp.Error(29) = "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¬Ê¹ÓÃ×Ô´ø·ÖÒ³´æ´¢¹ı³ÌÊ±Ìõ¼şÊı×é²ÎÊı±ØĞëÎª6¸öÔªËØ£¡"
-		Easp.Error(30) = "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¬Ê¹ÓÃ×Ô¶¨Òå·ÖÒ³´æ´¢¹ı³ÌÊ±±ØĞë°üº¬@@RecordCountºÍ@@PageCountÊä³ö²ÎÊı£¡"
-		Easp.Error(31) = "»ñÈ¡·ÖÒ³Êı¾İ³ö´í£¬Ê¹ÓÃ´æ´¢¹ı³Ì»ñÈ¡·ÖÒ³Êı¾İÊ±Ìõ¼ş²ÎÊı±ØĞëÎªÊı×é£¡"
+		Easp.Error(11) = "æ— æ•ˆçš„æŸ¥è¯¢æ¡ä»¶ï¼Œæ— æ³•è·å–è®°å½•é›†ï¼"
+		Easp.Error(12) = "æ•°æ®åº“æœåŠ¡å™¨ç«¯è¿æ¥é”™è¯¯ï¼Œè¯·æ£€æŸ¥æ•°æ®åº“è¿æ¥ä¿¡æ¯ï¼ˆç”¨æˆ·å/å¯†ç /æœåŠ¡å™¨åœ°å€/ç«¯å£å·/æ•°æ®åº“åï¼‰æ˜¯å¦æ­£ç¡®ï¼"
+		Easp.Error(13) = "æ— æ•ˆçš„æ•°æ®åº“è¿æ¥ï¼"
+		Easp.Error(14) = "æ— æ•ˆçš„æŸ¥è¯¢æ¡ä»¶ï¼Œæ— æ³•è·å–æ–°çš„IDå·ï¼"
+		Easp.Error(15) = "ç”ŸæˆJsonæ ¼å¼ä»£ç å‡ºé”™ï¼"
+		Easp.Error(16) = "ç”Ÿæˆä¸é‡å¤çš„éšæœºå­—ç¬¦ä¸²å‡ºé”™ï¼"
+		Easp.Error(17) = "ç”Ÿæˆä¸é‡å¤çš„éšæœºæ•°å‡ºé”™ï¼"
+		Easp.Error(18) = "è·å–éšæœºè®°å½•å¤±è´¥ï¼Œè¯·è¾“å…¥è¦å–çš„è®°å½•æ•°é‡ï¼"
+		Easp.Error(19) = "è·å–éšæœºè®°å½•å¤±è´¥ï¼Œè¯·åœ¨è¡¨ååè¾“å…¥:IDå­—æ®µçš„åç§°ï¼"
+		Easp.Error(20) = "å‘æ•°æ®åº“æ·»åŠ è®°å½•å‡ºé”™ï¼"
+		Easp.Error(21) = "æ›´æ–°æ•°æ®åº“è®°å½•å‡ºé”™ï¼"
+		Easp.Error(22) = "ä»æ•°æ®åº“åˆ é™¤æ•°æ®å‡ºé”™ï¼"
+		Easp.Error(23) = "ä»æ•°æ®åº“è·å–æ•°æ®å‡ºé”™ï¼"
+		Easp.Error(32) = "ä»…æ”¯æŒä»MS SQL Serveræ•°æ®åº“è°ƒç”¨å­˜å‚¨è¿‡ç¨‹ï¼"
+		Easp.Error(24) = "è°ƒç”¨å­˜å‚¨è¿‡ç¨‹å‡ºé”™ï¼"
+		Easp.Error(25) = "æ‰§è¡ŒSQLè¯­å¥å‡ºé”™ï¼"
+		Easp.Error(26) = "ç”ŸæˆSQLè¯­å¥å‡ºé”™ï¼"
+		Easp.Error(27) = "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼Œæ•°ç»„å¿…é¡»æ˜¯4ä¸ªå…ƒç´ ï¼ˆå¿…é¡»æä¾›æ•°æ®åº“è¡¨çš„ä¸»é”®ï¼‰ï¼"
+		Easp.Error(28) = "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼Œä½¿ç”¨æ•°ç»„æ¡ä»¶è·å–åˆ†é¡µæ•°æ®æ—¶æ¡ä»¶å‚æ•°å¿…é¡»ä¸ºæ•°ç»„ï¼"
+		Easp.Error(29) = "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼Œä½¿ç”¨è‡ªå¸¦åˆ†é¡µå­˜å‚¨è¿‡ç¨‹æ—¶æ¡ä»¶æ•°ç»„å‚æ•°å¿…é¡»ä¸º6ä¸ªå…ƒç´ ï¼"
+		Easp.Error(30) = "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼Œä½¿ç”¨è‡ªå®šä¹‰åˆ†é¡µå­˜å‚¨è¿‡ç¨‹æ—¶å¿…é¡»åŒ…å«@@RecordCountå’Œ@@PageCountè¾“å‡ºå‚æ•°ï¼"
+		Easp.Error(31) = "è·å–åˆ†é¡µæ•°æ®å‡ºé”™ï¼Œä½¿ç”¨å­˜å‚¨è¿‡ç¨‹è·å–åˆ†é¡µæ•°æ®æ—¶æ¡ä»¶å‚æ•°å¿…é¡»ä¸ºæ•°ç»„ï¼"
 		s_dbType       = ""
 		i_queryType    = 0
 		s_pageParam    = "page"
 		i_pageSize     = 20
 		s_pageSpName   = "easp_sp_pager"
 		Set o_pageDic = Server.CreateObject("Scripting.Dictionary")
-		o_pageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} Ìø×ªµ½{jump}Ò³</div>"
+		o_pageDic("default_html") = "<div class=""pager"">{first}{prev}{liststart}{list}{listend}{next}{last} è·³è½¬åˆ°{jump}é¡µ</div>"
 		o_pageDic("default_config") = ""
 	End Sub
 	Private Sub Class_Terminate()
@@ -52,7 +52,7 @@ Class EasyAsp_db
 		End If
 		Set o_pageDic = Nothing
 	End Sub
-	'ÊôĞÔ£º¶¨ÒåÊı¾İ¿âÁ¬½Ó
+	'å±æ€§ï¼šå®šä¹‰æ•°æ®åº“è¿æ¥
 	Public Property Let Conn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
 			Set o_conn = pdbConn
@@ -68,11 +68,11 @@ Class EasyAsp_db
 			Easp.Error.Raise 13
 		End If
 	End Property
-	'ÊôĞÔ£ºµ±Ç°Êı¾İ¿âÀàĞÍ
+	'å±æ€§ï¼šå½“å‰æ•°æ®åº“ç±»å‹
 	Public Property Get DatabaseType()
 		DatabaseType = s_dbType
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ»ñÈ¡¼ÇÂ¼¼¯µÄ·½Ê½
+	'å±æ€§ï¼šè®¾ç½®è·å–è®°å½•é›†çš„æ–¹å¼
 	Public Property Let QueryType(ByVal str)
 		str = Lcase(str)
 		If str = "1" or str = "command" Then
@@ -81,39 +81,39 @@ Class EasyAsp_db
 			i_queryType = 0
 		End If
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ·ÖÒ³ÊıÁ¿
+	'å±æ€§ï¼šè®¾ç½®åˆ†é¡µæ•°é‡
 	Public Property Let PageSize(ByVal num)
 		i_pageSize = num
 	End Property
-	'ÊôĞÔ£º·µ»Ø·ÖÒ³ÊıÁ¿
+	'å±æ€§ï¼šè¿”å›åˆ†é¡µæ•°é‡
 	Public Property Get PageSize()
 		PageSize = i_pageSize
 	End Property
-	'ÊôĞÔ£º·µ»Ø×ÜÒ³Êı
+	'å±æ€§ï¼šè¿”å›æ€»é¡µæ•°
 	Public Property Get PageCount()
 		PageCount = i_pageCount
 	End Property
-	'ÊôĞÔ£º·µ»Øµ±Ç°Ò³Âë
+	'å±æ€§ï¼šè¿”å›å½“å‰é¡µç 
 	Public Property Get PageIndex()
 		PageIndex = Easp.IIF(Easp.isN(i_pageIndex),GetCurrentPage,i_pageIndex)
 	End Property
-	'ÊôĞÔ£º·µ»Ø×Ü¼ÇÂ¼Êı
+	'å±æ€§ï¼šè¿”å›æ€»è®°å½•æ•°
 	Public Property Get PageRecordCount()
 		PageRecordCount = i_recordCount
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ»ñÈ¡·ÖÒ³²ÎÊı
+	'å±æ€§ï¼šè®¾ç½®è·å–åˆ†é¡µå‚æ•°
 	Public Property Let PageParam(ByVal str)
 		s_pageParam = str
 	End Property
-	'ÊôĞÔ£ºÉèÖÃ·ÖÒ³´æ´¢¹ı³ÌÃû
+	'å±æ€§ï¼šè®¾ç½®åˆ†é¡µå­˜å‚¨è¿‡ç¨‹å
 	Public Property Let PageSpName(ByVal str)
 		s_pageSpName = str
 	End Property
-	'½¨ĞÂÊµÀı
+	'å»ºæ–°å®ä¾‹
 	Public Function [New]()
 		Set [New] = New EasyASP_db
 	End Function
-	'Éú³ÉÊı¾İ¿âÁ¬½Ó×Ö·û´®
+	'ç”Ÿæˆæ•°æ®åº“è¿æ¥å­—ç¬¦ä¸²
 	Public Function OpenConn(ByVal dbType, ByVal strDB, ByVal strServer)
 		Dim TempStr, objConn, s, u, p, port
 		s = "" : u = "" : p = "" : port = ""
@@ -145,7 +145,7 @@ Class EasyAsp_db
 		End Select
 		Set OpenConn = CreatConn(TempStr)
 	End Function
-	'½¨Á¢Êı¾İ¿âÁ¬½Ó¶ÔÏó
+	'å»ºç«‹æ•°æ®åº“è¿æ¥å¯¹è±¡
 	Public Function CreatConn(ByVal ConnStr)
 		On Error Resume Next
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
@@ -184,7 +184,7 @@ Class EasyAsp_db
 			End If
 		Next
 	End Function
-	'×Ô¶¯»ñÈ¡Î¨Ò»ĞòÁĞºÅ£¨×Ô¶¯±àºÅ£©
+	'è‡ªåŠ¨è·å–å”¯ä¸€åºåˆ—å·ï¼ˆè‡ªåŠ¨ç¼–å·ï¼‰
 	Public Function AutoID(ByVal TableName)
 		On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
@@ -208,7 +208,7 @@ Class EasyAsp_db
 		rs.Close() : Set rs = Nothing
 		AutoID = tmpID
 	End Function
-	'È¡µÃ·ûºÏÌõ¼şµÄ¼ÍÂ¼ÁĞ±í
+	'å–å¾—ç¬¦åˆæ¡ä»¶çš„çºªå½•åˆ—è¡¨
 	Public Function GetRecord(ByVal TableName,ByVal Condition,ByVal OrderField)
 		Set GetRecord = GRS(wGetRecord(TableName,Condition,OrderField))
 	End Function
@@ -243,7 +243,7 @@ Class EasyAsp_db
 	Public Function wGR(ByVal TableName,ByVal Condition,ByVal OrderField)
 		wGR = wGetRecord(TableName, Condition, OrderField)
 	End Function
-	'¸ù¾İsqlÓï¾ä·µ»Ø¼ÇÂ¼¼¯
+	'æ ¹æ®sqlè¯­å¥è¿”å›è®°å½•é›†
 	Public Function GetRecordBySQL(ByVal s)
 		On Error Resume Next
 		If i_queryType = 1 Then
@@ -275,7 +275,7 @@ Class EasyAsp_db
 	Public Function GRS(ByVal s)
 		Set GRS = GetRecordBySQL(s)
 	End Function
-	'¸ù¾İ¼ÇÂ¼¼¯Éú³ÉJson¸ñÊ½´úÂë
+	'æ ¹æ®è®°å½•é›†ç”ŸæˆJsonæ ¼å¼ä»£ç 
 	Public Function Json(ByVal jRs, ByVal jName)
 		On Error Resume Next
 		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue
@@ -307,7 +307,7 @@ Class EasyAsp_db
 		rs.Close() : Set rs = Nothing
 		Json = tmpStr
 	End Function
-	'Éú³ÉÖ¸¶¨³¤¶ÈµÄ²»ÖØ¸´µÄ×Ö·û´®
+	'ç”ŸæˆæŒ‡å®šé•¿åº¦çš„ä¸é‡å¤çš„å­—ç¬¦ä¸²
 	Public Function RandStr(length,TableField)
 		On Error Resume Next
 		Dim tb, fi, tmpStr, rs
@@ -326,7 +326,7 @@ Class EasyAsp_db
 		Loop
 		If Err.number <> 0 Then Easp.Error.Raise 16
 	End Function
-	'Éú³ÉÒ»¸ö²»ÖØ¸´µÄËæ»úÊı
+	'ç”Ÿæˆä¸€ä¸ªä¸é‡å¤çš„éšæœºæ•°
 	Public Function Rand(min,max,TableField)
 		On Error Resume Next
 		Dim tb, fi, tmpInt, rs
@@ -345,7 +345,7 @@ Class EasyAsp_db
 		Loop
 		If Err.number <> 0 Then Easp.Error.Raise 17
 	End Function
-	'È¡µÃÄ³Ò»Ö¸¶¨¼ÍÂ¼µÄÏêÏ¸×ÊÁÏ
+	'å–å¾—æŸä¸€æŒ‡å®šçºªå½•çš„è¯¦ç»†èµ„æ–™
 	Public Function GetRecordDetail(ByVal TableName,ByVal Condition)
 		Dim strSelect
 		strSelect = "Select * From [" & TableName & "] Where " & ValueToSql(TableName,Condition,1)
@@ -354,7 +354,7 @@ Class EasyAsp_db
 	Public Function GRD(ByVal TableName,ByVal Condition)
 		Set GRD = GetRecordDetail(TableName, Condition)
 	End Function
-	'È¡Ö¸¶¨ÊıÁ¿µÄËæ»ú¼ÇÂ¼
+	'å–æŒ‡å®šæ•°é‡çš„éšæœºè®°å½•
 	Public Function GetRandRecord(ByVal TableName,ByVal Condition)
 		Dim sql,o,p,fi,IdField,showN,where
 		o = Easp_Param(TableName)
@@ -393,7 +393,7 @@ Class EasyAsp_db
 	Public Function GRR(ByVal TableName,ByVal Condition)
 		Set GRR = GetRandRecord(TableName,Condition)
 	End Function
-	'Ìí¼ÓÒ»¸öĞÂµÄ¼ÍÂ¼
+	'æ·»åŠ ä¸€ä¸ªæ–°çš„çºªå½•
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
 		On Error Resume Next
 		Dim o,s : o = Easp_Param(TableName)
@@ -426,7 +426,7 @@ Class EasyAsp_db
 	Public Function wAR(ByVal TableName,ByVal ValueList)
 		wAR = wAddRecord(TableName,ValueList)
 	End Function
-	'ĞŞ¸ÄÄ³Ò»¼ÍÂ¼
+	'ä¿®æ”¹æŸä¸€çºªå½•
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
 		On Error Resume Next
 		Dim s : s = wUpdateRecord(TableName,Condition,ValueList)
@@ -452,7 +452,7 @@ Class EasyAsp_db
 	Public Function wUR(ByVal TableName,ByVal Condition,ByVal ValueList)
 		wUR = wUpdateRecord(TableName, Condition, ValueList)
 	End Function
-	'É¾³ıÖ¸¶¨µÄ¼ÍÂ¼
+	'åˆ é™¤æŒ‡å®šçš„çºªå½•
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
 		On Error Resume Next
 		Dim s : s = wDeleteRecord(TableName,Condition)
@@ -487,7 +487,7 @@ Class EasyAsp_db
 	Public Function wDR(ByVal TableName,ByVal Condition)
 		wDR = wDeleteRecord(TableName, Condition)
 	End Function
-	'´ÓÄ³Ò»±íÖĞ£¬¸ù¾İÒ»¸öÌõ¼ş»ñÈ¡Ò»Ìõ¼ÇÂ¼µÄÆäËû×Ö¶ÎµÄÖµ
+	'ä»æŸä¸€è¡¨ä¸­ï¼Œæ ¹æ®ä¸€ä¸ªæ¡ä»¶è·å–ä¸€æ¡è®°å½•çš„å…¶ä»–å­—æ®µçš„å€¼
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
@@ -513,7 +513,7 @@ Class EasyAsp_db
 	Public Function RT(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		RT = ReadTable(TableName, Condition, GetFieldNames)
 	End Function
-	'µ÷ÓÃ´æ´¢¹ı³Ì
+	'è°ƒç”¨å­˜å‚¨è¿‡ç¨‹
 	Public Function doSP(ByVal spName, ByVal spParam)
 		On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
@@ -577,13 +577,13 @@ Class EasyAsp_db
 		Set cmd = Nothing
 		Err.Clear
 	End Function
-	'ÊÍ·Å¼ÇÂ¼¼¯¶ÔÏó
+	'é‡Šæ”¾è®°å½•é›†å¯¹è±¡
 	Public Function C(ByRef ObjRs)
 		On Error Resume Next
 		ObjRs.close()
 		Set ObjRs = Nothing
 	End Function
-	'Ö´ĞĞÖ¸¶¨µÄSQLÓï¾ä,¿É·µ»Ø¼ÇÂ¼¼¯
+	'æ‰§è¡ŒæŒ‡å®šçš„SQLè¯­å¥,å¯è¿”å›è®°å½•é›†
 	Public Function Exec(ByVal s)
 		On Error Resume Next
 		If Lcase(Left(s,6)) = "select" Then
@@ -646,8 +646,8 @@ Class EasyAsp_db
 		End With
 		Set ExecuteCmd = Nothing
 	End Function
-	'ÒÔÏÂÊÇ·ÖÒ³³ÌĞò²¿·Ö
-	'»ñÈ¡·ÖÒ³ºóµÄ¼ÇÂ¼¼¯
+	'ä»¥ä¸‹æ˜¯åˆ†é¡µç¨‹åºéƒ¨åˆ†
+	'è·å–åˆ†é¡µåçš„è®°å½•é›†
 	Public Function GetPageRecord(ByVal PageSetup, ByVal Condition)
 		On Error Resume Next
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
@@ -721,11 +721,11 @@ Class EasyAsp_db
 					If pType = "" Then pType = s_pageSpName
 					Select Case pType
 						Case "easp_sp_pager"
-						'Ê¹ÓÃ×Ô´ø·ÖÒ³´æ´¢¹ı³Ì·ÖÒ³
+						'ä½¿ç”¨è‡ªå¸¦åˆ†é¡µå­˜å‚¨è¿‡ç¨‹åˆ†é¡µ
 							If Ubound(Condition)<>5 Then Easp.Error.Raise 29
 							spResult = doSP("easp_sp_pager:3",Array("@TableName:"&Condition(0),"@FieldList:"&Condition(1),"@Where:"&Condition(2),"@Order:"&Condition(3),"@PrimaryKey:"&Condition(4),"@SortType:"&Condition(5),"@RecorderCount:0","@pageSize:"&i_pageSize,"@PageIndex:"&i_pageIndex,"@@RecordCount","@@PageCount"))
 						Case Else
-						'Ê¹ÓÃ×Ô¶¨Òå·ÖÒ³´æ´¢¹ı³Ì
+						'ä½¿ç”¨è‡ªå®šä¹‰åˆ†é¡µå­˜å‚¨è¿‡ç¨‹
 							spReturn = Array(False,False)
 							For i = 0 To Ubound(Condition)
 								If LCase(Condition(i)) = "@@recordcount" Then spReturn(0) = True
@@ -758,7 +758,7 @@ Class EasyAsp_db
 	Public Function GPR(ByVal PageSetup, ByVal Condition)
 		Set GPR = GetPageRecord(PageSetup, Condition)
 	End Function
-	'Éú³É·ÖÒ³µ¼º½Á´½Ó
+	'ç”Ÿæˆåˆ†é¡µå¯¼èˆªé“¾æ¥
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
 		On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
@@ -853,7 +853,7 @@ Class EasyAsp_db
 		Select Case LCase(cfg("jump"))
 			Case "input"
 				pJumpValue = "this.value"
-				pJump = "<input type=""text"" size=""3"" title=""ÇëÊäÈëÒªÌø×ªµ½µÄÒ³Êı²¢»Ø³µ""" & Easp.IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
+				pJump = "<input type=""text"" size=""3"" title=""è¯·è¾“å…¥è¦è·³è½¬åˆ°çš„é¡µæ•°å¹¶å›è½¦""" & Easp.IIF(cfg("jumpplus")="",""," "&cfg("jumpplus"))
 				pJump = pJump & " onkeydown=""javascript:if(event.charCode==13||event.keyCode==13){if(!isNaN(" & pJumpValue & ")){"
 				pJump = pJump & Easp.IIF(cfg("jumpaction")="",Easp.IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*", pJumpValue))
 				pJump = pJump & "}return false;}"" />"
@@ -861,7 +861,7 @@ Class EasyAsp_db
 				pJumpValue = "this.options[this.selectedIndex].value"
 				pJump = "<select" & Easp.IIF(cfg("jumpplus")="",""," "&cfg("jumpplus")) & " onchange=""javascript:"
 				pJump = pJump & Easp.IIF(cfg("jumpaction")="",Easp.IIF(Lcase(Left(cfg("link"),11))="javascript:",Replace(Mid(cfg("link"),12),"*",pJumpValue),"document.location.href='" & Replace(cfg("link"),"*","'+" & pJumpValue & "+'") & "';"),Replace(cfg("jumpaction"),"*",pJumpValue))
-				pJump = pJump & """ title=""ÇëÑ¡ÔñÒªÌø×ªµ½µÄÒ³Êı""> "
+				pJump = pJump & """ title=""è¯·é€‰æ‹©è¦è·³è½¬åˆ°çš„é¡µæ•°""> "
 				If cfg("jumplong")=0 Then
 					For i = 1 To cfg("pagecount")
 						pJump = pJump & "<option value=""" & i & """" & Easp.IIF(i=cfg("pageindex")," selected=""selected""","") & ">" & i & "</option> "
@@ -899,18 +899,18 @@ Class EasyAsp_db
 		Set cfg = Nothing
 		Pager = vbCrLf & tmpStr & vbCrLf
 	End Function
-	'ÅäÖÃ·ÖÒ³ÑùÊ½
+	'é…ç½®åˆ†é¡µæ ·å¼
 	Public Sub SetPager(ByVal PagerName, ByVal PagerHtml, ByRef PagerConfig)
 		If PagerName = "" Then PagerName = "default"
 		If Easp.Has(PagerHtml) Then o_pageDic.item(PagerName&"_html") = PagerHtml
 		If Easp.Has(PagerConfig) Then o_pageDic.item(PagerName&"_config") = PagerConfig
 	End Sub
-	'µ÷ÓÃ·ÖÒ³ÑùÊ½
+	'è°ƒç”¨åˆ†é¡µæ ·å¼
 	Public Function GetPager(ByVal PagerName)
 		If PagerName = "" Then PagerName = "default"
 		GetPager = Pager(o_pageDic(PagerName&"_html"),o_pageDic(PagerName&"_config"))
 	End Function
-	'È¡µÃµ±Ç°Ò³Âë
+	'å–å¾—å½“å‰é¡µç 
 	Private Function GetCurrentPage()
 		Dim rqParam, thisPage : thisPage = 1
 		rqParam = Easp.Get(s_pageParam)
@@ -919,7 +919,7 @@ Class EasyAsp_db
 		End If
 		GetCurrentPage = thisPage
 	End Function
-	'·µ»Ø³ıÈ¥Ò³ÂëµÄµ±Ç°URL²ÎÊı
+	'è¿”å›é™¤å»é¡µç çš„å½“å‰URLå‚æ•°
 	Private Function GetRQ(pageNumer)
 		GetRQ = Easp.ReplaceUrl(s_pageParam, pageNumer)
 	End Function
