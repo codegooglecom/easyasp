@@ -28,7 +28,7 @@ Class EasyAsp
 		s_plugin	= s_path & "plugin/"
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
-		s_charset	= "GBK"
+		s_charset	= "UTF-8"
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
@@ -114,7 +114,8 @@ Class EasyAsp
 
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
-		[error](1) = "°üº¬ÎÄ¼şÄÚ²¿ÔËĞĞ´íÎó£¬Çë¼ì²é°üº¬ÎÄ¼ş´úÂë£¡"
+		[error](1) = "åŒ…å«æ–‡ä»¶å†…éƒ¨è¿è¡Œé”™è¯¯ï¼Œè¯·æ£€æŸ¥åŒ…å«æ–‡ä»¶ä»£ç ï¼"
+		[error](2) = "è¯»å–æ–‡ä»¶é”™è¯¯ï¼Œæ–‡ä»¶æœªæ‰¾åˆ°ï¼"
 		Set db = New EasyAsp_db
 '{init}
 		Set fso = New EasyAsp_Fso
@@ -133,7 +134,7 @@ Class EasyAsp
 		rqsv = Request.ServerVariables(s)
 	End Function
 	
-	'Êä³ö×Ö·û´®(¼òÒ×¶Ïµãµ÷ÊÔ)
+	'è¾“å‡ºå­—ç¬¦ä¸²(ç®€æ˜“æ–­ç‚¹è°ƒè¯•)
 	Sub W(ByVal s)
 		Response.Write(s)
 	End Sub
@@ -147,7 +148,7 @@ Class EasyAsp
 		W(s)
 		Response.End()
 	End Sub
-	'Éú³É¶¯Ì¬×Ö·û´®
+	'ç”ŸæˆåŠ¨æ€å­—ç¬¦ä¸²
 	Function Str(ByVal s, ByVal v)
 		Dim i
 		s = Replace(s,"\\",Chr(0))
@@ -162,15 +163,15 @@ Class EasyAsp
 		s = Replace(s,Chr(1),"{")
 		Str = Replace(s,Chr(0),"\")
 	End Function
-	'Êä³ö¶¯Ì¬×Ö·û´®
+	'è¾“å‡ºåŠ¨æ€å­—ç¬¦ä¸²
 	Sub WStr(ByVal s, ByVal v)
 		W Str(s,v)
 	End Sub
-	'·şÎñÆ÷¶ËÌø×ª
+	'æœåŠ¡å™¨ç«¯è·³è½¬
 	Sub RR(ByVal u)
 		Response.Redirect(u)
 	End Sub
-	'ÅĞ¶ÏÊÇ·ñÎª¿ÕÖµ
+	'åˆ¤æ–­æ˜¯å¦ä¸ºç©ºå€¼
 	Function isN(ByVal s)
 		isN = False
 		Select Case VarType(s)
@@ -195,7 +196,7 @@ Class EasyAsp
 	Function Has(ByVal s)
 		Has = Not isN(s)
 	End Function
-	'ÅĞ¶ÏÈıÔª±í´ïÊ½
+	'åˆ¤æ–­ä¸‰å…ƒè¡¨è¾¾å¼
 	Function IIF(ByVal Cn, ByVal T, ByVal F)
 		If Cn Then
 			IIF = T
@@ -206,26 +207,26 @@ Class EasyAsp
 	Function IfThen(ByVal Cn, ByVal T)
 		IfThen = IIF(Cn,T,"")
 	End Function
-	'·şÎñÆ÷¶ËÊä³öjavascript
+	'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascript
 	Sub Js(ByVal s)
 		W JsCode(s)
 	End Sub
 	Function JsCode(ByVal s)
 		JsCode = Str("<{1} type=""text/java{1}"">{2}{3}{4}{2}</{1}>{2}", Array("sc"&"ript",vbCrLf,vbTab,s))
 	End Function
-	'·şÎñÆ÷¶ËÊä³öjavascriptµ¯³öÏûÏ¢¿ò²¢·µ»ØÇ°Ò³
+	'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascriptå¼¹å‡ºæ¶ˆæ¯æ¡†å¹¶è¿”å›å‰é¡µ
 	Sub Alert(ByVal s)
 		WE JsCode(Str("alert('{1}');history.go(-1);",JsEncode(s)))
 	End Sub
-	'·şÎñÆ÷¶ËÊä³öjavascriptµ¯³öÏûÏ¢¿ò²¢×ªµ½URL
+	'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascriptå¼¹å‡ºæ¶ˆæ¯æ¡†å¹¶è½¬åˆ°URL
 	Sub AlertUrl(ByVal s, ByVal u)
 		WE JsCode(Str("alert('{1}');location.href='{2}';",Array(JsEncode(s),u)))
 	End Sub
-	'·şÎñÆ÷¶ËÊä³öjavascriptÈ·ÈÏÏûÏ¢¿ò²¢¸ù¾İÑ¡Ôñ×ªµ½URL
+	'æœåŠ¡å™¨ç«¯è¾“å‡ºjavascriptç¡®è®¤æ¶ˆæ¯æ¡†å¹¶æ ¹æ®é€‰æ‹©è½¬åˆ°URL
 	Sub ConfirmUrl(ByVal s, ByVal t, ByVal f)
 		WE JsCode(Str("location.href=confirm('{1}')?'{2}':'{3}';",Array(JsEncode(s),t,f)))
 	End Sub
-	'´¦Àí×Ö·û´®ÖĞµÄJavascriptÌØÊâ×Ö·û
+	'å¤„ç†å­—ç¬¦ä¸²ä¸­çš„Javascriptç‰¹æ®Šå­—ç¬¦
 	Function JsEncode(ByVal s)
 		If isN(s) Then JsEncode = "" : Exit Function
 		Dim i, j, aL1, aL2, c, p, t
@@ -253,7 +254,7 @@ Class EasyAsp
 		Next
 		JsEncode = t
 	End Function
-	'×ª»»×Ö·ûÎªHTMLÊµÌå
+	'è½¬æ¢å­—ç¬¦ä¸ºHTMLå®ä½“
 	Function ASCII(s)
 		If IsN(s) Then ASCII = "" : Exit Function
 		Dim tmp,i,t
@@ -264,7 +265,7 @@ Class EasyAsp
 		Next
 		ASCII = tmp
 	End Function
-	'ÌØÊâ×Ö·û±àÂë
+	'ç‰¹æ®Šå­—ç¬¦ç¼–ç 
 	Function Escape(ByVal ss)
 		If isN(ss) Then Escape = "" : Exit Function
 		Dim i,c,a,s : s = ""
@@ -285,7 +286,7 @@ Class EasyAsp
 		Next
 		Escape = s
 	End Function
-	'ÌØÊâ×Ö·û½âÂë
+	'ç‰¹æ®Šå­—ç¬¦è§£ç 
 	Function UnEscape(ByVal ss)
 		If isN(ss) Then UnEscape = "" : Exit Function
 		Dim x, s
@@ -304,7 +305,7 @@ Class EasyAsp
 		Loop
 		UnEscape = s & ss
 	End Function
-	'¸ñÊ½»¯ÈÕÆÚÊ±¼ä
+	'æ ¼å¼åŒ–æ—¥æœŸæ—¶é—´
 	Function DateTime(ByVal iTime, ByVal iFormat)
 		If Not IsDate(iTime) Then DateTime = "Date Error" : Exit Function
 		If Instr(",0,1,2,3,4,",","&iFormat&",")>0 Then DateTime = FormatDateTime(iTime,iFormat) : Exit Function
@@ -318,43 +319,43 @@ Class EasyAsp
 		iiYear = Year(iTime) : iiMonth = right("0"&Month(iTime),2)
 		iiDay = right("0"&Day(iTime),2) : iiHour = right("0"&Hour(iTime),2)
 		iiMinute = right("0"&Minute(iTime),2) : iiSecond = right("0"&Second(iTime),2)
-		tWeek = Weekday(iTime)-1 : iWeek = Array("ÈÕ","Ò»","¶ş","Èı","ËÄ","Îå","Áù")
+		tWeek = Weekday(iTime)-1 : iWeek = Array("æ—¥","ä¸€","äºŒ","ä¸‰","å››","äº”","å…­")
 		If isDate(iFormat) or isN(iFormat) Then
 			If isN(iFormat) Then : iFormat = Now() : pastTime = true : End If
-			dire = "ºó" : If DateDiff("s",iFormat,iTime)<0 Then : dire = "Ç°" : before = True : End If
+			dire = "å" : If DateDiff("s",iFormat,iTime)<0 Then : dire = "å‰" : before = True : End If
 			diffs = Abs(DateDiff("s",iFormat,iTime))
 			diffd = Abs(DateDiff("d",iFormat,iTime))
 			diffw = Abs(DateDiff("ww",iFormat,iTime))
 			diffm = Abs(DateDiff("m",iFormat,iTime))
 			diffy = Abs(DateDiff("yyyy",iFormat,iTime))
-			If diffs < 60 Then DateTime = "¸Õ¸Õ" : Exit Function
-			If diffs < 1800 Then DateTime = Int(diffs\60) & "·ÖÖÓ" & dire : Exit Function
-			If diffs < 2400 Then DateTime = "°ëĞ¡Ê±"  & dire : Exit Function
-			If diffs < 3600 Then DateTime = Int(diffs\60) & "·ÖÖÓ" & dire : Exit Function
+			If diffs < 60 Then DateTime = "åˆšåˆš" : Exit Function
+			If diffs < 1800 Then DateTime = Int(diffs\60) & "åˆ†é’Ÿ" & dire : Exit Function
+			If diffs < 2400 Then DateTime = "åŠå°æ—¶"  & dire : Exit Function
+			If diffs < 3600 Then DateTime = Int(diffs\60) & "åˆ†é’Ÿ" & dire : Exit Function
 			If diffs < 259200 Then
-				If diffd = 3 Then DateTime = "3Ìì" & dire & " " & iiHour & ":" & iiMinute : Exit Function
-				If diffd = 2 Then DateTime = IIF(before,"Ç°Ìì ","ºóÌì ") & iiHour & ":" & iiMinute : Exit Function
-				If diffd = 1 Then DateTime = IIF(before,"×òÌì ","Ã÷Ìì ") & iiHour & ":" & iiMinute : Exit Function
-				DateTime = Int(diffs\3600) & "Ğ¡Ê±" & dire : Exit Function
+				If diffd = 3 Then DateTime = "3å¤©" & dire & " " & iiHour & ":" & iiMinute : Exit Function
+				If diffd = 2 Then DateTime = IIF(before,"å‰å¤© ","åå¤© ") & iiHour & ":" & iiMinute : Exit Function
+				If diffd = 1 Then DateTime = IIF(before,"æ˜¨å¤© ","æ˜å¤© ") & iiHour & ":" & iiMinute : Exit Function
+				DateTime = Int(diffs\3600) & "å°æ—¶" & dire : Exit Function
 			End If
-			If diffd < 7 Then DateTime = diffd & "Ìì" & dire & " " & iiHour & ":" & iiMinute : Exit Function
+			If diffd < 7 Then DateTime = diffd & "å¤©" & dire & " " & iiHour & ":" & iiMinute : Exit Function
 			If diffd < 14 Then
-				If diffw = 1 Then DateTime = IIF(before,"ÉÏĞÇÆÚ","ÏÂĞÇÆÚ") & iWeek(tWeek) & " " & iiHour & ":" & iiMinute : Exit Function
-				If Not pastTime Then DateTime = diffd & "Ìì" & dire : Exit Function
+				If diffw = 1 Then DateTime = IIF(before,"ä¸Šæ˜ŸæœŸ","ä¸‹æ˜ŸæœŸ") & iWeek(tWeek) & " " & iiHour & ":" & iiMinute : Exit Function
+				If Not pastTime Then DateTime = diffd & "å¤©" & dire : Exit Function
 			End If
 			If Not pastTime Then
 				If diffd < 31 Then
-					If diffm = 2 Then DateTime = "2¸öÔÂ" & dire : Exit Function
-					If diffm = 1 Then DateTime = IIF(before,"ÉÏ¸öÔÂ","ÏÂ¸öÔÂ") & iDay & "ÈÕ" : Exit Function
-					DateTime = diffw & "ĞÇÆÚ" & dire : Exit Function
+					If diffm = 2 Then DateTime = "2ä¸ªæœˆ" & dire : Exit Function
+					If diffm = 1 Then DateTime = IIF(before,"ä¸Šä¸ªæœˆ","ä¸‹ä¸ªæœˆ") & iDay & "æ—¥" : Exit Function
+					DateTime = diffw & "æ˜ŸæœŸ" & dire : Exit Function
 				End If
 				If diffm < 36 Then
-					If diffy = 3 Then DateTime = "3Äê" & dire : Exit Function
-					If diffy = 2 Then DateTime = IIF(before,"Ç°Äê","ºóÄê") & iMonth & "ÔÂ" : Exit Function
-					If diffy = 1 Then DateTime = IIF(before,"È¥Äê","Ã÷Äê") & iMonth & "ÔÂ" : Exit Function
-					DateTime = diffm & "¸öÔÂ" & dire : Exit Function
+					If diffy = 3 Then DateTime = "3å¹´" & dire : Exit Function
+					If diffy = 2 Then DateTime = IIF(before,"å‰å¹´","åå¹´") & iMonth & "æœˆ" : Exit Function
+					If diffy = 1 Then DateTime = IIF(before,"å»å¹´","æ˜å¹´") & iMonth & "æœˆ" : Exit Function
+					DateTime = diffm & "ä¸ªæœˆ" & dire : Exit Function
 				End If
-				DateTime = diffy & "Äê" & dire : Exit Function
+				DateTime = diffy & "å¹´" & dire : Exit Function
 			Else
 				iFormat = "yyyy-mm-dd hh:ii"
 			End If
@@ -379,13 +380,13 @@ Class EasyAsp
 		For i = 0 To 6 : t = Replace(t, SpecialTextRe(i),SpecialText(i)) : Next
 		DateTime = t
 	End Function
-	'Î±Rewrite¹æÔòÉèÖÃ£¨´«Í³·½·¨£©
+	'ä¼ªRewriteè§„åˆ™è®¾ç½®ï¼ˆä¼ ç»Ÿæ–¹æ³•ï¼‰
 	Sub RewriteRule(ByVal s, ByVal u)
 		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/" And Left(s,2)<>"^/" And Left(s,1)<>"/") Or Left(u,1)<>"/" Then Exit Sub
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
-	'Î±Rewrite¹æÔòÉèÖÃ£¨ÍÆ¼ö·½·¨£©
+	'ä¼ªRewriteè§„åˆ™è®¾ç½®ï¼ˆæ¨èæ–¹æ³•ï¼‰
 	Sub Rewrite(ByVal p, ByVal s, Byval u)
 		Dim rp,arr,i,rs,ru
 		If Left(s,1) = "^" Then s = Mid(s,2)
@@ -400,7 +401,7 @@ Class EasyAsp
 			rp = ""
 		Next
 	End Sub
-	'¼ì²â±¾Ò³ÊÇ·ñÊÇRewrite
+	'æ£€æµ‹æœ¬é¡µæ˜¯å¦æ˜¯Rewrite
 	Function isRewrite()
 		Dim rule,i
 		isRewrite = False
@@ -418,7 +419,7 @@ Class EasyAsp
 			Next
 		End If
 	End Function
-	'Ìæ»»Url²ÎÊı
+	'æ›¿æ¢Urlå‚æ•°
 	Function ReplaceUrl(ByVal p, ByVal s)
 		Dim arrQs,tmp
 		If isRewrite Then
@@ -436,15 +437,15 @@ Class EasyAsp
 			ReplaceUrl = GetUrlWith("-" & p, p & "=" & s)
 		End If
 	End Function
-	'»ñÈ¡QueryStringÖµ£¬Ö§³ÖÈ¡RewriteÖµ
+	'è·å–QueryStringå€¼ï¼Œæ”¯æŒå–Rewriteå€¼
 	Function [Get](Byval s)
 		Dim tmp, i, arrQs, t
 		If Instr(s,":")>0 Then
-		'Èç¹ûÓĞÀàĞÍ²ÎÊı£¬ÔòÈ¡³öÎªt
+		'å¦‚æœæœ‰ç±»å‹å‚æ•°ï¼Œåˆ™å–å‡ºä¸ºt
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
 		If isRewrite Then
-		'Èç¹ûÊÇRewriteµÄÒ³ÃæµØÖ·
+		'å¦‚æœæ˜¯Rewriteçš„é¡µé¢åœ°å€
 			arrQs = Split(s_rwtU,"&")
 			For i = 0 To Ubound(arrQs)
 				If s = CLeft(arrQs(i),"=") Then
@@ -453,12 +454,12 @@ Class EasyAsp
 				End If
 			Next
 		Else
-		'·ñÔòÖ±½ÓÈ¡QueryString
+		'å¦åˆ™ç›´æ¥å–QueryString
 			tmp = Request.QueryString(s)
 		End If
 		[Get] = Safe(tmp,t)
 	End Function
-	'È¡FormÖµ
+	'å–Formå€¼
 	Function Post(ByVal s)
 		Dim t,tmp
 		If Instr(s,":")>0 Then
@@ -467,26 +468,26 @@ Class EasyAsp
 		tmp = Request.Form(s)
 		Post = Safe(tmp,t)
 	End Function
-	'°²È«»ñÈ¡ÖµĞÂ°æ
+	'å®‰å…¨è·å–å€¼æ–°ç‰ˆ
 	Function Safe(ByVal s, ByVal t)
 		If IsN(s) Then Safe = Empty : Exit Function
 		Dim spl,d,l,li,i,tmp,arr() : l = False
-		'Èç¹ûÀàĞÍÖĞÓĞÄ¬ÈÏÖµ
+		'å¦‚æœç±»å‹ä¸­æœ‰é»˜è®¤å€¼
 		If Instr(t,":")>0 Then
 			d = CRight(t,":") : t = CLeft(t,":")
 		End If
 		If Instr(",sa,da,na,se,de,ne,", "," & Left(LCase(t),2) & ",")>0 Then
-			'Èç¹ûÓĞ·Ö¸ô·ûÇÒÒª¾¯¸æ
+			'å¦‚æœæœ‰åˆ†éš”ç¬¦ä¸”è¦è­¦å‘Š
 			If Len(t)>2 Then
 				spl = Mid(t,3) : t = LCase(Left(t,2)) : l = True
 			End If
 		ElseIf Instr("sdn", Left(LCase(t),1))>0 Then
-			'Èç¹ûÓĞ·Ö¸ô·ûÇÒ²»¾¯¸æ
+			'å¦‚æœæœ‰åˆ†éš”ç¬¦ä¸”ä¸è­¦å‘Š
 			If Len(t)>1 Then
 				spl = Mid(t,2) : t = LCase(Left(t,1)) : l = True
 			End If
 		ElseIf Has(t) Then
-			'½öÓĞ·Ö¸ô·ûÎŞÀàĞÍ
+			'ä»…æœ‰åˆ†éš”ç¬¦æ— ç±»å‹
 			spl = t : t = "" : l = True
 		End If
 		li = Split(s,spl)
@@ -495,37 +496,37 @@ Class EasyAsp
 			If i<>0 Then tmp = tmp & spl
 			Select Case t
 				Case "s","sa","se"
-				'×Ö·û´®ÀàĞÍ
+				'å­—ç¬¦ä¸²ç±»å‹
 					If isN(li(i)) Then li(i) = d
 					tmp = tmp & Replace(li(i),"'","''")
 					If l Then arr(i) = Replace(li(i),"'","''")
 				Case "d","da","de"
-				'ÈÕÆÚÀàĞÍ
+				'æ—¥æœŸç±»å‹
 					If t = "da" Then
-						If Not isDate(li(i)) And Has(li(i)) Then Alert("²»ÕıÈ·µÄÈÕÆÚÖµ£¡")
+						If Not isDate(li(i)) And Has(li(i)) Then Alert("ä¸æ­£ç¡®çš„æ—¥æœŸå€¼ï¼")
 					ElseIf t = "de" Then
-						If Not isDate(li(i)) And Has(li(i)) Then [error].Throw("²»ÕıÈ·µÄÈÕÆÚÖµ£¡")
+						If Not isDate(li(i)) And Has(li(i)) Then [error].Throw("ä¸æ­£ç¡®çš„æ—¥æœŸå€¼ï¼")
 					End If
 					tmp = IIF(isDate(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isDate(li(i)), li(i), d)
 				Case "n","na","ne"
-				'Êı×ÖÀàĞÍ
+				'æ•°å­—ç±»å‹
 					If t = "na" Then
-						If Not isNumeric(li(i)) And Has(li(i)) Then Alert("²»ÕıÈ·µÄÊıÖµ£¡")
+						If Not isNumeric(li(i)) And Has(li(i)) Then Alert("ä¸æ­£ç¡®çš„æ•°å€¼ï¼")
 					ElseIf t = "ne" Then
-						If Not isNumeric(li(i)) And Has(li(i)) Then [error].Throw("²»ÕıÈ·µÄÊıÖµ£¡")
+						If Not isNumeric(li(i)) And Has(li(i)) Then [error].Throw("ä¸æ­£ç¡®çš„æ•°å€¼ï¼")
 					End If
 					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
 				Case Else
-				'Î´Ö¸¶¨ÀàĞÍÔò²»´¦Àí
+				'æœªæŒ‡å®šç±»å‹åˆ™ä¸å¤„ç†
 					tmp = IIF(isN(li(i)), tmp & d, tmp & li(i))
 					If l Then arr(i) = IIF(isN(li(i)), d, li(i))
 			End Select
 		Next
 		Safe = IIF(l,arr,tmp)
 	End Function
-	'¼ì²éÌá½»Êı¾İÀ´Ô´
+	'æ£€æŸ¥æäº¤æ•°æ®æ¥æº
 	Function CheckDataFrom()
 		Dim v1, v2
 		CheckDataFrom = False
@@ -537,9 +538,9 @@ Class EasyAsp
 		End If
 	end Function
 	Sub CheckDataFromA()
-		If Not CheckDataFrom Then Alert "½ûÖ¹´ÓÕ¾µãÍâ²¿Ìá½»Êı¾İ£¡"
+		If Not CheckDataFrom Then Alert "ç¦æ­¢ä»ç«™ç‚¹å¤–éƒ¨æäº¤æ•°æ®ï¼"
 	end Sub
-	'½ØÈ¡³¤×Ö·û´®×ó±ß²¿·Ö²¢ÒÔÌØÊâ·ûºÅ´úÌæ
+	'æˆªå–é•¿å­—ç¬¦ä¸²å·¦è¾¹éƒ¨åˆ†å¹¶ä»¥ç‰¹æ®Šç¬¦å·ä»£æ›¿
 	Function CutStr(ByVal s, ByVal strlen)
 		If IsN(s) Then CutStr = "" : Exit Function
 		If IsN(strlen) or strlen = "0" Then CutStr = s : Exit Function
@@ -566,15 +567,15 @@ Class EasyAsp
 		Next
 		CutStr = f
 	End Function
-	'È¡×Ö·û¸ô¿ªµÄ×ó¶Î
+	'å–å­—ç¬¦éš”å¼€çš„å·¦æ®µ
 	Function CLeft(ByVal s, ByVal m)
 		CLeft = Easp_LR(s,m,0)
 	End Function
-	'È¡×Ö·û¸ô¿ªµÄÓÒ¶Î
+	'å–å­—ç¬¦éš”å¼€çš„å³æ®µ
 	Function CRight(ByVal s, ByVal m)
 		CRight = Easp_LR(s,m,1)
 	End Function
-	'»ñÈ¡µ±Ç°ÎÄ¼şµÄµØÖ·
+	'è·å–å½“å‰æ–‡ä»¶çš„åœ°å€
 	Function GetUrl(param)
 		Dim script_name,url,dir
 		Dim out,qitem,qtemp,i,hasQS,qstring
@@ -626,7 +627,7 @@ Class EasyAsp
 		End If
 		GetUrl = url
 	End Function
-	'»ñÈ¡±¾Ò³URL²ÎÊı²¢´øÉÏĞÂµÄURL²ÎÊı
+	'è·å–æœ¬é¡µURLå‚æ•°å¹¶å¸¦ä¸Šæ–°çš„URLå‚æ•°
 	Function GetUrlWith(ByVal p, ByVal v)
 		Dim u,s,n
 		s = IIF(p=-1,GetUrl(-1)&"/","")
@@ -648,7 +649,7 @@ Class EasyAsp
 		End If
 		GetUrlWith = u
 	End Function
-	'»ñÈ¡ÓÃ»§IPµØÖ·
+	'è·å–ç”¨æˆ·IPåœ°å€
 	Function GetIP()
 		Dim addr, x, y
 		x = rqsv("HTTP_X_FORWARDED_FOR")
@@ -657,7 +658,7 @@ Class EasyAsp
 		If InStr(addr,".")=0 Then addr = "0.0.0.0"
 		GetIP = addr
 	End Function
-	'½ö¸ñÊ½»¯HTMLÎÄ±¾£¨¿É´øHTML±êÇ©£©
+	'ä»…æ ¼å¼åŒ–HTMLæ–‡æœ¬ï¼ˆå¯å¸¦HTMLæ ‡ç­¾ï¼‰
 	Function HtmlFormat(ByVal s)
 		If Has(s) Then
 			Dim m,Match : Set m = RegMatch(s, "<([^>]+)>")
@@ -673,7 +674,7 @@ Class EasyAsp
 		End If
 		HtmlFormat = s
 	End Function
-	'HTML¼ÓÂëº¯Êı
+	'HTMLåŠ ç å‡½æ•°
 	Function HtmlEncode(ByVal s)
 		If Has(s) Then
 			s = Replace(s, Chr(38), "&#38;")
@@ -687,7 +688,7 @@ Class EasyAsp
 		End If
 		HtmlEncode = s
 	End Function
-	'HTML½âÂëº¯Êı
+	'HTMLè§£ç å‡½æ•°
 	Function HtmlDecode(ByVal s)
 		If Has(s) Then
 			s = regReplace(s, "<br\s*/?\s*>", vbCrLf)
@@ -703,18 +704,18 @@ Class EasyAsp
 		End If
 		HtmlDecode = s
 	End Function
-	'¹ıÂËHTML±êÇ©
+	'è¿‡æ»¤HTMLæ ‡ç­¾
 	Function HtmlFilter(ByVal s)
 		s = regReplace(s,"<[^>]+>","")
 		s = Replace(s, ">", "&gt;")
 		HtmlFilter = Replace(s, "<", "&lt;")
 	End Function
-	'¾«È·µ½ºÁÃëµÄ½Å±¾Ö´ĞĞÊ±¼ä
+	'ç²¾ç¡®åˆ°æ¯«ç§’çš„è„šæœ¬æ‰§è¡Œæ—¶é—´
 	Function GetScriptTime(t)
 		If t = "" Or t = "0" Then t = Easp_Timer
 		GetScriptTime = FormatNumber((Timer()-t)*1000, 2, -1)
 	End Function
-	'È¡Ö¸¶¨³¤¶ÈµÄËæ»ú×Ö·û´®
+	'å–æŒ‡å®šé•¿åº¦çš„éšæœºå­—ç¬¦ä¸²
 	Function RandStr(ByVal cfg)
 		Dim a, p, l, t, reg, m, mi, ma
 		cfg = Replace(Replace(Replace(cfg,"\<",Chr(0)),"\>",Chr(1)),"\:",Chr(2))
@@ -760,29 +761,29 @@ Class EasyAsp
 			Randomize() : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
 		Next
 	End Function
-	'È¡Ò»¸öËæ»úÊı
+	'å–ä¸€ä¸ªéšæœºæ•°
 	Function Rand(ByVal min, ByVal max)
 		Randomize() : Rand = Int((max - min + 1) * Rnd + min)
 	End Function
-	'¸ñÊ½»¯Êı×Ö
+	'æ ¼å¼åŒ–æ•°å­—
 	Function toNumber(ByVal n, ByVal d)
 		toNumber = FormatNumber(n,d,-1)
 	End Function
-	'½«Êı×Ö×ª»»Îª»õ±Ò¸ñÊ½
+	'å°†æ•°å­—è½¬æ¢ä¸ºè´§å¸æ ¼å¼
 	Function toPrice(ByVal n)
 		toPrice = FormatCurrency(n,2,-1,0,-1)
 	End Function
-	'½«Êı×Ö×ª»»Îª°Ù·Ö±È¸ñÊ½
+	'å°†æ•°å­—è½¬æ¢ä¸ºç™¾åˆ†æ¯”æ ¼å¼
 	Function toPercent(ByVal n)
 		toPercent = FormatPercent(n,2,-1)
 	End Function
-	'¹Ø±Õ¶ÔÏó²¢ÊÍ·Å×ÊÔ´
+	'å…³é—­å¯¹è±¡å¹¶é‡Šæ”¾èµ„æº
 	Sub C(ByRef o)
 		On Error Resume Next
 		o.Close() : Set o = Nothing
 		Err.Clear()
 	End Sub
-	'²»»º´æÒ³ÃæĞÅÏ¢
+	'ä¸ç¼“å­˜é¡µé¢ä¿¡æ¯
 	Sub noCache()
 		Response.Buffer = True
 		Response.Expires = 0
@@ -792,7 +793,7 @@ Class EasyAsp
 		Response.AddHeader "Pragma","no-cache"
 		Response.AddHeader "Cache-Control","private, no-cache, must-revalidate"
 	End Sub
-	'ÉèÖÃÒ»¸öCookiesÖµ
+	'è®¾ç½®ä¸€ä¸ªCookieså€¼
 	Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
 		Dim n,i,cExp,cDomain,cPath,cSecure
 		If isArray(cooCfg) Then
@@ -839,7 +840,7 @@ Class EasyAsp
 		If Has(cPath) Then Response.Cookies(cooName).Path = cPath
 		If Has(cSecure) Then Response.Cookies(cooName).Secure = cSecure
 	End Sub
-	'»ñÈ¡Ò»¸öCookiesÖµ
+	'è·å–ä¸€ä¸ªCookieså€¼
 	Function Cookie(ByVal s)
 		Dim p,t,coo
 		If Instr(s,">") > 0 Then
@@ -865,7 +866,7 @@ Class EasyAsp
 		End If
 		Cookie = Safe(coo,t)
 	End Function
-	'É¾³ıÒ»¸öCookiesÖµ
+	'åˆ é™¤ä¸€ä¸ªCookieså€¼
 	Sub RemoveCookie(ByVal s)
 		Dim p,t
 		If Instr(s,">") > 0 Then
@@ -881,24 +882,24 @@ Class EasyAsp
 			Response.Cookies(s).Expires = Now()
 		End If
 	End Sub
-	'ÉèÖÃ»º´æ¼ÇÂ¼
+	'è®¾ç½®ç¼“å­˜è®°å½•
 	Sub SetApp(ByVal AppName,ByRef AppData)
 		Application.Lock
 		Application(AppName) = AppData
 		Application.UnLock
 	End Sub
-	'»ñÈ¡Ò»¸ö»º´æ¼ÇÂ¼
+	'è·å–ä¸€ä¸ªç¼“å­˜è®°å½•
 	Function GetApp(ByVal AppName)
 		If IsN(AppName) Then GetApp = "" : Exit Function
 		GetApp = Application(AppName)
 	End Function
-	'É¾³ıÒ»¸ö»º´æ¼ÇÂ¼
+	'åˆ é™¤ä¸€ä¸ªç¼“å­˜è®°å½•
 	Sub RemoveApp(ByVal AppName)
 		Application.Lock
 		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
-	'ÑéÖ¤Éí·İÖ¤ºÅÂë
+	'éªŒè¯èº«ä»½è¯å·ç 
 	Private Function isIDCard(ByVal s)
 		Dim Ai, BirthDay, arrVerifyCode, Wi, i, AiPlusWi, modValue, strVerifyCode
 		isIDCard = False
@@ -923,11 +924,11 @@ Class EasyAsp
 		If Len(s) = 18 And LCase(s) <> Ai Then Exit Function
 		isIDCard = True
 	End Function
-	'¼òÒ×µÄ·şÎñ¶Ë¼ì²é±íµ¥
+	'ç®€æ˜“çš„æœåŠ¡ç«¯æ£€æŸ¥è¡¨å•
 	Function CheckForm(ByVal s, ByVal Rule, ByVal Require, ByVal ErrMsg)
 		Dim tmpMsg, Msg, i
 		tmpMsg = Replace(ErrMsg,"\:",chr(0))
-		Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("ÓĞÏîÄ¿²»ÄÜÎª¿Õ",tmpMsg))
+		Msg = IIF(Instr(tmpMsg,":")>0,Split(tmpMsg,":"),Array("æœ‰é¡¹ç›®ä¸èƒ½ä¸ºç©º",tmpMsg))
 		If Require = 1 And IsN(s) Then
 			If Instr(tmpMsg,":")>0 Then
 				Alert Replace(Msg(0),chr(0),":") : Exit Function
@@ -949,7 +950,7 @@ Class EasyAsp
 		End If
 		CheckForm = s
 	End Function
-	'·µ»ØÕıÔòÑéÖ¤½á¹û
+	'è¿”å›æ­£åˆ™éªŒè¯ç»“æœ
 	Function [Test](ByVal s, ByVal p)
 		Dim Pa
 		Select Case Lcase(p)
@@ -974,21 +975,21 @@ Class EasyAsp
 		End Select
 		[Test] = Easp_Test(CStr(s),Pa)
 	End Function
-	'ÕıÔòÌæ»»
+	'æ­£åˆ™æ›¿æ¢
 	Function regReplace(ByVal s, ByVal rule, Byval Result)
 		regReplace = Easp_Replace(s,rule,Result,0)
 	End Function
-	'ÕıÔòÌæ»»¶àĞĞÄ£Ê½
+	'æ­£åˆ™æ›¿æ¢å¤šè¡Œæ¨¡å¼
 	Function regReplaceM(ByVal s, ByVal rule, Byval Result)
 		regReplaceM = Easp_Replace(s,rule,Result,1)
 	End Function
-	'ÕıÔòÆ¥Åä²¶»ñ
+	'æ­£åˆ™åŒ¹é…æ•è·
 	Function regMatch(ByVal s, ByVal rule)
 		o_regex.Pattern = rule
 		Set regMatch = o_regex.Execute(s)
 		o_regex.Pattern = ""
 	End Function
-	'ÕıÔò±í´ïÊ½ÌØÊâ×Ö·û×ªÒå
+	'æ­£åˆ™è¡¨è¾¾å¼ç‰¹æ®Šå­—ç¬¦è½¬ä¹‰
 	Function RegEncode(ByVal s)
 		Dim re,i
 		re = Split("\,$,(,),*,+,.,[,?,^,{,|",",")
@@ -997,7 +998,7 @@ Class EasyAsp
 		Next
 		RegEncode = s
 	End Function
-	'Ìæ»»ÕıÔò±à×é
+	'æ›¿æ¢æ­£åˆ™ç¼–ç»„
 	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
 		If Not Easp_Test(txt, rule) Then
 			replacePart = "[not match]"
@@ -1022,7 +1023,7 @@ Class EasyAsp
 		Next
 		Set Match = Nothing
 	End Function
-	'¼ì²â×é¼şÊÇ·ñ°²×°
+	'æ£€æµ‹ç»„ä»¶æ˜¯å¦å®‰è£…
 	Function isInstall(Byval s)
 		On Error Resume Next : Err.Clear()
 		isInstall = False
@@ -1030,7 +1031,7 @@ Class EasyAsp
 		If Err.Number = 0 Then isInstall = True
 		Set obj = Nothing : Err.Clear()
 	End Function
-	'¶¯Ì¬ÔØÈëÎÄ¼ş
+	'åŠ¨æ€è½½å…¥æ–‡ä»¶
 	Sub Include(ByVal filePath)
 		On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),0)
@@ -1050,15 +1051,66 @@ Class EasyAsp
 		End If
 		Err.Clear()
 	End Function
-	'¶ÁÈ¡ÎÄ¼şÄÚÈİ
+	'è¯»å–æ–‡ä»¶å†…å®¹
 	Function Read(ByVal filePath)
-		Use "Fso"
-		Read = Fso.Read(filePath & "|easp")
+		Dim p, f, o_strm, tmpStr, s_char, t
+		s_char = s_charset
+		If Instr(filePath,"|")>0 Then
+			t = LCase(Trim(CRight(filePath,"|")))
+			filePath = CLeft(filePath,"|")
+		End If
+		If Instr(filePath,">")>0 Then
+			s_char = UCase(Trim(CRight(filePath,">")))
+			filePath = Trim(CLeft(filePath,">"))
+		End If
+		p = filePath
+		If Mid(p,2,1)<>":" Then
+			p = Server.MapPath(p)
+		End If
+		Set Fso = Server.CreateObject(s_fsoName)
+		If Fso.FileExists(p) Then
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 2
+				.Mode = 3
+				.Open
+				.LoadFromFile p
+				.Charset = s_char
+				.Position = 2
+				tmpStr = .ReadText
+				.Close
+			End With
+			Set o_strm = Nothing
+			If s_char = "UTF-8" Then
+				Select Case Easp.FileBOM
+					Case "keep"
+						'Do Nothing
+					Case "remove"
+						If Test(tmpStr, "^\uFEFF") Then
+							tmpStr = RegReplace(tmpStr, "^\uFEFF", "")
+						End If
+					Case "add"
+						If Not Test(tmpStr, "^\uFEFF") Then
+							tmpStr = Chrw(&hFEFF) & tmpStr
+						End If
+				End Select
+			End If
+		Else
+			tmpStr = ""
+			If IsN(t) Then
+				[error].Msg = "(" & filePath & ")"
+				[error].Raise 2
+			ElseIf t="easp" Then
+				tmpStr = "File Not Found: '" & filePath & "'"
+			End If
+		End If
+		Set Fso = Nothing
+		Read = tmpStr
 	End Function
-	'¶ÁÈ¡°üº¬ÎÄ¼şÄÚÈİ£¨ÎŞÏŞ¼¶£©
+	'è¯»å–åŒ…å«æ–‡ä»¶å†…å®¹ï¼ˆæ— é™çº§ï¼‰
 	Private Function IncRead(ByVal filePath)
 		Dim content, rule, inc, incFile, incStr
-		content = Read(filePath)
+		content = Read(filePath&"|easp")
 		If isN(content) Then Exit Function
 		content = regReplace(content,"<% *?@.*?%"&">","")
 		content = regReplace(content,"(<%[^>]+?)(option +?explicit)([^>]*?%"&">)","$1'$2$3")
@@ -1078,7 +1130,7 @@ Class EasyAsp
 		End If
 		IncRead = content
 	End Function
-	'½«ÎÄ±¾ÄÚÈİ×ª»»ÎªASP´úÂë
+	'å°†æ–‡æœ¬å†…å®¹è½¬æ¢ä¸ºASPä»£ç 
 	Function GetIncCode(ByVal content, ByVal getHtml)
 		Dim tmpStr,code,tmpCode,s_code,st,en
 		code = "" : st = 1 : en = Instr(content,"<%") + 2
@@ -1109,7 +1161,7 @@ Class EasyAsp
 		If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
 		GetIncCode = regReplace(code,"(\n\s*\r)+",vbCrLf)
 	End Function
-	'¼ÓÔØÒıÓÃEasyAsp¿âÀà
+	'åŠ è½½å¼•ç”¨EasyAspåº“ç±»
 	Sub Use(ByVal f)
 		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
@@ -1120,7 +1172,7 @@ Class EasyAsp
 			Execute("Set " & o & " = New EasyAsp_" & f)
 		End If
 	End Sub
-	'¼ÓÔØ²å¼ş
+	'åŠ è½½æ’ä»¶
 	Function Ext(ByVal f)
 		Dim loaded
 		f = Lcase(f) : loaded = True
@@ -1135,7 +1187,7 @@ Class EasyAsp
 		End If
 		Set Ext = o_ext(f)
 	End Function
-	'Çå³ı¼ÓÔØ²å¼ş
+	'æ¸…é™¤åŠ è½½æ’ä»¶
 	Private Sub ClearExt()
 		Dim i
 		If Has(o_ext) Then
@@ -1145,14 +1197,14 @@ Class EasyAsp
 			o_ext.RemoveAll
 		End If
 	End Sub
-	'Md5¼ÓÃÜ×Ö·û´®
+	'Md5åŠ å¯†å­—ç¬¦ä¸²
 	Function MD5(ByVal s)
 		Use("Md5") : MD5 = o_md5(s)
 	End Function
 	Function MD5_16(ByVal s)
 		Use("Md5") : MD5_16 = o_md5.To16(s)
 	End Function
-	'µ÷ÊÔº¯Êı
+	'è°ƒè¯•å‡½æ•°
 	Sub Trace(ByVal o)
 		Dim s,i,j
 		Select Case VarType(o)
@@ -1221,7 +1273,7 @@ Class EasyAsp
 		End If
 		Easp_Replace = tmpStr
 	End Function
-	'È¡×Ö·û´®µÄÁ½Í·
+	'å–å­—ç¬¦ä¸²çš„ä¸¤å¤´
 	Private Function Easp_LR(ByVal s, ByVal m, ByVal t)
 		Dim n : n = Instr(s,m)
 		If n>0 Then

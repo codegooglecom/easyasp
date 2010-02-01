@@ -27,14 +27,14 @@ Class EasyAsp_upload
 		s_savepath	= ""
 		b_automd	= False
 		b_random	= False
-		Easp.Error(71) = "±íµ¥ÀàĞÍ´íÎó£¬±íµ¥Ö»ÄÜÊÇ""multipart/form-data""ÀàĞÍ£¡"
-		Easp.Error(72) = "ÇëÏÈÑ¡ÔñÒªÉÏ´«µÄÎÄ¼ş£¡"
-		Easp.Error(73) = "ÉÏ´«ÎÄ¼şÊ§°Ü£¬ÉÏ´«ÎÄ¼ş×Ü´óĞ¡³¬¹ıÁËÏŞÖÆ£¡"
-		Easp.Error(74) = "ÉÏ´«ÎÄ¼şÊ§°Ü£¬ÉÏ´«ÎÄ¼ş²»ÄÜÎª¿Õ£¡"
-		Easp.Error(75) = "ÉÏ´«ÎÄ¼şÊ§°Ü£¬ÎÄ¼ş´óĞ¡³¬¹ıÁËÏŞÖÆ£¡"
-		Easp.Error(76) = "ÉÏ´«ÎÄ¼şÊ§°Ü£¬²»ÔÊĞíÉÏ´«´ËÀàĞÍµÄÎÄ¼ş£¡"
-		Easp.Error(77) = "ÉÏ´«ÎÄ¼şÊ§°Ü£¡"
-		Easp.Error(78) = "»ñÈ¡ÎÄ¼şÊ§°Ü£¡"
+		Easp.Error(71) = "è¡¨å•ç±»å‹é”™è¯¯ï¼Œè¡¨å•åªèƒ½æ˜¯""multipart/form-data""ç±»å‹ï¼"
+		Easp.Error(72) = "è¯·å…ˆé€‰æ‹©è¦ä¸Šä¼ çš„æ–‡ä»¶ï¼"
+		Easp.Error(73) = "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼Œä¸Šä¼ æ–‡ä»¶æ€»å¤§å°è¶…è¿‡äº†é™åˆ¶ï¼"
+		Easp.Error(74) = "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼Œä¸Šä¼ æ–‡ä»¶ä¸èƒ½ä¸ºç©ºï¼"
+		Easp.Error(75) = "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼Œæ–‡ä»¶å¤§å°è¶…è¿‡äº†é™åˆ¶ï¼"
+		Easp.Error(76) = "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼Œä¸å…è®¸ä¸Šä¼ æ­¤ç±»å‹çš„æ–‡ä»¶ï¼"
+		Easp.Error(77) = "ä¸Šä¼ æ–‡ä»¶å¤±è´¥ï¼"
+		Easp.Error(78) = "è·å–æ–‡ä»¶å¤±è´¥ï¼"
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		File.CompareMode = 1
@@ -53,39 +53,39 @@ Class EasyAsp_upload
 		File.RemoveAll
 		Set File = Nothing
 	End Sub
-	'ÊôĞÔ£ºÎÄ¼ş±àÂë
+	'å±æ€§ï¼šæ–‡ä»¶ç¼–ç 
 	Public Property Let CharSet(ByVal str)
 		s_charset = UCase(str)
 	End Property
-	'ÊôĞÔ£ºµ¥¸öÎÄ¼ş×î´ó³ß´ç
+	'å±æ€§ï¼šå•ä¸ªæ–‡ä»¶æœ€å¤§å°ºå¯¸
 	Public Property Let MaxSize(ByVal n)
 		i_maxsize = n
 	End Property
-	'ÊôĞÔ£ºËùÓĞÎÄ¼ş×î´ó×Ü³ß´ç
+	'å±æ€§ï¼šæ‰€æœ‰æ–‡ä»¶æœ€å¤§æ€»å°ºå¯¸
 	Public Property Let TotalMaxSize(ByVal n)
 		i_totalmaxsize = n
 	End Property
-	'ÊôĞÔ£ºÔÊĞíÉÏ´«µÄÎÄ¼şÀàĞÍ
+	'å±æ€§ï¼šå…è®¸ä¸Šä¼ çš„æ–‡ä»¶ç±»å‹
 	Public Property Let Allowed(ByVal str)
 		s_allowed = str
 	End Property
-	'ÊôĞÔ£º½ûÖ¹ÉÏ´«µÄÎÄ¼şÀàĞÍ
+	'å±æ€§ï¼šç¦æ­¢ä¸Šä¼ çš„æ–‡ä»¶ç±»å‹
 	Public Property Let Denied(ByVal str)
 		s_denied = str
 	End Property
-	'ÊôĞÔ£ºÎÄ¼şÉÏ´«ºó±£´æµÄÂ·¾¶(Ïà¶Ô»ò¾ø¶Ô)
+	'å±æ€§ï¼šæ–‡ä»¶ä¸Šä¼ åä¿å­˜çš„è·¯å¾„(ç›¸å¯¹æˆ–ç»å¯¹)
 	Public Property Let SavePath(ByVal str)
 		s_savepath = str
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñ×Ô¶¯´´½¨²»´æÔÚµÄÎÄ¼ş¼Ğ
+	'å±æ€§ï¼šæ˜¯å¦è‡ªåŠ¨åˆ›å»ºä¸å­˜åœ¨çš„æ–‡ä»¶å¤¹
 	Public Property Let AutoMD(ByVal bool)
 		b_automd = bool
 	End Property
-	'ÊôĞÔ£ºÊÇ·ñÖØÃüÃûÉÏ´«ÎÄ¼şÎªËæ»úÎÄ¼şÃû
+	'å±æ€§ï¼šæ˜¯å¦é‡å‘½åä¸Šä¼ æ–‡ä»¶ä¸ºéšæœºæ–‡ä»¶å
 	Public Property Let Random(ByVal bool)
 		b_random = bool
 	End Property	
-	'ÊôĞÔ£ºÏÔÊ¾ÉÏ´«³É¹¦µÄÎÄ¼şÊı
+	'å±æ€§ï¼šæ˜¾ç¤ºä¸Šä¼ æˆåŠŸçš„æ–‡ä»¶æ•°
 	Public Property Get FileCount()
 		FileCount = i_filecount
 	End Property
@@ -211,7 +211,7 @@ Class EasyAsp_upload
 			o_strm.Position = File(sItem).Start
 			o_strm.CopyTo oFileStream, File(sItem).Size
 			.Position	= 0
-			'##.SaveToFile sFileName, 2   'ÔİÊ±²»±£´æÎÄ¼ş
+			'##.SaveToFile sFileName, 2   'æš‚æ—¶ä¸ä¿å­˜æ–‡ä»¶
 			.Close
 		End With
 		Set oFileStream = Nothing
@@ -262,28 +262,28 @@ Class EasyAsp_upload
 	Function CheckOneFile(ByVal sItem)
 		CheckOneFile = True
 		If Not File.Exists(sItem) Then
-			Easp.Error.Msg = "±íµ¥¿Ø¼ş("""&sItem&""")²»´æÔÚ"
+			Easp.Error.Msg = "è¡¨å•æ§ä»¶("""&sItem&""")ä¸å­˜åœ¨"
 			Easp.Error.Raise 78
 			CheckOneFile = False : Exit Function
 		End If
 		Dim cp : cp = File(sItem).ClientPath
 		If Not isAllowed(File(sItem).Ext) Then
-			Easp.Error.Msg = "²»ÔÊĞíÉÏ´«´ËÀàĞÍµÄÎÄ¼ş("&File(sItem).ClientPath&")"
+			Easp.Error.Msg = "ä¸å…è®¸ä¸Šä¼ æ­¤ç±»å‹çš„æ–‡ä»¶("&File(sItem).ClientPath&")"
 			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		End If
 		If File(sItem).Size < 1 Then
-			Easp.Error.Msg = "ÉÏ´«ÎÄ¼ş²»ÄÜÎª¿Õ("&Easp.IIF(Easp.isN(cp),sItem,cp)&")"
+			Easp.Error.Msg = "ä¸Šä¼ æ–‡ä»¶ä¸èƒ½ä¸ºç©º("&Easp.IIF(Easp.isN(cp),sItem,cp)&")"
 			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		ElseIf i_maxsize > 0 And File(sItem).Size > i_maxsize Then
-			Easp.Error.Msg = "ÎÄ¼ş´óĞ¡³¬¹ıÁËÏŞÖÆ("&File(sItem).ClientPath&")"
+			Easp.Error.Msg = "æ–‡ä»¶å¤§å°è¶…è¿‡äº†é™åˆ¶("&File(sItem).ClientPath&")"
 			Easp.Error.Raise 77
 			CheckOneFile = False : Exit Function
 		End If
 	End Function
 	
-	'È¡ÎÄ¼ş¼Ğ¾ø¶ÔÂ·¾¶
+	'å–æ–‡ä»¶å¤¹ç»å¯¹è·¯å¾„
 	Private Function absPath(ByVal path)
 		Dim p : p = path
 		If Instr(p,":") = 0 Then p = Server.MapPath(p)

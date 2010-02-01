@@ -36,7 +36,7 @@ Class EasyAsp_Tpl
 		Set o_blocks = Nothing
 	End Sub
 
-	'Ä£°åÂ·¾¶
+	'æ¨¡æ¿è·¯å¾„
 	Public Property Get FilePath
 		FilePath = s_path
 	End Property
@@ -44,11 +44,11 @@ Class EasyAsp_Tpl
 		If Right(f,1)<>"/" Then f = f & "/"
 		s_path = f
 	End Property
-	'¼ÓÔØÄ£°å·½·¨Ò»
+	'åŠ è½½æ¨¡æ¿æ–¹æ³•ä¸€
 	Public Property Let [File](ByVal f)
 		Load(f)
 	End Property
-	'±êÇ©µÄ±êÊ¶·û
+	'æ ‡ç­¾çš„æ ‡è¯†ç¬¦
 	Public Property Get TagMask
 		TagMask = s_m
 	End Property
@@ -56,14 +56,14 @@ Class EasyAsp_Tpl
 		s_m = m
 		getMaskSE s_m
 	End Property
-	'Ä£°åÖĞÊÇ·ñ¿ÉÒÔÖ´ĞĞASP´úÂë
+	'æ¨¡æ¿ä¸­æ˜¯å¦å¯ä»¥æ‰§è¡ŒASPä»£ç 
 	Public Property Get AspEnable
 		AspEnable = b_asp
 	End Property
 	Public Property Let AspEnable(ByVal b)
 		b_asp = b
 	End Property
-	'ÈçºÎ´¦ÀíÎ´¶¨ÒåµÄ±êÇ©
+	'å¦‚ä½•å¤„ç†æœªå®šä¹‰çš„æ ‡ç­¾
 	Public Property Get TagUnknown
 		TagUnknown = s_unknown
 	End Property
@@ -77,29 +77,29 @@ Class EasyAsp_Tpl
 				s_unknown = "keep"
 		End Select
 	End Property
-	'½¨ĞÂÊµÀı
+	'å»ºæ–°å®ä¾‹
 	Public Function [New]()
 		Set [New] = New EasyASP_Tpl
 	End Function
 
-	'¼ÓÔØÄ£°å·½·¨¶ş
+	'åŠ è½½æ¨¡æ¿æ–¹æ³•äºŒ
 	Public Sub Load(ByVal f)
 		s_html = LoadInc(s_path & f,"")
 		SetBlocks()
 	End Sub
-	'¼ÓÔØ¸½¼ÓÄ£°å
+	'åŠ è½½é™„åŠ æ¨¡æ¿
 	Public Sub TagFile(ByVal tag, ByVal f)
 		Dim s
 		s = LoadInc(s_path & f,"")
 		s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
 		SetBlocks()
 	End Sub
-	'Ìæ»»±êÇ©(Ä¬ÈÏ·½·¨)
+	'æ›¿æ¢æ ‡ç­¾(é»˜è®¤æ–¹æ³•)
 	Public Default Sub Tag(ByVal s, ByVal v)
 		If o_tag.Exists(s) Then o_tag.Remove s
 		o_tag.Add s, Cstr(v)
 	End Sub
-	'ÔÚÒÑÌæ»»±êÇ©ºóÌí¼ÓĞÂÄÚÈİ
+	'åœ¨å·²æ›¿æ¢æ ‡ç­¾åæ·»åŠ æ–°å†…å®¹
 	Public Sub Append(ByVal s, ByVal v)
 		Dim tmp
 		If o_tag.Exists(s) Then
@@ -110,7 +110,7 @@ Class EasyAsp_Tpl
 			o_tag.Add s, Cstr(v)
 		End If
 	End Sub
-	'¸üĞÂÑ­»·¿éÊı¾İ
+	'æ›´æ–°å¾ªç¯å—æ•°æ®
 	Public Sub [Update](ByVal b)
 		Dim Matches, Match, tmp, s, rule, data
 		s = BlockData(b)
@@ -138,7 +138,7 @@ Class EasyAsp_Tpl
 			s_html = Easp.regReplace(s_html, Chr(0) & b & Chr(0), s & Chr(0) & b & Chr(0))
 		Next
 	End Sub
-	'»ñÈ¡×îÖÕhtml
+	'è·å–æœ€ç»ˆhtml
 	Public Function GetHtml()
 		Dim Matches, Match, n
 		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
@@ -166,11 +166,11 @@ Class EasyAsp_Tpl
 		End select
 		GetHtml = s_html
 	End Function
-	'Êä³öÄ£°åÄÚÈİ
+	'è¾“å‡ºæ¨¡æ¿å†…å®¹
 	Public Sub Show()
 		Easp.W GetHtml
 	End Sub
-	'Éú³Éhtml±êÇ©
+	'ç”Ÿæˆhtmlæ ‡ç­¾
 	Public Function MakeTag(ByVal t, ByVal f)
 		Dim s,e,a,i
 		Select Case Lcase(t)
@@ -194,16 +194,16 @@ Class EasyAsp_Tpl
 		MakeTag = Join(a,vbCrLf)
 	End Function
 
-	'Éú³ÉMeta±êÇ©
+	'ç”ŸæˆMetaæ ‡ç­¾
 	Private Function MakeTagMeta(ByVal m, ByVal t, ByVal s)
 		MakeTagMeta = "<meta " & m & "=""" & t & """ content=""" & s & """ />"
 	End Function
-	'»ñÈ¡Tag±êÊ¶
+	'è·å–Tagæ ‡è¯†
 	Private Sub getMaskSE(ByVal m)
 		s_ms = Easp.RegEncode(Easp.CLeft(m,"*"))
 		s_me = Easp.RegEncode(Easp.CRight(m,"*"))
 	End Sub
-	'ÔØÈëÄ£°åÎÄ¼ş²¢½«ÎŞÏŞ¼¶includeÄ£°åÔØÈë
+	'è½½å…¥æ¨¡æ¿æ–‡ä»¶å¹¶å°†æ— é™çº§includeæ¨¡æ¿è½½å…¥
 	Private Function LoadInc(ByVal f, ByVal p)
 		Dim h,pa,rule,inc,Match,incFile,incStr
 		pa = Easp.IIF(Left(f,1)="/","",p)
@@ -245,7 +245,7 @@ Class EasyAsp_Tpl
 			Begin o_blocks.item(j)
 		Next
 	End Sub
-	'³õÊ¼»¯Ñ­»·¿é
+	'åˆå§‹åŒ–å¾ªç¯å—
 	Private Sub Begin(ByVal b)
 		Dim Matches, Match, rule, data
 		rule = "(<!--[\s]*)?(" & s_ms & ")#:(" & b & ")(" & s_me & ")([\s]*-->)?([\s\S]+?)(<!--[\s]*)?\2/#:\3\4([\s]*-->)?"
@@ -262,7 +262,7 @@ Class EasyAsp_Tpl
 			s_html = Easp.regReplace(s_html, rule, Chr(0) & b & Chr(0))
 		Next
 	End Sub
-	'È¡Ñ­»·¿éÔ­Ê¼Ä£°åÊı¾İ
+	'å–å¾ªç¯å—åŸå§‹æ¨¡æ¿æ•°æ®
 	Private Function BlockData(ByVal b)
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
@@ -273,7 +273,7 @@ Class EasyAsp_Tpl
 			BlockData = "<!--" & Chr(0) & b & Chr(0) & "-->"
 		End If
 	End Function
-	'È¡Ñ­»·¿éÁÙÊ±Êı¾İ
+	'å–å¾ªç¯å—ä¸´æ—¶æ•°æ®
 	Private Function BlockTag(ByVal b)
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
@@ -285,7 +285,7 @@ Class EasyAsp_Tpl
 			BlockTag = "<!--" & Chr(0) & b & Chr(0) & "-->"
 		End If
 	End Function
-	'¸üĞÂÑ­»·¿é±êÇ©
+	'æ›´æ–°å¾ªç¯å—æ ‡ç­¾
 	Private Function UpdateBlockTag(ByVal s)
 		Dim Matches, Match, data, rule
 		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)

@@ -15,7 +15,7 @@ Class EasyAsp_JSON
 	'Kind : 0 = object, 1 = array
 	Private Sub Class_Initialize
 		Set Collection = CreateObject("Scripting.Dictionary")
-		'Ãû³ÆÊÇ·ñÓÃÒıºÅ
+		'åç§°æ˜¯å¦ç”¨å¼•å·
 		If TypeName(Easp.Json) = "EasyAsp_JSON" Then
 			QuotedVars = Easp.Json.QuotedVars
 		Else
@@ -27,7 +27,7 @@ Class EasyAsp_JSON
 	Private Sub Class_Terminate
 		Set Collection = Nothing
 	End Sub
-	'½¨ĞÂÊµÀı
+	'å»ºæ–°å®ä¾‹
 	Public Function [New](ByVal k)
 		Set [New] = New EasyASP_JSON
 		Select Case LCase(k)
@@ -40,7 +40,7 @@ Class EasyAsp_JSON
 		Counter = Count
 		Count = Count + 1
 	End Property
-	'¸³Öµ£¬Öµ¿ÉÒÔÊÇEaspµÄJson¶ÔÏó
+	'èµ‹å€¼ï¼Œå€¼å¯ä»¥æ˜¯Easpçš„Jsonå¯¹è±¡
 	Public Property Let Pair(p, v)
 		If IsNull(p) Then p = Counter
 		If TypeName(v) = "EasyAsp_JSON" Then
@@ -57,15 +57,15 @@ Class EasyAsp_JSON
 			Pair = Collection(p)
 		End If
 	End Property
-	'Çå³ıËùÓĞÏî
+	'æ¸…é™¤æ‰€æœ‰é¡¹
 	Public Sub Clean
 		Collection.RemoveAll
 	End Sub
-	'É¾³ıÄ³Ò»Öµ
+	'åˆ é™¤æŸä¸€å€¼
 	Public Sub Remove(vProp)
 		Collection.Remove vProp
 	End Sub
-	'½«Ä¿±ê×ª»¯Json×Ö·û´®
+	'å°†ç›®æ ‡è½¬åŒ–Jsonå­—ç¬¦ä¸²
 	Public Function toJSON(vPair)
 		Select Case VarType(vPair)
 			Case 1
@@ -91,7 +91,7 @@ Class EasyAsp_JSON
 				toJSON = Replace(vPair, ",", ".")
 		End select
 	End Function
-	'µİ¹éÊı×éÉú³ÉJson×Ö·û´®
+	'é€’å½’æ•°ç»„ç”ŸæˆJsonå­—ç¬¦ä¸²
 	Private Function RenderArray(arr, depth, parent)
 		Dim first : first = LBound(arr, depth)
 		Dim last : last = UBound(arr, depth)
@@ -113,11 +113,11 @@ Class EasyAsp_JSON
 		Next
 		RenderArray = RenderArray & "]"
 	End Function
-	'·µ»ØJson×Ö·û´®
+	'è¿”å›Jsonå­—ç¬¦ä¸²
 	Public Property Get jsString
 		jsString = toJSON(Me)
 	End Property
-	'Êä³öÎªJsonÎÄ¼ş
+	'è¾“å‡ºä¸ºJsonæ–‡ä»¶
 	Public Sub Flush
 		Response.Clear()
 		Response.Charset = "UTF-8"
@@ -125,7 +125,7 @@ Class EasyAsp_JSON
 		Easp.NoCache()
 		Easp.WE jsString
 	End Sub
-	'¸´ÖÆJson¶ÔÏó
+	'å¤åˆ¶Jsonå¯¹è±¡
 	Public Function Clone
 		Set Clone = ColClone(Me)
 	End Function

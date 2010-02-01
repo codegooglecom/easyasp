@@ -17,7 +17,7 @@ Class EasyAsp_Error
 	Private Sub Class_Initialize
 		i_errNum    = ""
 		i_delay     = 3000
-		s_title     = "·¢Éú´íÎóÀ²"
+		s_title     = "å‘ç”Ÿé”™è¯¯å•¦"
 		b_debug     = Easp.Debug
 		b_redirect  = True
 		s_url       = "javascript:history.go(-1)"
@@ -26,22 +26,22 @@ Class EasyAsp_Error
 	Private Sub Class_Terminate
 		Set o_err = Nothing
 	End Sub
-	'ÊÇ·ñ¿ªÆôµ÷ÊÔ×´Ì¬£¨¿ªÆôºó·µ»Ø¿ª·¢Õß´íÎóĞÅÏ¢£©
+	'æ˜¯å¦å¼€å¯è°ƒè¯•çŠ¶æ€ï¼ˆå¼€å¯åè¿”å›å¼€å‘è€…é”™è¯¯ä¿¡æ¯ï¼‰
 	Public Property Get [Debug]
 		[Debug] = b_debug
 	End Property
 	Public Property Let [Debug](ByVal b)
 		b_debug = b
 	End Property
-	'È¡ÒÑ¶¨ÒåµÄ´íÎóĞÅÏ¢
+	'å–å·²å®šä¹‰çš„é”™è¯¯ä¿¡æ¯
 	Public Default Property Get E(ByVal n)
 		If o_err.Exists(n) Then
 			E = o_err(n)
 		Else
-			E = "Î´Öª´íÎó"
+			E = "æœªçŸ¥é”™è¯¯"
 		End If
 	End Property
-	'×Ô¶¨Òå´íÎó´úÂë
+	'è‡ªå®šä¹‰é”™è¯¯ä»£ç 
 	Public Property Let E(ByVal n, ByVal s)
 		If Easp.Has(n) And Easp.Has(s) Then
 			If n > "" Then
@@ -49,53 +49,53 @@ Class EasyAsp_Error
 			End If
 		End If
 	End Property
-	'È¡×î½ü·¢Éú´íÎóµÄ´úÂë
+	'å–æœ€è¿‘å‘ç”Ÿé”™è¯¯çš„ä»£ç 
 	Public Property Get LastError
 		LastError = i_errNum
 	End Property
-	'´íÎóĞÅÏ¢±êÌâ
+	'é”™è¯¯ä¿¡æ¯æ ‡é¢˜
 	Public Property Get Title
 		Title = s_title
 	End Property
 	Public Property Let Title(ByVal s)
 		s_title = s
 	End Property
-	'×Ô¶¨ÒåµÄ´íÎóĞÅÏ¢
+	'è‡ªå®šä¹‰çš„é”™è¯¯ä¿¡æ¯
 	Public Property Get Msg
 		Msg = s_msg
 	End Property
 	Public Property Let Msg(ByVal s)
 		s_msg = s
 	End Property
-	'ÊÇ·ñ×Ô¶¯×ªÏò
+	'æ˜¯å¦è‡ªåŠ¨è½¬å‘
 	Public Property Get [Redirect]
 		[Redirect] = b_redirect
 	End Property
 	Public Property Let [Redirect](ByVal b)
 		b_redirect = b
 	End Property
-	'×Ô¶¨ÒåÌø×ªÒ³
+	'è‡ªå®šä¹‰è·³è½¬é¡µ
 	Public Property Get Url
 		Url = s_url
 	End Property
 	Public Property Let Url(ByVal s)
 		s_url = s
 	End Property
-	'×Ô¶¯Ìø×ªÊ±¼ä£¨Ãë£©
+	'è‡ªåŠ¨è·³è½¬æ—¶é—´ï¼ˆç§’ï¼‰
 	Public Property Get Delay
 		Delay = i_delay / 1000
 	End Property
 	Public Property Let Delay(ByVal i)
 		i_delay = i * 1000
 	End Property
-	'×Ô¶¨ÒåÑùÊ½Ãû³Æ
+	'è‡ªå®šä¹‰æ ·å¼åç§°
 	Public Property Get ClassName
 		ClassName = s_css
 	End Property
 	Public Property Let ClassName(ByVal s)
 		s_css = s
 	End Property
-	'Éú³É´íÎó
+	'ç”Ÿæˆé”™è¯¯
 	Public Sub Raise(ByVal n)
 		If Easp.isN(n) Then Exit Sub
 		i_errNum = n
@@ -104,14 +104,14 @@ Class EasyAsp_Error
 		End If
 		s_msg = ""
 	End Sub
-	'Å×³ö´íÎóĞÅÏ¢
+	'æŠ›å‡ºé”™è¯¯ä¿¡æ¯
 	Public Sub Throw(ByVal msg)
 		If Left(msg,1) = ":" Then
 			If o_err.Exists(Mid(msg,2)) Then msg = o_err(Mid(msg,2))
 		End If
 		Easp.W ShowMsg(msg,0)
 	End Sub
-	'ÏÔÊ¾ÒÑ¶¨ÒåµÄËùÓĞ´íÎó´úÂë¼°ĞÅÏ¢
+	'æ˜¾ç¤ºå·²å®šä¹‰çš„æ‰€æœ‰é”™è¯¯ä»£ç åŠä¿¡æ¯
 	Public Sub Defined()
 		Dim key
 		If Easp.Has(o_err) Then
@@ -120,29 +120,29 @@ Class EasyAsp_Error
 			Next
 		End If
 	End Sub
-	'ÏÔÊ¾´íÎóĞÅÏ¢¿ò
+	'æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯æ¡†
 	Private Function ShowMsg(ByVal msg, ByVal t)
 		Dim s,x
 		s = "<fieldset id=""easpError""" & Easp.IfThen(Easp.Has(s_css)," class=""" & s_css & """") & ">" & vbCrLf
 		s = s & "	<legend>" & s_title & "</legend>" & vbCrLf
 		s = s & "	<p class=""msg"">" & msg & "</p>" & vbCrLf
-		x = Easp.IIF(s_url = "javascript:history.go(-1)", "·µ»Ø", "¼ÌĞø")
+		x = Easp.IIF(s_url = "javascript:history.go(-1)", "è¿”å›", "ç»§ç»­")
 		If t = 1 Then
 			If Err.Number<>0 Then
 				s = s & "	<ul class=""dev"">" & vbCrLf
-				s = s & "		<li class=""info"">ÒÔÏÂĞÅÏ¢Õë¶Ô¿ª·¢Õß£º</li>" & vbCrLf
-				s = s & "		<li>´íÎó´úÂë£º0x" & Hex(Err.Number) & "</li>" & vbCrLf
-				s = s & "		<li>´íÎóÃèÊö£º" & Err.Description & "</li>" & vbCrLf
-				s = s & "		<li>´íÎóÀ´Ô´£º" & Err.Source & "</li>" & vbCrLf
+				s = s & "		<li class=""info"">ä»¥ä¸‹ä¿¡æ¯é’ˆå¯¹å¼€å‘è€…ï¼š</li>" & vbCrLf
+				s = s & "		<li>é”™è¯¯ä»£ç ï¼š0x" & Hex(Err.Number) & "</li>" & vbCrLf
+				s = s & "		<li>é”™è¯¯æè¿°ï¼š" & Err.Description & "</li>" & vbCrLf
+				s = s & "		<li>é”™è¯¯æ¥æºï¼š" & Err.Source & "</li>" & vbCrLf
 				s = s & "	</ul>" & vbCrLf
 			End If
 		Else
 			If b_redirect Then
-				s = s & "	<p class=""back"">Ò³Ãæ½«ÔÚ" & i_delay/1000 & "ÃëÖÓºóÌø×ª£¬Èç¹ûä¯ÀÀÆ÷Ã»ÓĞÕı³£Ìø×ª£¬<a href=""" & s_url & """>Çëµã»÷´Ë´¦" & x & "</a></p>" & vbCrLf
+				s = s & "	<p class=""back"">é¡µé¢å°†åœ¨" & i_delay/1000 & "ç§’é’Ÿåè·³è½¬ï¼Œå¦‚æœæµè§ˆå™¨æ²¡æœ‰æ­£å¸¸è·³è½¬ï¼Œ<a href=""" & s_url & """>è¯·ç‚¹å‡»æ­¤å¤„" & x & "</a></p>" & vbCrLf
 				s_url = Easp.IIF(Left(s_url,11) = "javascript:", Mid(s_url,12), "location.href='" & s_url & "';")
 				s = s & Easp.JsCode("setTimeout(function(){" & s_url & "}," & i_delay & ");")
 			Else
-				s = s & "	<p class=""back""><a href=""" & s_url & """>Çëµã»÷´Ë´¦" & x & "</a></p>" & vbCrLf
+				s = s & "	<p class=""back""><a href=""" & s_url & """>è¯·ç‚¹å‡»æ­¤å¤„" & x & "</a></p>" & vbCrLf
 			End If
 		End If
 		s = s & "</fieldset>" & vbCrLf
