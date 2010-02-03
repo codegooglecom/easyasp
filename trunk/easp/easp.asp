@@ -1302,7 +1302,7 @@ End Function
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
 <!--#include file="core/easp.fso.asp"-->
-<!--#include file="core/easp.upload.asp"-->
+<!--#include file="plugin/easp.upload.asp"-->
 <!--#include file="core/easp.tpl.asp"-->
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->

@@ -311,7 +311,7 @@ Class EasyAsp_upload
 	End Function
 End Class
 
-Class Easp_upload_FileInfo
-	Public FormName, ClientPath, Path, Name, Ext, Content, Size, MIME, Start
-End Class
+'Class Easp_upload_FileInfo
+'	Public FormName, ClientPath, Path, Name, Ext, Content, Size, MIME, Start
+'End Class
 %>
