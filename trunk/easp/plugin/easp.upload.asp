@@ -11,9 +11,8 @@
 Dim EasyAsp_o_updata
 Class EasyAsp_Upload
 	Dim o_form,o_file,o_prog
-	Dim xmlPath,CharsetEncoding
 	
-	Public Form, File
+	Public Form, File, Count
 	Private s_charset,s_allowed,s_denied,s_filename,s_savepath, s_jsonPath
 	Private i_maxsize,i_totalmaxsize,i_filecount
 	Private b_automd,b_random
@@ -31,6 +30,7 @@ Class EasyAsp_Upload
 		Easp.Error(78) = "获取文件失败！"
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		Set File = Server.CreateObject("Scripting.Dictionary")
+		Count = 0
     End Sub
 	
 	'属性：文件编码
@@ -39,7 +39,7 @@ Class EasyAsp_Upload
 	End Property
 	'进度条Json文件保位置：
 	Public Property Let JsonPath(ByVal s)
-		s_jsonPath = s
+		s_jsonPath = Easp.IIF(Mid(s,2,1)=":", s, Server.MapPath(s))
 	End Property
 	Public Property Get JsonPath()
 		JsonPath = s_jsonPath
@@ -101,6 +101,7 @@ Class EasyAsp_Upload
 			o_strm.Charset = s_charset
 			s_data = o_strm.ReadText
 			o_strm.Close
+			Easp.w s_data
 			'取得表单项目名称
 			i_formStart = InStrB(i_End,s_blockData,s_start)
 			i_dataStart = InStr(22,s_data,"name=""",1) + 6
@@ -110,28 +111,29 @@ Class EasyAsp_Upload
 			If InStr (45,s_data,"filename=""",1) > 0 Then
 				Set o_file = New Easp_Upload_FileInfo
 				'取得文件名
-				i_dataStart = InStr(i_dataEnd,s_data,"filename=""",1)+10
+				i_dataStart = InStr(i_dataEnd,s_data,"filename=""",1) + 10
 				i_dataEnd = InStr(i_dataStart,s_data,"""",1)
-				s_fileName = Mid (s_data,i_dataStart,i_dataEnd-i_dataStart)
+				s_fileName = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
 				o_file.FileName = getFileName(s_fileName)
 				o_file.FilePath = getFilePath(s_fileName)
 				'取得文件类型
-				i_dataStart = InStr(i_dataEnd,s_data,"Content-Type: ",1)+14
+				i_dataStart = InStr(i_dataEnd,s_data,"Content-Type: ",1) + 14
 				i_dataEnd = InStr(i_dataStart,s_data,vbCr)
-				o_file.FileType = Mid (s_data,i_dataStart,i_dataEnd-i_dataStart)
+				o_file.FileType = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
 				o_file.FileStart = i_End
-				o_file.FileSize = i_formStart - i_End -3
+				o_file.FileSize = i_formStart - i_End - 3
 				o_file.FormName = s_formName
 				If NOT File.Exists(s_formName) Then
-					File.add s_formName, o_file
+					File.Add s_formName, o_file
 				End If
+				If o_file.FileSize > 0 Then Count = Count + 1
 			Else
 				'如果是表单项目
 				o_strm.Type = 1
 				o_strm.Mode = 3
 				o_strm.Open
 				EasyAsp_o_updata.Position = i_End 
-				EasyAsp_o_updata.CopyTo o_strm,i_formStart-i_End-3
+				EasyAsp_o_updata.CopyTo o_strm, i_formStart-i_End-3
 				o_strm.Position = 0
 				o_strm.Type = 2
 				o_strm.Charset = s_charset
@@ -148,125 +150,16 @@ Class EasyAsp_Upload
 		s_blockData = ""
 		Set o_strm = Nothing
 	End Sub
-	Public Sub UploadInit(progressXmlPath,charset)
-		Dim RequestData,sStart,Crlf,sInfo,iInfoStart,iInfoEnd,tStream,iStart,theFile
-		Dim iFileSize,sFilePath,sFileType,sFormValue,sFileName
-		Dim iFindStart,iFindEnd
-		Dim iFormStart,iFormEnd,sFormName
-		If Request.TotalBytes < 1 Then Exit Sub
-		Set tStream = Server.CreateObject("ADODB.Stream")
-		Set EasyAsp_o_updata = Server.CreateObject("ADODB.Stream")
-		EasyAsp_o_updata.Type = 1
-		EasyAsp_o_updata.Mode =3
-		EasyAsp_o_updata.Open
-		
-		Dim TotalBytes
-		Dim ChunkReadSize
-		Dim DataPart, PartSize
-		Dim o_prog
-		
-		TotalBytes = Request.TotalBytes     ' 总大小
-		ChunkReadSize = 64 * 1024    ' 分块大小64K
-		BytesRead = 0
-		xmlPath = progressXmlPath
-		CharsetEncoding = charset
-		If CharsetEncoding = "" Then
-		  CharsetEncoding = "utf-8"
-		End If
-		Set o_prog = New Easp_Upload_Progress
-		o_prog.ProgressInit(xmlPath)
-		o_prog.UpdateProgress Totalbytes,0
-		'循环分块读取
-		Do While BytesRead < TotalBytes
-			'分块读取
-			PartSize = ChunkReadSize
-			If PartSize + BytesRead > TotalBytes Then PartSize = TotalBytes - BytesRead
-			DataPart = Request.BinaryRead(PartSize)
-			BytesRead = BytesRead + PartSize
-		
-			EasyAsp_o_updata.Write DataPart
-			
-			o_prog.UpdateProgress Totalbytes,BytesRead 
-		Loop
-		'EasyAsp_o_updata.Write  Request.BinaryRead(Request.TotalBytes)
-		EasyAsp_o_updata.Position=0
-		RequestData =EasyAsp_o_updata.Read 
-		
-		iFormStart = 1
-		iFormEnd = LenB(RequestData)
-		Crlf = chrB(13) & chrB(10)
-		sStart = MidB(RequestData,1, InStrB(iFormStart,RequestData,Crlf)-1)
-		iStart = LenB (sStart)
-		iFormStart=iFormStart+iStart+1
-		While (iFormStart + 10) < iFormEnd 
-			iInfoEnd = InStrB(iFormStart,RequestData,Crlf & Crlf)+3
-			tStream.Type = 1
-			tStream.Mode =3
-			tStream.Open
-			EasyAsp_o_updata.Position = iFormStart
-			EasyAsp_o_updata.CopyTo tStream,iInfoEnd-iFormStart
-			tStream.Position = 0
-			tStream.Type = 2
-			tStream.Charset =CharsetEncoding
-			sInfo = tStream.ReadText
-			tStream.Close
-			'取得表单项目名称
-			iFormStart = InStrB(iInfoEnd,RequestData,sStart)
-			iFindStart = InStr(22,sInfo,"name=""",1)+6
-			iFindEnd = InStr(iFindStart,sInfo,"""",1)
-			sFormName = lcase(Mid (sinfo,iFindStart,iFindEnd-iFindStart))
-			'如果是文件
-			If InStr (45,sInfo,"filename=""",1) > 0 Then
-				Set theFile=new Easp_Upload_FileInfo
-				'取得文件名
-				iFindStart = InStr(iFindEnd,sInfo,"filename=""",1)+10
-				iFindEnd = InStr(iFindStart,sInfo,"""",1)
-				sFileName = Mid (sinfo,iFindStart,iFindEnd-iFindStart)
-				theFile.FileName=getFileName(sFileName)
-				theFile.FilePath=getFilePath(sFileName)
-				'取得文件类型
-				iFindStart = InStr(iFindEnd,sInfo,"Content-Type: ",1)+14
-				iFindEnd = InStr(iFindStart,sInfo,vbCr)
-				theFile.FileType =Mid (sinfo,iFindStart,iFindEnd-iFindStart)
-				theFile.FileStart =iInfoEnd
-				theFile.FileSize = iFormStart -iInfoEnd -3
-				theFile.FormName=sFormName
-				If NOT File.Exists(sFormName) Then
-					File.add sFormName,theFile
-				End If
-			Else
-				'如果是表单项目
-				tStream.Type =1
-				tStream.Mode =3
-				tStream.Open
-				EasyAsp_o_updata.Position = iInfoEnd 
-				EasyAsp_o_updata.CopyTo tStream,iFormStart-iInfoEnd-3
-				tStream.Position = 0
-				tStream.Type = 2
-				tStream.Charset = CharsetEncoding
-				sFormValue = tStream.ReadText 
-				tStream.Close
-				If Form.Exists(sFormName) Then
-					Form(sFormName)=Form(sFormName)&", "&sFormValue          
-				Else
-					Form.Add sFormName,sFormValue
-				End If
-			End If
-			iFormStart=iFormStart+iStart+1
-		Wend
-		RequestData=""
-		Set tStream = Nothing      
-	End Sub
     
     Private Sub Class_Terminate  
 		If Request.TotalBytes>0 Then
 			Form.RemoveAll
 			File.RemoveAll
-			Set Form=Nothing
-			Set File=Nothing
 			EasyAsp_o_updata.Close
 			Set EasyAsp_o_updata = Nothing
 		End If
+		Set Form=Nothing
+		Set File=Nothing
 		Set o_prog = Nothing
 		Set objFso = Server.CreateObject("Scripting.FileSystemObject")
 		If objFso.FileExists(s_jsonPath) Then
@@ -277,7 +170,7 @@ Class EasyAsp_Upload
  
     Private Function GetFilePath(FullPath)
         If FullPath <> "" Then
-          GetFilePath = left(FullPath,InStrRev(FullPath, ""))
+          GetFilePath = left(FullPath,InStrRev(FullPath, "\"))
         Else
           GetFilePath = ""
         End If
@@ -358,7 +251,7 @@ Class Easp_Upload_Progress
         
         Set objPI = objDom.createProcessingInstruction("xml","version='1.0' encoding='utf-8'")
         objDom.insertBefore objPI, objDom.childNodes(0)
-		Easp.wn "====" & xmlPath
+		Easp.wn "进度条文件地址：" & xmlPath
         objDom.Save xmlPath
         Set objPI = Nothing
         Set objChild = Nothing
