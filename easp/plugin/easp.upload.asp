@@ -10,8 +10,6 @@
 '#################################################################################
 Dim EasyAsp_o_updata
 Class EasyAsp_Upload
-	'Dim o_form,o_file,o_prog
-	
 	Public Form, File, Count
 	'Private o_prog
 	Private s_charset,s_allowed,s_denied,s_filename,s_savepath, s_jsonPath
