@@ -10,16 +10,19 @@
 '#################################################################################
 Dim EasyAsp_o_updata
 Class EasyAsp_Upload
-	Dim o_form,o_file,o_prog
+	'Dim o_form,o_file,o_prog
 	
 	Public Form, File, Count
+	'Private o_prog
 	Private s_charset,s_allowed,s_denied,s_filename,s_savepath, s_jsonPath
-	Private i_maxsize,i_totalmaxsize,i_filecount
+	Private i_maxsize,i_totalmaxsize,i_filecount,i_blockSize
 	Private b_automd,b_random
 	'构造函数
     Private Sub Class_Initialize 
 		s_jsonPath = ""
 		s_charset	= Easp.CharSet
+		'分块上传默认每次上传64K
+		i_blockSize = 64 * 1024
 		Easp.Error(71) = "表单类型错误，表单只能是""multipart/form-data""类型！"
 		Easp.Error(72) = "请先选择要上传的文件！"
 		Easp.Error(73) = "上传文件失败，上传文件总大小超过了限制！"
@@ -44,12 +47,16 @@ Class EasyAsp_Upload
 	Public Property Get JsonPath()
 		JsonPath = s_jsonPath
 	End Property
+	'属性：分块上传大小，单位K
+	Public Property Let BlockSize(ByVal i)
+		i_blockSize = Int(i) * 1024
+	End Property
 	
 	'初始化：
 	Public Sub StartUpload
 		Dim o_strm, o_prog, o_file
 		Dim s_total, s_block, s_blockData, s_start, s_formName, s_formValue, s_fileName, s_data
-		Dim i_blockSize, i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
+		Dim i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
 		'取得表单总大小
 		s_total = Request.TotalBytes
 		'如果表单的内容为空，则退出上传程序
@@ -60,8 +67,6 @@ Class EasyAsp_Upload
 		EasyAsp_o_updata.Type = 1
 		EasyAsp_o_updata.Mode =3
 		EasyAsp_o_updata.Open
-		'分块上传，大小为64K
-		i_blockSize = 64 * 1024
 		'已读取的大小
 		i_loaded = 0
 		'记录进度到Json文件
@@ -101,32 +106,39 @@ Class EasyAsp_Upload
 			o_strm.Charset = s_charset
 			s_data = o_strm.ReadText
 			o_strm.Close
-			Easp.w s_data
+			'Easp.w s_data
 			'取得表单项目名称
 			i_formStart = InStrB(i_End,s_blockData,s_start)
 			i_dataStart = InStr(22,s_data,"name=""",1) + 6
 			i_dataEnd = InStr(i_dataStart,s_data,"""",1)
 			s_formName = lcase(Mid(s_data,i_dataStart,i_dataEnd-i_dataStart))
 			'如果是文件
-			If InStr (45,s_data,"filename=""",1) > 0 Then
+			If InStr(45,s_data,"filename=""",1) > 0 Then
 				Set o_file = New Easp_Upload_FileInfo
-				'取得文件名
-				i_dataStart = InStr(i_dataEnd,s_data,"filename=""",1) + 10
-				i_dataEnd = InStr(i_dataStart,s_data,"""",1)
-				s_fileName = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
-				o_file.FileName = getFileName(s_fileName)
-				o_file.FilePath = getFilePath(s_fileName)
-				'取得文件类型
-				i_dataStart = InStr(i_dataEnd,s_data,"Content-Type: ",1) + 14
-				i_dataEnd = InStr(i_dataStart,s_data,vbCr)
-				o_file.FileType = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
-				o_file.FileStart = i_End
-				o_file.FileSize = i_formStart - i_End - 3
-				o_file.FormName = s_formName
+				'取得文件大小
+				o_file.Size = i_formStart - i_End - 3
+				'如果不为空
+				If o_file.Size > 0 Then
+					'取得文件名
+					i_dataStart = InStr(i_dataEnd,s_data,"filename=""",1) + 10
+					i_dataEnd = InStr(i_dataStart,s_data,"""",1)
+					s_fileName = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
+					o_file.Client = s_fileName
+					o_file.OldPath = Left(s_fileName, InstrRev(s_fileName, "\"))
+					o_file.Name = Mid(s_fileName, InstrRev(s_fileName, "\")+1)
+					o_file.Ext = Mid(o_file.Name, InstrRev(o_file.Name,".")+1)
+					'取得文件类型
+					i_dataStart = InStr(i_dataEnd,s_data,"Content-Type: ",1) + 14
+					i_dataEnd = InStr(i_dataStart,s_data,vbCr)
+					o_file.MIME = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
+					o_file.Start = i_End
+					o_file.FormName = s_formName
+					Count = Count + 1
+				End If
 				If NOT File.Exists(s_formName) Then
 					File.Add s_formName, o_file
 				End If
-				If o_file.FileSize > 0 Then Count = Count + 1
+				Set o_file = Nothing
 			Else
 				'如果是表单项目
 				o_strm.Type = 1
@@ -140,7 +152,7 @@ Class EasyAsp_Upload
 				s_formValue = o_strm.ReadText 
 				o_strm.Close
 				If Form.Exists(s_formName) Then
-					Form(s_formName)=Form(s_formName)&", "&s_formValue
+					Form(s_formName) = Form(s_formName) & ", " & s_formValue
 				Else
 					Form.Add s_formName, s_formValue
 				End If
@@ -149,10 +161,11 @@ Class EasyAsp_Upload
 		Wend
 		s_blockData = ""
 		Set o_strm = Nothing
+		Set o_prog = Nothing
 	End Sub
     
     Private Sub Class_Terminate  
-		If Request.TotalBytes>0 Then
+		If Request.TotalBytes > 0 Then
 			Form.RemoveAll
 			File.RemoveAll
 			EasyAsp_o_updata.Close
@@ -160,62 +173,51 @@ Class EasyAsp_Upload
 		End If
 		Set Form=Nothing
 		Set File=Nothing
-		Set o_prog = Nothing
-		Set objFso = Server.CreateObject("Scripting.FileSystemObject")
-		If objFso.FileExists(s_jsonPath) Then
-			objFso.DeleteFile(s_jsonPath)
-		End If
-		Set objFso = Nothing
+		Easp.Use "Fso"
+		Easp.Fso.DelFile s_jsonPath
     End Sub
- 
-    Private Function GetFilePath(FullPath)
-        If FullPath <> "" Then
-          GetFilePath = left(FullPath,InStrRev(FullPath, "\"))
-        Else
-          GetFilePath = ""
-        End If
-    End Function
- 
-    Private Function GetFileName(FullPath)
-        If FullPath <> "" Then
-          GetFileName = mid(FullPath,InStrRev(FullPath, "\")+1)
-        Else
-          GetFileName = ""
-        End If
-    End Function
+End Class
+'上传文件信息
+Class Easp_Upload_FileInfo
+	Public FormName, Client, OldPath, NewPath, Name, Ext, Size, MIME, Start
+	Private Sub Class_Initialize 
+		FormName = ""
+		Client = ""
+		OldPath = ""
+		NewPath = ""
+		Name = ""
+		Ext = ""
+		Size = 0
+		Start = 0
+		MIME = ""
+	End Sub
+	Public Function SaveAs(ByVal p)
+		Dim o_strm
+		SaveAs = True
+		'如果上传文件为空
+		If Size<=0 Then
+			SaveAs = False
+			Easp.Error.Raise 74
+			Exit Function
+		End If
+		'如果上传的不是文件或保存路径为空
+		If Easp.IsN(p) Or Easp.IsN(Name) Or Start = 0 Or Right(p,1)="/" Then
+			SaveAs = False
+			Exit Function
+		End If
+		'保存文件
+		Set o_strm = Server.CreateObject("Adodb.Stream")
+		o_strm.Mode = 3
+		o_strm.Type = 1
+		o_strm.Open
+		EasyAsp_o_updata.position = Start
+		EasyAsp_o_updata.copyto o_strm, Size
+		o_strm.SaveToFile p, 2
+		o_strm.Close
+		Set o_strm = Nothing
+	End Function
 End Class
 
-Class Easp_Upload_FileInfo
-  Dim FormName,FileName,FilePath,FileSize,FileType,FileStart
-  Private Sub Class_Initialize 
-    FileName = ""
-    FilePath = ""
-    FileSize = 0
-    FileStart= 0
-    FormName = ""
-    FileType = ""
-  End Sub
-  
-    Public Function SaveAs(FullPath)
-        Dim dr,ErrorChar,i
-        SaveAs=True
-  'Response.Write fullpath & ".....................<br>"
-  'FileName="ss.txt"
-        If trim(fullpath)="" or FileStart=0 or fileName="" or right(fullpath,1)="/" Then Exit Function
-  'Response.Write "2........................<br>"
-        Set dr=CreateObject("Adodb.Stream")
-        dr.Mode=3
-        dr.Type=1
-        dr.Open
-        EasyAsp_o_updata.position=FileStart
-        EasyAsp_o_updata.copyto dr,FileSize
-		'Response.Write(FullPath)
-        dr.SaveToFile FullPath,2
-        dr.Close
-        Set dr=Nothing 
-        SaveAs=False
-    End Function
-End Class
 Class Easp_Upload_Progress
   Dim objDom,xmlPath
     Dim startTime
