@@ -11,14 +11,32 @@
 Dim EasyAsp_o_updata
 Class EasyAsp_Upload
 	Public Form, File, Count
-	'Private o_prog
-	Private s_charset,s_allowed,s_denied,s_filename,s_savepath, s_jsonPath
-	Private i_maxsize,i_totalmaxsize,i_filecount,i_blockSize
+	Private s_charset,s_key,s_allowed,s_denied,s_filename,s_savePath, s_jsonPath, s_progressPath
+	Private i_maxsize,i_totalmaxsize,i_blockSize
 	Private b_automd,b_random
 	'构造函数
     Private Sub Class_Initialize 
-		s_jsonPath = ""
+		'默认编码，继承自Easp
 		s_charset	= Easp.CharSet
+		'默认此次上传唯一ID，无（用于进度条）
+		s_key		= ""
+		'默认仅允许上传类型，所有文件
+		s_allowed	= ""
+		'默认不允许上传类型，没有
+		s_denied	= ""
+		'默认文件保存位置，当前目录
+		s_savePath	= ""
+		s_jsonPath	= ""
+		'默认进度条临时文件夹，根目录下的/__uptemp/目录
+		s_progressPath = absPath("/__uptemp")
+		'默认自动建立不存在的文件夹
+		b_automd	= True
+		'默认不使用随机文件名
+		b_random	= False
+		'默认单个文件允许大小，不限制
+		i_maxsize	= 0
+		'默认总文件大小，不限制
+		i_totalmaxsize = 0
 		'分块上传默认每次上传64K
 		i_blockSize = 64 * 1024
 		Easp.Error(71) = "表单类型错误，表单只能是""multipart/form-data""类型！"
@@ -29,6 +47,7 @@ Class EasyAsp_Upload
 		Easp.Error(76) = "上传文件失败，不允许上传此类型的文件！"
 		Easp.Error(77) = "上传文件失败！"
 		Easp.Error(78) = "获取文件失败！"
+		Easp.Error(79) = "本次上传KEY不能为空，否则上传进度条不可用！"
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Count = 0
@@ -38,7 +57,54 @@ Class EasyAsp_Upload
 	Public Property Let CharSet(ByVal s)
 		s_charset = UCase(s)
 	End Property
-	'进度条Json文件保位置：
+	'属性：进度条Json文件保位置：
+	Public Property Let Key(ByVal s)
+		If Easp.IsN(s) Then Easp.Error.Raise 79 : Exit Property
+		s_key = s
+		s_jsonPath = Me.ProgressPath & s & ".xml"
+	End Property
+	'属性：生成上传唯一KEY
+	Public Property Get GenKey
+		GenKey = Easp.RandStr("EASPUP-<8>-<4>-<4>-<4>-<12>:0123456789ABCDEF")
+	End Property
+	'属性：单个文件最大尺寸
+	Public Property Let MaxSize(ByVal n)
+		i_maxsize = n
+	End Property
+	'属性：所有文件最大总尺寸
+	Public Property Let TotalMaxSize(ByVal n)
+		i_totalmaxsize = n
+	End Property
+	'属性：允许上传的文件类型
+	Public Property Let Allowed(ByVal s)
+		s_allowed = s
+	End Property
+	'属性：禁止上传的文件类型
+	Public Property Let Denied(ByVal s)
+		s_denied = s
+	End Property
+	'属性：文件上传后保存的路径(相对或绝对)
+	Public Property Let SavePath(ByVal s)
+		s_savepath = absPath(s)
+	End Property
+	Public Property Get SavePath
+		SavePath = s_savepath
+	End Property
+	'属性：保存进度条的临时文件夹
+	Public Property Let ProgressPath(ByVal s)
+		s_progressPath = absPath(s)
+	End Property
+	Public Property Get ProgressPath
+		ProgressPath = s_progressPath
+	End Property
+	'属性：是否自动创建不存在的文件夹
+	Public Property Let AutoMD(ByVal b)
+		b_automd = b
+	End Property
+	'属性：是否重命名上传文件为随机文件名
+	Public Property Let Random(ByVal b)
+		b_random = b
+	End Property	
 	Public Property Let JsonPath(ByVal s)
 		s_jsonPath = Easp.IIF(Mid(s,2,1)=":", s, Server.MapPath(s))
 	End Property
@@ -49,9 +115,21 @@ Class EasyAsp_Upload
 	Public Property Let BlockSize(ByVal i)
 		i_blockSize = Int(i) * 1024
 	End Property
-	
+	'私有方法：取目录绝对路径
+	Private Function absPath(ByVal s)
+		If Easp.IsN(s) Then s = "."
+		s = Easp.IIF(Instr(s,":")=2, s, Server.MapPath(s))
+		If Right(s,1)<>"\" Then s = s & "\"
+		absPath = s
+	End Function
 	'初始化：
 	Public Sub StartUpload
+		'检测表单是否multipart/form-data类型
+		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
+		If LCase(FormType(0)) <> "multipart/form-data" Then
+			Easp.Error.Raise 71
+			Exit Sub
+		End If
 		Dim o_strm, o_prog, o_file
 		Dim s_total, s_block, s_blockData, s_start, s_formName, s_formValue, s_fileName, s_data
 		Dim i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
@@ -134,6 +212,7 @@ Class EasyAsp_Upload
 					Count = Count + 1
 				End If
 				If NOT File.Exists(s_formName) Then
+					'添加到文件集合
 					File.Add s_formName, o_file
 				End If
 				Set o_file = Nothing
@@ -149,6 +228,7 @@ Class EasyAsp_Upload
 				o_strm.Charset = s_charset
 				s_formValue = o_strm.ReadText 
 				o_strm.Close
+				'添加到表单集合
 				If Form.Exists(s_formName) Then
 					Form(s_formName) = Form(s_formName) & ", " & s_formValue
 				Else
