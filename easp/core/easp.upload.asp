@@ -149,13 +149,15 @@ Class EasyAsp_Upload
 	'私有方法：检测文件是否是允许上传类型
 	Public Function checkFileType(ByVal t)
 		checkFileType = True
+		'如果设置了仅允许上传类型
 		If Easp.Has(s_allowed) Then
-			If Not Easp.Test(t, s_allowed) Then
+			If Not Easp.Test(t, "^" & s_allowed & "$") Then
 				checkFileType = False
 				Exit Function
 			End If
+		'如果没有设置仅允许上传类型并设置了不允许上传类型
 		ElseIf Easp.Has(s_denied) Then
-			If Easp.Test(t,s_denied) Then
+			If Easp.Test(t,"^" & s_denied & "$") Then
 				checkFileType = False
 				Exit Function
 			End If
@@ -428,6 +430,7 @@ Class Easp_Upload_Progress
 		s_path = p
 		o_timer = Timer
 		Easp.Use "Json"
+		'建立EaspJSon对象
 		Set o_json = Easp.Json.New(0)
 		o_json("total") 	= Easp.Fso.FormatSize(i_total,"AUTO")
 		o_json("uploaded")	= "0 KB"
