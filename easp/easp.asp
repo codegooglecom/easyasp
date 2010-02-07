@@ -758,12 +758,12 @@ Class EasyAsp
 		Dim i
 		If IsN(allowStr) Then allowStr = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		For i = 1 To length
-			Randomize() : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
+			Randomize(Timer) : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
 		Next
 	End Function
 	'取一个随机数
 	Function Rand(ByVal min, ByVal max)
-		Randomize() : Rand = Int((max - min + 1) * Rnd + min)
+		Randomize(Timer) : Rand = Int((max - min + 1) * Rnd + min)
 	End Function
 	'格式化数字
 	Function toNumber(ByVal n, ByVal d)
@@ -1302,7 +1302,7 @@ End Function
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
 <!--#include file="core/easp.fso.asp"-->
-<!--#include file="plugin/easp.upload.asp"-->
+<!--#include file="core/easp.upload.asp"-->
 <!--#include file="core/easp.tpl.asp"-->
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->
