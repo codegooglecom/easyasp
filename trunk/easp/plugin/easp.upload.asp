@@ -5,7 +5,7 @@
 '##	Feature		:	EasyAsp Upload Class
 '##	Version		:	v2.2 Alpha
 '##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2010/02/03 11:11:14
+'##	Update Date	:	2010/02/07 14:48:14
 '##	Description	:	Upload file(s) with EasyASP
 '#################################################################################
 Dim EasyAsp_o_updata
@@ -13,8 +13,8 @@ Class EasyAsp_Upload
 	Public Form, File, Count
 	Private s_charset,s_key,s_allowed,s_denied
 	Private s_savePath,s_jsonPath,s_progressPath,s_progExt
-	Private i_maxsize,i_totalmaxsize,i_blockSize
-	Private b_useProgress, b_automd,b_random
+	Private i_fileMaxSize,i_totalMaxSize,i_blockSize
+	Private b_useProgress, b_autoMD,b_random
 	'构造函数
     Private Sub Class_Initialize 
 		'默认编码，继承自Easp
@@ -28,20 +28,20 @@ Class EasyAsp_Upload
 		'默认文件保存位置，当前目录
 		s_savePath	= ""
 		'默认自动建立不存在的文件夹
-		b_automd	= True
+		b_autoMD	= True
 		'默认不使用随机文件名
 		b_random	= False
 		'默认单个文件允许大小，不限制
-		i_maxsize	= 0
+		i_fileMaxSize	= 0
 		'默认总文件大小，不限制
-		i_totalmaxsize = 0
+		i_totalMaxSize = 0
 		'分块上传默认每次上传64K
 		i_blockSize = 64 * 1024
-		b_useProgress = True
+		b_useProgress = False
 		'默认进度条临时文件夹，根目录下的/__uptemp/目录
 		s_progressPath = "/__uptemp/"
 		s_jsonPath	= ""
-		s_progExt = ".xml"
+		s_progExt = ".txt"
 		Easp.Error(71) = "表单类型错误，表单只能是""multipart/form-data""类型！"
 		Easp.Error(72) = "请先选择要上传的文件！"
 		Easp.Error(73) = "上传文件失败，上传文件总大小超过了限制！"
@@ -63,37 +63,48 @@ Class EasyAsp_Upload
 	End Property
 	'属性：进度条Json文件保位置：
 	Public Property Let Key(ByVal s)
+		If Not b_useProgress Then Exit Property
 		If Easp.IsN(s) Then Easp.Error.Raise 79 : Exit Property
 		s_key = s
 		s_jsonPath = absPath(s_progressPath) & s & s_progExt
-		Easp.WN s_jsonPath
 	End Property
 	'属性：生成上传唯一KEY
 	Public Property Get GenKey
-		GenKey = Easp.RandStr("EASPUP-<8>-<4>-<4>-<4>-<12>:0123456789ABCDEF")
+		GenKey = "EASPUP-" & Easp.DateTime(Now,"ymmddhhiiss") & Easp.RandStr("-<16>:0123456789ABCDEF")
 	End Property
 	'属性：单个文件最大尺寸
-	Public Property Let MaxSize(ByVal n)
-		i_maxsize = n
+	Public Property Let FileMaxSize(ByVal n)
+		i_fileMaxSize = n * 1024
+	End Property
+	Public Property Get FileMaxSize
+		FileMaxSize = i_fileMaxSize / 1024
 	End Property
 	'属性：所有文件最大总尺寸
 	Public Property Let TotalMaxSize(ByVal n)
-		i_totalmaxsize = n
+		i_totalMaxSize = n * 1024
 	End Property
-	'属性：允许上传的文件类型
+	'属性：允许上传的文件类型，用"|"分隔
 	Public Property Let Allowed(ByVal s)
 		s_allowed = s
 	End Property
-	'属性：禁止上传的文件类型
+	'属性：禁止上传的文件类型，用"|"分隔
 	Public Property Let Denied(ByVal s)
 		s_denied = s
 	End Property
 	'属性：文件上传后保存的路径(相对或绝对)
 	Public Property Let SavePath(ByVal s)
-		s_savepath = absPath(s)
+		Dim Matches,Match,t
+		If Easp.Test(s,"<.+>") Then
+			Set Matches = Easp.RegMatch(s,"<(.+?)>")
+			For Each Match In Matches
+				t = Easp.DateTime(Now,Match.SubMatches(0))
+				s = Replace(s,Match.Value,t)
+			Next
+		End If
+		s_savepath = s
 	End Property
 	Public Property Get SavePath
-		SavePath = s_savepath
+		SavePath = absPath(s_savepath)
 	End Property
 	'属性：是否使用进度条
 	Public Property Let UseProgress(ByVal b)
@@ -118,7 +129,7 @@ Class EasyAsp_Upload
 	End Function
 	'属性：是否自动创建不存在的文件夹
 	Public Property Let AutoMD(ByVal b)
-		b_automd = b
+		b_autoMD = b
 	End Property
 	'属性：是否重命名上传文件为随机文件名
 	Public Property Let Random(ByVal b)
@@ -135,6 +146,21 @@ Class EasyAsp_Upload
 		If Right(s,1)<>"\" Then s = s & "\"
 		absPath = s
 	End Function
+	'私有方法：检测文件是否是允许上传类型
+	Public Function checkFileType(ByVal t)
+		checkFileType = True
+		If Easp.Has(s_allowed) Then
+			If Not Easp.Test(t, s_allowed) Then
+				checkFileType = False
+				Exit Function
+			End If
+		ElseIf Easp.Has(s_denied) Then
+			If Easp.Test(t,s_denied) Then
+				checkFileType = False
+				Exit Function
+			End If
+		End If
+	End Function
 	'初始化：
 	Public Sub StartUpload
 		'检测表单是否multipart/form-data类型
@@ -144,12 +170,12 @@ Class EasyAsp_Upload
 			Exit Sub
 		End If
 		Dim o_strm, o_prog, o_file
-		Dim s_total, s_block, s_blockData, s_start, s_formName, s_formValue, s_fileName, s_data
-		Dim i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
+		Dim s_block, s_blockData, s_start, s_formName, s_formValue, s_fileName, s_data
+		Dim i_total, i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
 		'取得表单总大小
-		s_total = Request.TotalBytes
+		i_total = Request.TotalBytes
 		'如果表单的内容为空，则退出上传程序
-		If s_total < 1 Then Easp.Error.Raise 72 : Exit Sub
+		If i_total < 1 Then Easp.Error.Raise 72 : Exit Sub
 		Set o_strm = Server.CreateObject("ADODB.Stream")
 		'临时数据储存区
 		Set EasyAsp_o_updata = Server.CreateObject("ADODB.Stream")
@@ -163,25 +189,27 @@ Class EasyAsp_Upload
 			'创建进度条文件夹
 			Easp.Use "Fso"
 			If Not Easp.Fso.IsFolder(s_progressPath) Then
-				Easp.Fso.CreateFolder s_progressPath
+				Easp.Fso.MD s_progressPath
 			End If
-			'记录进度到Json文件
+			'创建Json文件记录进度条数据
 			Set o_prog = New Easp_Upload_Progress
+			'写入上传总大小到Json文件
+			o_prog.TotalSize = i_total
+			'创建Json文件
 			o_prog.Create(s_jsonPath)
-			o_prog.Update s_total,0
 		End If
 		'循环分块读取
-		Do While i_loaded < s_total
+		Do While i_loaded < i_total
 			i_block = i_blockSize
-			If i_block + i_loaded > s_total Then i_block = s_total - i_loaded
+			If i_block + i_loaded > i_total Then i_block = i_total - i_loaded
 			s_block = Request.BinaryRead(i_block)
 			i_loaded = i_loaded + i_block
 			'写入分块数据
 			EasyAsp_o_updata.Write s_block
-			'更新进度条文件
-			If b_useProgress Then o_prog.Update s_total,i_loaded 
+			'更新进度条数据
+			If b_useProgress Then o_prog.Update(i_loaded)
 		Loop
-		'EasyAsp_o_updata.Write  Request.BinaryRead(s_total)
+		'EasyAsp_o_updata.Write  Request.BinaryRead(i_total)
 		'将数据块读出处理
 		EasyAsp_o_updata.Position = 0
 		s_blockData = EasyAsp_o_updata.Read
@@ -212,8 +240,14 @@ Class EasyAsp_Upload
 			'如果是文件
 			If InStr(45,s_data,"filename=""",1) > 0 Then
 				Set o_file = New Easp_Upload_FileInfo
+				o_file.autoMD = b_autoMD
 				'取得文件大小
 				o_file.Size = i_formStart - i_End - 3
+				'如果文件大小超过了限制
+				If (i_fileMaxSize>0 And (o_file.Size)>i_fileMaxSize) Then
+					o_file.isSize = False
+					Easp.Error.Raise 75
+				End If
 				'如果不为空
 				If o_file.Size > 0 Then
 					'取得文件名
@@ -222,15 +256,25 @@ Class EasyAsp_Upload
 					s_fileName = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
 					o_file.Client = s_fileName
 					o_file.OldPath = Left(s_fileName, InstrRev(s_fileName, "\"))
+					o_file.NewPath = absPath(s_savepath)
 					o_file.Name = Mid(s_fileName, InstrRev(s_fileName, "\")+1)
 					o_file.Ext = Mid(o_file.Name, InstrRev(o_file.Name,".")+1)
-					'取得文件类型
+					o_file.NewName = Easp.IIF(b_random,Easp.DateTime(Now,"ymmddhhiiss")&Easp.RandStr("<100000-999999>"),o_file.Name) & "." & o_file.Ext
+					'如果文件类型不允许
+					If Not checkFileType(o_file.Ext) Then
+						o_file.isType = False
+						Easp.Error.Raise 76
+					End If
+					'取得MIME类型
 					i_dataStart = InStr(i_dataEnd,s_data,"Content-Type: ",1) + 14
 					i_dataEnd = InStr(i_dataStart,s_data,vbCr)
 					o_file.MIME = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
 					o_file.Start = i_End
 					o_file.FormName = s_formName
-					Count = Count + 1
+					'文件大小和类型都正确则上传文件总数加1
+					If o_file.isSize And o_file.isType Then
+						Count = Count + 1
+					End If
 				End If
 				If NOT File.Exists(s_formName) Then
 					'添加到文件集合
@@ -247,7 +291,7 @@ Class EasyAsp_Upload
 				o_strm.Position = 0
 				o_strm.Type = 2
 				o_strm.Charset = s_charset
-				s_formValue = o_strm.ReadText 
+				s_formValue = o_strm.ReadText
 				o_strm.Close
 				'添加到表单集合
 				If Form.Exists(s_formName) Then
@@ -262,13 +306,21 @@ Class EasyAsp_Upload
 		Set o_strm = Nothing
 		Set o_prog = Nothing
 	End Sub
-    
+	'保存全部文件
+	Public Sub SaveAll
+		Dim f
+		If Easp.Has(File) Then
+			For Each f In File
+				File(f).Save
+			Next
+		End If
+	End Sub
+    '析构函数
     Private Sub Class_Terminate  
 		If Request.TotalBytes > 0 Then
 			Form.RemoveAll
 			File.RemoveAll
-			EasyAsp_o_updata.Close
-			Set EasyAsp_o_updata = Nothing
+			Easp.C(EasyAsp_o_updata)
 		End If
 		Set Form=Nothing
 		Set File=Nothing
@@ -280,31 +332,62 @@ Class EasyAsp_Upload
 End Class
 '上传文件信息
 Class Easp_Upload_FileInfo
-	Public FormName, Client, OldPath, NewPath, Name, Ext, Size, MIME, Start
+	Public FormName, Client, OldPath, NewPath, Name, NewName, Ext, Size, MIME
+	Public isSize, isType, autoMD, Start
 	Private Sub Class_Initialize 
+		'表单项名称
 		FormName = ""
+		'客户端文件位置
 		Client = ""
+		'客户端文件路径
 		OldPath = ""
+		'服务器端保存路径
 		NewPath = ""
+		'原文件名称
 		Name = ""
+		'新文件名称
+		NewName = ""
+		'文件扩展名
 		Ext = ""
+		'文件大小
 		Size = 0
+		'文件在数据块中的开始位置
 		Start = 0
+		'文件MIME类型
 		MIME = ""
+		'判断文件大小和类型
+		isSize = True
+		isType = True
+		autoMD = True
 	End Sub
+	'文件保存为
 	Public Function SaveAs(ByVal p)
-		Dim o_strm
+		Dim o_strm,s_path
 		SaveAs = True
-		'如果上传文件为空
-		If Size<=0 Then
+		'如果上传文件大小为空或超过抛出异常
+		If Size <= 0 Then
 			SaveAs = False
-			Easp.Error.Raise 74
+			Exit Function
+		ElseIf Not isSize Then
+			SaveAs = False
+			Easp.Error.Raise 75
 			Exit Function
 		End If
 		'如果上传的不是文件或保存路径为空
 		If Easp.IsN(p) Or Easp.IsN(Name) Or Start = 0 Or Right(p,1)="/" Then
 			SaveAs = False
 			Exit Function
+		End If
+		'如果文件类型不允许
+		If Not isType Then
+			SaveAs = False
+			Easp.Error.Raise 76
+			Exit Function
+		End If
+		If autoMD Then
+			Easp.Use "Fso"
+			s_path = Left(p,InstrRev(p,"\"))
+			If Not Easp.Fso.IsFolder(s_path) Then Easp.Fso.MD(s_path)
 		End If
 		'保存文件
 		Set o_strm = Server.CreateObject("Adodb.Stream")
@@ -317,134 +400,77 @@ Class Easp_Upload_FileInfo
 		o_strm.Close
 		Set o_strm = Nothing
 	End Function
+	'保存(自动选择地址)
+	Public Function Save
+		Save = SaveAs(NewPath & NewName)
+	End Function
 End Class
 '进度条生成类
 Class Easp_Upload_Progress
-	Private s_path
-	Dim objDom,xmlPath
-	Dim o_json,o_timer
+	Private s_path,i_total
+	Private o_json,o_timer
 	Private Sub Class_Initialize
 		Easp.Use "Fso"
+		'覆盖已有文件必须打开
+		Easp.Fso.OverWrite = True
+		i_total = 0
+		s_path = ""
 	End Sub
+	Private Sub Class_Terminate
+		If TypeName(o_json)="EasyAsp_JSON" Then Set o_json = Nothing
+	End Sub
+	'上传文件的总大小
+	Public Property Let TotalSize(ByVal i)
+		i_total = i
+	End Property
 	'创建Json文件
 	Public Sub Create(ByVal p)
-		Dim txt
 		s_path = p
+		o_timer = Timer
 		Easp.Use "Json"
 		Set o_json = Easp.Json.New(0)
-		o_json("progress") = Easp.Json.New(0)
-		o_json("progress")("totalbytes") = "0"
-		o_json("progress")("uploadbytes") = "0"
-		o_json("progress")("uploadpercent") = "0%"
-		o_json("progress")("uploadspeed") = "0"
-		o_json("progress")("passtime") = "00:00:00"
-		o_json("progress")("remaintime") = "00:00:00"
-		txt = o_json.jsString
-		Call Easp.Fso.CreateFile(p,txt)
-'		Exit Sub
-'		'创建XML文件
-'		Dim objRoot,objChild
-'		Dim objPI
-'		xmlPath = xmlPathTmp
-'		Set objDom = Server.CreateObject("Microsoft.XMLDOM")
-'		Set objRoot = objDom.createElement("progress")
-'		objDom.appendChild objRoot
-'		Set objChild = objDom.createElement("totalbytes")
-'		objChild.Text = "0"
-'		objRoot.appendChild objChild
-'		Set objChild = objDom.createElement("uploadbytes")
-'		objChild.Text = "0"
-'		objRoot.appendChild objChild
-'		Set objChild = objDom.createElement("uploadpercent")
-'		objChild.Text = "0%"
-'		objRoot.appendChild objChild
-'		Set objChild = objDom.createElement("uploadspeed")
-'		objChild.Text = "0"
-'		objRoot.appendChild objChild
-'		Set objChild = objDom.createElement("totaltime")
-'		objChild.Text = "00:00:00"
-'		objRoot.appendChild objChild
-'		Set objChild = objDom.createElement("lefttime")
-'		objChild.Text = "00:00:00"
-'		objRoot.appendChild objChild
-'		Set objPI = objDom.createProcessingInstruction("xml","version='1.0' encoding='utf-8'")
-'		objDom.insertBefore objPI, objDom.childNodes(0)
-'		'Easp.wn "进度条文件地址：" & xmlPath
-'		objDom.Save xmlPath
-'		Set objPI = Nothing
-'		Set objChild = Nothing
-'		Set objRoot = Nothing
-'		Set objDom = Nothing
+		o_json("total") 	= Easp.Fso.FormatSize(i_total,"AUTO")
+		o_json("uploaded")	= "0 KB"
+		o_json("percent")	= "0"
+		o_json("speed") 	= "0 KB"
+		o_json("passtime") 	= "00:00:00"
+		o_json("totaltime")	= "00:00:00"
+		o_json("uploadtime")= Easp.DateTime(Now(),"y-mm-dd hh:ii:ss")
+		Call Easp.Fso.CreateFile(s_path, o_json.jsString)
 	End Sub
-	
-	Sub Update(tBytes,rBytes)
-		Dim eTime,currentTime,speed,totalTime,leftTime,percent
-		If rBytes = 0 Then
-			o_timer = Timer
-			Set objDom = Server.CreateObject("Microsoft.XMLDOM")
-			objDom.load(xmlPath)
-			objDom.selectsinglenode("//totalbytes").text=tBytes
-			objDom.save(xmlPath)
-		Else
-			speed = 0.0001
-			currentTime = Timer
-			eTime = currentTime - o_timer
-			If eTime>0 Then speed = rBytes / eTime
-			totalTime = tBytes / speed
-			leftTime = (tBytes - rBytes) / speed
-			percent = Round(rBytes *100 / tBytes)
-			'objDom.selectsinglenode("//uploadbytes").text = rBytes
-			'objDom.selectsinglenode("//uploadspeed").text = speed
-			'objDom.selectsinglenode("//totaltime").text = totalTime
-			'objDom.selectsinglenode("//lefttime").text = leftTime
-			objDom.selectsinglenode("//uploadbytes").text = FormatFileSize(rBytes) & " / " & FormatFileSize(tBytes)
-			objDom.selectsinglenode("//uploadpercent").text = percent
-			objDom.selectsinglenode("//uploadspeed").text = FormatFileSize(speed) & "/sec"
-			objDom.selectsinglenode("//totaltime").text = SecToTime(totalTime)
-			objDom.selectsinglenode("//lefttime").text = SecToTime(leftTime)
-			objDom.save(xmlPath)        
-		End If
+	'更新进度条Json文件
+	Sub Update(ByVal loaded)
+		Dim speed,cTimer,totalTime,remainTime,percent
+		speed = 0.0001
+		cTimer = Timer
+		'计算上传速度
+		If (cTimer - o_timer)>0 Then speed = loaded / (cTimer - o_timer)
+		'计算总时间
+		totalTime = i_total / speed
+		'计算剩余时间
+		remainTime = (i_total - loaded) / speed
+		'计算上传百分比
+		percent = Round(loaded *100 / i_total,1)
+		'更新Json文件
+		o_json("uploaded")	= Easp.Fso.FormatSize(loaded,"AUTO")
+		o_json("percent")	= percent
+		o_json("speed") 	= Easp.Fso.FormatSize(speed,"AUTO") & "/S" 
+		o_json("totaltime") = SecToTime(totalTime)
+		o_json("remaintime")= SecToTime(remainTime)
+		o_json("uploadtime")= Easp.DateTime(Now(),"y-mm-dd hh:ii:ss")
+		Call Easp.Fso.CreateFile(s_path, o_json.jsString)       
 	End Sub
-	private Function SecToTime(sec)
-		Dim h:h = "0"
-		Dim m:m = "0"
-		Dim s:s = "0"
-		h = round(sec / 3600)
-		m = round( (sec mod 3600) / 60)
-		s = round(sec mod 60)
-		If LEN(h)=1 Then h = "0" & h
-		If LEN(m)=1 Then m = "0" & m
-		If LEN(s)=1 Then s = "0" & s
+	'将秒转换为标准格式时间
+	private Function SecToTime(ByVal sec)
+		If Not isNumeric(sec) Then sec = 0
+		sec = Int(sec)
+		Dim h : h = "0"
+		Dim m : m = "0"
+		Dim s : s = "0"
+		h = Right("0" & Round(sec/3600), 2)
+		m = Right("0" & Round((sec mod 3600) / 60), 2)
+		s = Right("0" & Round(sec mod 60), 2)
 		SecToTime = (h & ":" & m & ":" & s)
 	End Function
-	
-	private Function FormatFileSize(fsize)
-		Dim radio,k,m,g,unitTMP
-		k = 1024
-		m = 1024*1024
-		g = 1024*1024*1024
-		radio = 1
-		If Fix(fsize / g) > 0.0 Then
-			unitTMP = "GB"
-			radio = g
-		ElseIf Fix(fsize / m) > 0 Then
-			unitTMP = "MB"
-			radio = m
-		ElseIf Fix(fsize / k) > 0 Then
-			unitTMP = "KB"
-			radio = k
-		Else
-			unitTMP = "B"
-			radio = 1
-		End If
-		If radio = 1 Then
-			FormatFileSize = fsize & "&nbsp;" & unitTMP
-		Else
-			FormatFileSize = FormatNumber(fsize/radio,3) & unitTMP
-		End If
-	End Function
-	Private Sub Class_Terminate  
-		Set objDom = Nothing
-	End Sub
 End Class
 %>
