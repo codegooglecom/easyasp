@@ -336,7 +336,7 @@ End Class
 Class Easp_Upload_FileInfo
 	Public FormName, Client, OldPath, NewPath, Name, NewName, Ext, Size, MIME
 	Public isSize, isType, autoMD, Start
-	Private Sub Class_Initialize 
+	Private Sub Class_Initialize
 		'表单项名称
 		FormName = ""
 		'客户端文件位置
