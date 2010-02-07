@@ -423,6 +423,24 @@ Class EasyAsp_Fso
 	Public Function MapPath(p)
 		MapPath = absPath(p)
 	End Function
+	'格式化文件大小
+	Public Function formatSize(Byval fileSize, ByVal level)
+		Dim s : s = Int(fileSize) : level = UCase(level)
+		formatSize = Easp.IIF(s/(1073741824)>0.01,FormatNumber(s/(1073741824),2,-1,0,-1),"0.01") & " GB"
+		If s = 0 Then formatSize = "0 GB"
+		If level = "G" Or (level="AUTO" And s>1073741824) Then Exit Function
+		formatSize = Easp.IIF(s/(1048576)>0.1,FormatNumber(s/(1048576),1,-1,0,-1),"0.1") & " MB"
+		If s = 0 Then formatSize = "0 MB"
+		If level = "M" Or (level="AUTO" And s>1048576) Then Exit Function
+		formatSize = Easp.IIF((s/1024)>1,Int(s/1024),1) & " KB"
+		If s = 0 Then formatSize = "0 KB"
+		If Level = "K" Or (level="AUTO" And s>1024) Then Exit Function
+		If level = "B" or level = "AUTO" Then
+			formatSize = s & " bytes"
+		Else
+			formatSize = s
+		End If
+	End Function
 	'路径是否包含通配符
 	Private Function isWildcards(ByVal path)
 		isWildcards = False
@@ -505,24 +523,6 @@ Class EasyAsp_Fso
 			Easp.Error.Raise 63
 		End If
 		Err.Clear()
-	End Function
-	'格式化文件大小
-	Private Function formatSize(Byval fileSize, ByVal level)
-		Dim s : s = Int(fileSize) : level = UCase(level)
-		formatSize = Easp.IIF(s/(1073741824)>0.01,FormatNumber(s/(1073741824),2,-1,0,-1),"0.01") & " GB"
-		If s = 0 Then formatSize = "0 GB"
-		If level = "G" Or (level="AUTO" And s>1073741824) Then Exit Function
-		formatSize = Easp.IIF(s/(1048576)>0.1,FormatNumber(s/(1048576),1,-1,0,-1),"0.1") & " MB"
-		If s = 0 Then formatSize = "0 MB"
-		If level = "M" Or (level="AUTO" And s>1048576) Then Exit Function
-		formatSize = Easp.IIF((s/1024)>1,Int(s/1024),1) & " KB"
-		If s = 0 Then formatSize = "0 KB"
-		If Level = "K" Or (level="AUTO" And s>1024) Then Exit Function
-		If level = "B" or level = "AUTO" Then
-			formatSize = s & " bytes"
-		Else
-			formatSize = s
-		End If
 	End Function
 	'格式化文件属性
 	Private Function Attr2Str(ByVal attrib)
