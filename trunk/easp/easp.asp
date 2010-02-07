@@ -958,19 +958,19 @@ Class EasyAsp
 			Case "idcard"	[Test] = isIDCard(s) : Exit Function
 			Case "number"	[Test] = isNumeric(s) : Exit Function
 			Case "english"	Pa = "^[A-Za-z]+$"
-			Case "chinese"	Pa = "^[\u0391-\uFFE5]+$"
+			Case "chinese"	Pa = "^[\u4e00-\u9fa5]+$"
 			Case "username"	Pa = "^[a-zA-Z]\w{2,19}$"
-			Case "email"	Pa = "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
+			Case "email"	Pa = "^\w+([-+\.]\w+)*@(([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}(?:\.[a-zA-Z]{2})?)$"
 			Case "int"		Pa = "^[-\+]?\d+$"
 			Case "double"	Pa = "^[-\+]?\d+(\.\d+)?$"
 			Case "price"	Pa = "^\d+(\.\d+)?$"
-			Case "zip"		Pa = "^[1-9]\d{5}$"
+			Case "zip"		Pa = "^\d{6}$"
 			Case "qq"		Pa = "^[1-9]\d{4,9}$"
 			Case "phone"	Pa = "^((\(\+?\d{2,3}\))|(\+?\d{2,3}\-))?(\(0?\d{2,3}\)|0?\d{2,3}-)?[1-9]\d{4,7}(\-\d{1,4})?$"
-			Case "mobile"	Pa = "^(\+\d{2,3})?0?1(3\d|5\d|8[0789])\d{8}$"
-			Case "url"		Pa = "^((https|http|ftp|rtsp|mms)://)?(([\w!~\*'\(\).&=\+\$%-]+:)?[\w!~\*'\(\).&=\+\$%-]+@)?((25[0-5]|2[0-4]\d|(1\d|[1-9])?\d\.){3}(25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)|((([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}(\.[a-zA-Z]{2})?)|localhost))(:\d{1,5})?([#\?/].*)?$"
-			Case "domain"	Pa = "^(([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}(\.[a-zA-Z]{2})?)$"
-			Case "ip"		Pa = "^(25[0-5]|2[0-4]\d|(1\d|[1-9])?\d\.){3}(25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)$"
+			Case "mobile"	Pa = "^(\+?\d{2,3})?0?1(3\d|5\d|8[0789])\d{8}$"
+			Case "url"		Pa = "^(?:(https|http|ftp|rtsp|mms)://(?:([\w!~\*'\(\).&=\+\$%-]+)(?::([\w!~\*'\(\).&=\+\$%-]+))?@)?)?((?:(?:(?:25[0-5]|2[0-4]\d|(?:1\d|[1-9])?\d)\.){3}(?:25[0-5]|2[0-4]\d|(?:1\d|[1-9])?\d))|(?:(?:(?:[\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+(?:[a-zA-Z]{2,4}(?:\.[a-zA-Z]{2})?)|localhost))(?::(\d{1,5}))?([#\?/].*)?$"
+			Case "domain"	Pa = "^(([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}(?:\.[a-zA-Z]{2})?)$"
+			Case "ip"		Pa = "^((25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)\.){3}(25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)$"
 			Case Else Pa = p
 		End Select
 		[Test] = Easp_Test(CStr(s),Pa)
