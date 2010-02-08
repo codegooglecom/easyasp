@@ -103,12 +103,17 @@ Class EasyAsp_Upload
 	'属性：文件上传后保存的路径(相对或绝对)
 	Public Property Let SavePath(ByVal s)
 		Dim Matches,Match,t
-		If Easp.Test(s,"<.+>") Then
+		If Easp.Test(s,"<.+?>") Then
 			Set Matches = Easp.RegMatch(s,"<(.+?)>")
 			For Each Match In Matches
 				t = Easp.DateTime(Now,Match.SubMatches(0))
 				s = Replace(s,Match.Value,t)
 			Next
+		End If
+		If Not Instr(s,":") = 2 Then
+			If Right(s,1) <> "/" Then s = s & "/"
+		Else
+			If Right(s,1) <> "\" Then s = s & "\"
 		End If
 		s_savepath = s
 	End Property
@@ -268,6 +273,7 @@ Class EasyAsp_Upload
 					o_file.Client = s_fileName
 					o_file.OldPath = Left(s_fileName, InstrRev(s_fileName, "\"))
 					o_file.NewPath = absPath(s_savepath)
+					o_file.WebPath = s_savepath
 					o_file.Name = Mid(s_fileName, InstrRev(s_fileName, "\")+1)
 					o_file.Ext = Mid(o_file.Name, InstrRev(o_file.Name,".")+1)
 					o_file.NewName = Easp.IIF(b_random,Easp.DateTime(Now,"ymmddhhiiss")&Easp.RandStr("<100000-999999>") & "." & o_file.Ext,o_file.Name)
@@ -343,7 +349,7 @@ Class EasyAsp_Upload
 End Class
 '上传文件信息
 Class Easp_Upload_FileInfo
-	Public FormName, Client, OldPath, NewPath, Name, NewName, Ext, Size, MIME
+	Public FormName, Client, OldPath, NewPath, WebPath, Name, NewName, Ext, Size, MIME
 	Public isSize, isType, autoMD, Start
 	Private Sub Class_Initialize
 		'表单项名称
@@ -352,8 +358,10 @@ Class Easp_Upload_FileInfo
 		Client = ""
 		'客户端文件路径
 		OldPath = ""
-		'服务器端保存路径
+		'服务器端保存物理路径
 		NewPath = ""
+		'服务器端保存Web路径
+		WebPath = ""
 		'原文件名称
 		Name = ""
 		'新文件名称
