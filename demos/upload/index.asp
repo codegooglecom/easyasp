@@ -20,21 +20,23 @@ Easp.Upload.FileMaxSize = 1024*5
 Easp.Upload.TotalMaxSize = 1024*50
 '点击上传后执行
 If Easp.Get("act") = "upload" Then
-	'上传文件保存路径，可用<>带日期标志（参见Easp.DateTime）按日期建立相应文件夹
+	'上传文件保存路径:
 	'比如：
 	'Easp.Upload.SavePath = "/userFiles/"
-	'或者：
+	'或者，可用<>带日期标志（参见Easp.DateTime）按日期建立相应文件夹：
 	Easp.Upload.SavePath = "uploadfiles/<yyyy>/<mm>/"
-	'保存时使用随机文件名
+	'保存时使用随机文件名，默认为False，即不使用
 	'Easp.Upload.Random = True
 	'是否自动建立不存在的文件夹，默认为True，即会自动建立
-	'Easp.Upload.AutoMD = True
+	'Easp.Upload.AutoMD = False
 	'获取上传的唯一KEY用于生成进度条数据Json文件给js调用
 	Easp.Upload.Key = Easp.Get("json")
 	'重要方法：开始上传
 	Easp.Upload.StartUpload()
 	'捕捉错误信息并弹出警告窗口返回上传页
 	If Easp.Error.LastError>"" Then
+		'如果出错就释放对象，同时删除出错文件的进度条数据文件
+		Set Easp.Upload = Nothing
 		Easp.Alert Easp.Error(Easp.Error.LastError)
 	End If
 	'保存全部上传文件
@@ -66,9 +68,11 @@ If Easp.Get("act") = "upload" Then
 			Easp.WN "文件类型：" & f.MIME
 			Easp.WN "新路径："& f.NewPath
 			Easp.WN "新名称："& f.NewName
+			Easp.WN "Web路径：" & f.WebPath & Server.URLEncode(f.NewName)
 			Easp.WN "================="
 		End If
 	Next
+	Easp.WE "<a href=""../upload/"">继续上传</a>"
 End If
 '生成本次上传的唯一KEY
 random = Easp.Upload.GenKey
