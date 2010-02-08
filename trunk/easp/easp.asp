@@ -459,13 +459,20 @@ Class EasyAsp
 		End If
 		[Get] = Safe(tmp,t)
 	End Function
-	'取Form值
+	'取Form值，包括上传文件时的普通Form值
 	Function Post(ByVal s)
-		Dim t,tmp
+		Dim t,tmp : tmp = ""
 		If Instr(s,":")>0 Then
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
-		tmp = Request.Form(s)
+		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
+		If LCase(FormType(0)) = "multipart/form-data" Then
+			If TypeName(upload) = "EasyASP_Upload" Then
+				If upload.Form.Count>0 Then tmp = upload.Form(s)
+			End If
+		Else
+			tmp = Request.Form(s)
+		End If
 		Post = Safe(tmp,t)
 	End Function
 	'安全获取值新版
