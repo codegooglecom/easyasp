@@ -1,6 +1,7 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 'EasyASP 上传类 Demo，此例子为UTF-8编码，客户端进度条展示采用了jQuery，需要jQuery库支持
 '(此例子是Upload类的基础功能，Upload类尚有功能在开发中，不过目前已有功能基本不会再做更改，可放心使用。)
+'友情提示：因为上传类的表单验证是要等文件上传完成之后才能做出判断，所以建议表单的验证请尽量同时做到客户端的验证，否则用户体验将打大折扣。
 '=====================================
 Dim random, jsonFile, i, j, f, e
 '载入核心类
