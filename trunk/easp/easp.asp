@@ -1098,10 +1098,10 @@ Class EasyAsp
 		Else
 			tmpStr = ""
 			If IsN(t) Then
+				tmpStr = "File Not Found: '" & filePath & "'"
+			ElseIf t="fso" Then
 				[error].Msg = "(" & filePath & ")"
 				[error].Raise 2
-			ElseIf t="easp" Then
-				tmpStr = "File Not Found: '" & filePath & "'"
 			End If
 		End If
 		Set o_fso = Nothing
@@ -1110,7 +1110,7 @@ Class EasyAsp
 	'读取包含文件内容（无限级）
 	Private Function IncRead(ByVal filePath)
 		Dim content, rule, inc, incFile, incStr
-		content = Read(filePath&"|easp")
+		content = Read(filePath)
 		If isN(content) Then Exit Function
 		content = regReplace(content,"<% *?@.*?%"&">","")
 		content = regReplace(content,"(<%[^>]+?)(option +?explicit)([^>]*?%"&">)","$1'$2$3")
