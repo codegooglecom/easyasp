@@ -5,7 +5,7 @@
 '##	Feature		:	EasyAsp Upload Class
 '##	Version		:	v2.2 Alpha
 '##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2010/02/07 14:48:14
+'##	Update Date	:	2010/02/09 00:15:14
 '##	Description	:	Upload file(s) with EasyASP
 '#################################################################################
 Dim EasyAsp_o_updata
@@ -83,13 +83,22 @@ Class EasyAsp_Upload
 	Public Property Let TotalMaxSize(ByVal n)
 		i_totalMaxSize = n * 1024
 	End Property
+	Public Property Get TotalMaxSize
+		TotalMaxSize = i_totalMaxSize / 1024
+	End Property
 	'属性：允许上传的文件类型，用"|"分隔
 	Public Property Let Allowed(ByVal s)
 		s_allowed = s
 	End Property
+	Public Property Get Allowed
+		Allowed = s_allowed
+	End Property
 	'属性：禁止上传的文件类型，用"|"分隔
 	Public Property Let Denied(ByVal s)
 		s_denied = s
+	End Property
+	Public Property Get Denied
+		Denied = s_denied
 	End Property
 	'属性：文件上传后保存的路径(相对或绝对)
 	Public Property Let SavePath(ByVal s)
@@ -163,7 +172,7 @@ Class EasyAsp_Upload
 			End If
 		End If
 	End Function
-	'初始化：
+	'初始化，开始上传：
 	Public Sub StartUpload
 		'检测表单是否multipart/form-data类型
 		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
@@ -261,7 +270,7 @@ Class EasyAsp_Upload
 					o_file.NewPath = absPath(s_savepath)
 					o_file.Name = Mid(s_fileName, InstrRev(s_fileName, "\")+1)
 					o_file.Ext = Mid(o_file.Name, InstrRev(o_file.Name,".")+1)
-					o_file.NewName = Easp.IIF(b_random,Easp.DateTime(Now,"ymmddhhiiss")&Easp.RandStr("<100000-999999>"),o_file.Name) & "." & o_file.Ext
+					o_file.NewName = Easp.IIF(b_random,Easp.DateTime(Now,"ymmddhhiiss")&Easp.RandStr("<100000-999999>") & "." & o_file.Ext,o_file.Name)
 					'如果文件类型不允许
 					If Not checkFileType(o_file.Ext) Then
 						o_file.isType = False
@@ -465,11 +474,10 @@ Class Easp_Upload_Progress
 	End Sub
 	'将秒转换为标准格式时间
 	private Function SecToTime(ByVal sec)
-		If Not isNumeric(sec) Then sec = 0
-		sec = Int(sec)
-		Dim h : h = "0"
-		Dim m : m = "0"
-		Dim s : s = "0"
+		On Error Resume Next
+		Dim h : h = "00"
+		Dim m : m = "00"
+		Dim s : s = "00"
 		h = Right("0" & Round(sec/3600), 2)
 		m = Right("0" & Round((sec mod 3600) / 60), 2)
 		s = Right("0" & Round(sec mod 60), 2)
