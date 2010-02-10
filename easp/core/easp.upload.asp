@@ -5,7 +5,7 @@
 '##	Feature		:	EasyAsp Upload Class
 '##	Version		:	v2.2 Alpha
 '##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2010/02/09 00:15:14
+'##	Update Date	:	2010/02/10 23:15:14
 '##	Description	:	Upload file(s) with EasyASP
 '#################################################################################
 Dim EasyAsp_o_updata
