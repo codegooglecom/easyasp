@@ -465,8 +465,13 @@ Class EasyAsp
 		If Instr(s,":")>0 Then
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
-		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
-		If LCase(FormType(0)) = "multipart/form-data" Then
+		Dim FormType
+		If Has(rqsv("HTTP_CONTENT_TYPE")) Then
+			FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")(0)
+		Else
+			FormType = "notupload"
+		End If
+		If LCase(FormType) = "multipart/form-data" Then
 			If TypeName(upload) = "EasyASP_Upload" Then
 				If upload.Form.Count>0 Then tmp = upload.Form(s)
 			End If
