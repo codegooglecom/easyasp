@@ -141,7 +141,7 @@ Class EasyAsp_Tpl
 	'获取最终html
 	Public Function GetHtml()
 		Dim Matches, Match, n
-		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
+		Set Matches = Easp.RegMatch(s_html, s_ms & "([^" & s_ms & "]+?)" & s_me)
 		For Each Match In Matches
 			n = Match.SubMatches(0)
 			If o_tag.Exists(n) Then
@@ -152,7 +152,7 @@ Class EasyAsp_Tpl
 		For Each Match In Matches
 			s_html = Easp.regReplace(s_html, Match.Value, "")
 		Next
-		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
+		Set Matches = Easp.RegMatch(s_html, s_ms & "([^" & s_ms & "]+?)" & s_me)
 		select case s_unknown
 			case "keep"
 			case "remove"
