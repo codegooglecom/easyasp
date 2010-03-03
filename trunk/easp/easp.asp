@@ -39,6 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
+		Core_On "db,fso,upload,tpl,aes,[error],json"
 		Set [error]	= New EasyAsp_obj
 		Set db		= New EasyAsp_obj
 		Set o_md5	= New EasyAsp_obj
@@ -60,6 +61,25 @@ Class EasyAsp
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 		Set o_regex = Nothing
+	End Sub
+	Public Sub Init()
+		Set [error] = New EasyAsp_Error
+		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
+		[error](2) = "读取文件错误，文件未找到！"
+		Set db = New EasyAsp_db
+'{init}
+		Set fso = New EasyAsp_Fso
+		Set tpl = New EasyAsp_Tpl
+		Set upload = New EasyAsp_Upload
+		Set aes = New EasyAsp_AES
+		Set json = New EasyAsp_JSON
+'{/init}
+	End Sub
+	Private Sub Core_On(ByVal s)
+		Dim a_core, i : a_core = Split(s,",")
+		For i = 0 To Ubound(a_core)
+			
+		Next
 	End Sub
 	Public Property Let basePath(ByVal p)
 		s_path = FixAbsPath(p)
@@ -112,19 +132,6 @@ Class EasyAsp
 		ScriptTime = toNumber(GetScriptTime(0)/1000,3)
 	End Property
 
-	Public Sub Init()
-		Set [error] = New EasyAsp_Error
-		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
-		[error](2) = "读取文件错误，文件未找到！"
-		Set db = New EasyAsp_db
-'{init}
-		Set fso = New EasyAsp_Fso
-		Set tpl = New EasyAsp_Tpl
-		Set upload = New EasyAsp_Upload
-		Set aes = New EasyAsp_AES
-		Set json = New EasyAsp_JSON
-'{/init}
-	End Sub
 	Private Function FixAbsPath(ByVal p)
 		p = IIF(Left(p,1)= "/", p, "/" & p)
 		p = IIF(Right(p,1)="/", p, p & "/")
