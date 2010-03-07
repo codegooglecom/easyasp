@@ -147,7 +147,7 @@ Class EasyAsp_db
 	End Function
 	'建立数据库连接对象
 	Public Function CreatConn(ByVal ConnStr)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
@@ -186,7 +186,7 @@ Class EasyAsp_db
 	End Function
 	'自动获取唯一序列号（自动编号）
 	Public Function AutoID(ByVal TableName)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim rs, tmp, fID, tmpID : fID = "" : tmpID = 0
 		tmp = Easp_Param(TableName)
 		If Easp.Has(tmp(1)) Then : TableName = tmp(0) : fID = tmp(1) : tmp = "" : End If
@@ -245,7 +245,7 @@ Class EasyAsp_db
 	End Function
 	'根据sql语句返回记录集
 	Public Function GetRecordBySQL(ByVal s)
-		On Error Resume Next
+		'On Error Resume Next
 		If i_queryType = 1 Then
 			Dim cmd : Set cmd = Server.CreateObject("ADODB.Command")
 			With cmd
@@ -277,7 +277,7 @@ Class EasyAsp_db
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue
 		o = Easp_Param(jName)
 		If Easp.Has(o(1)) Then
@@ -309,7 +309,7 @@ Class EasyAsp_db
 	End Function
 	'生成指定长度的不重复的字符串
 	Public Function RandStr(length,TableField)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tb, fi, tmpStr, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -328,7 +328,7 @@ Class EasyAsp_db
 	End Function
 	'生成一个不重复的随机数
 	Public Function Rand(min,max,TableField)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tb, fi, tmpInt, rs
 		tb = Easp_Param(TableField)(0)
 		fi = Easp_Param(TableField)(1)
@@ -395,7 +395,7 @@ Class EasyAsp_db
 	End Function
 	'添加一个新的纪录
 	Public Function AddRecord(ByVal TableName,ByVal ValueList)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim o,s : o = Easp_Param(TableName)
 		If Easp.Has(o(1)) Then TableName = o(0)
 		s = wAddRecord(TableName,ValueList)
@@ -428,7 +428,7 @@ Class EasyAsp_db
 	End Function
 	'修改某一纪录
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim s : s = wUpdateRecord(TableName,Condition,ValueList)
 		DoExecute s
 		If Err.number <> 0 Then
@@ -454,7 +454,7 @@ Class EasyAsp_db
 	End Function
 	'删除指定的纪录
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim s : s = wDeleteRecord(TableName,Condition)
 		DoExecute s
 		If Err.number <> 0 Then
@@ -489,7 +489,7 @@ Class EasyAsp_db
 	End Function
 	'从某一表中，根据一个条件获取一条记录的其他字段的值
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
 		TempStr = "" : arrStr = ""
 		Sql = "Select "&GetFieldNames&" From ["&TableName&"] Where " & ValueToSql(TableName,Condition,1)
@@ -515,7 +515,7 @@ Class EasyAsp_db
 	End Function
 	'调用存储过程
 	Public Function doSP(ByVal spName, ByVal spParam)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim p, spType, cmd, outParam, i, NewRS : spType = ""
 		If Not s_dbType="0" And Not s_dbType="MSSQL" Then
 			Easp.Error.Raise 32
@@ -585,7 +585,7 @@ Class EasyAsp_db
 	End Function
 	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal s)
-		On Error Resume Next
+		'On Error Resume Next
 		If Lcase(Left(s,6)) = "select" Then
 			Dim i : i = i_queryType
 			i_queryType = 1
@@ -603,7 +603,7 @@ Class EasyAsp_db
 	End Function
 	
 	Private Function ValueToSql(ByVal TableName, ByVal ValueList, ByVal sType)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim StrTemp : StrTemp = ValueList
 		If IsArray(ValueList) Then
 			StrTemp = ""
@@ -649,7 +649,7 @@ Class EasyAsp_db
 	'以下是分页程序部分
 	'获取分页后的记录集
 	Public Function GetPageRecord(ByVal PageSetup, ByVal Condition)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim pType,spResult,rs,o,p,Sql,n,i,spReturn
 		o = Easp_Param(Cstr(PageSetup))
 		pType = o(0)
@@ -760,7 +760,7 @@ Class EasyAsp_db
 	End Function
 	'生成分页导航链接
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast
 		Dim pJump, pJumpLong, pJumpStart, pJumpEnd, pJumpValue
 		Dim i, j, tmpStr, pStart, pEnd, cfg, pcfg(1)

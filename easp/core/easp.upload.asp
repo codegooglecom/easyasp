@@ -482,7 +482,7 @@ Class Easp_Upload_Progress
 	End Sub
 	'将秒转换为标准格式时间
 	private Function SecToTime(ByVal sec)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim h : h = "00"
 		Dim m : m = "00"
 		Dim s : s = "00"
