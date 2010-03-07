@@ -18,9 +18,9 @@ Dim EasyAsp_s_html
 <!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl,aes,[error],json
+	Public db,fso,upload,tpl,aes,[error],json,cache,xml,http,list
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
-	Private s_url, s_rwtS, s_rwtU
+	Private s_url, s_rwtS, s_rwtU, s_cores
 	Private o_md5, o_rwt, o_ext, o_regex
 	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
@@ -39,25 +39,11 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		Core_On "db,fso,upload,tpl,aes,[error],json"
-		Set [error]	= New EasyAsp_obj
-		Set db		= New EasyAsp_obj
-		Set o_md5	= New EasyAsp_obj
-		Set fso		= New EasyAsp_obj
-		Set upload	= New EasyAsp_obj
-		Set tpl		= New EasyAsp_obj
-		Set aes		= New EasyAsp_obj
-		Set json	= New EasyAsp_obj
+		s_cores		= "db,fso,upload,tpl,aes,[error],json,cache"
+		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
-		Set json	= Nothing
-		Set aes		= Nothing
-		Set tpl		= Nothing
-		Set upload	= Nothing
-		Set fso		= Nothing
-		Set o_md5	= Nothing
-		Set db 		= Nothing
-		Set [error]	= Nothing
+		Core_Do "off", s_cores
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 		Set o_regex = Nothing
@@ -73,12 +59,17 @@ Class EasyAsp
 		Set upload = New EasyAsp_Upload
 		Set aes = New EasyAsp_AES
 		Set json = New EasyAsp_JSON
+		Set cache = New EasyAsp_Cache
 '{/init}
 	End Sub
-	Private Sub Core_On(ByVal s)
+	Private Sub Core_Do(ByVal t, ByVal s)
 		Dim a_core, i : a_core = Split(s,",")
 		For i = 0 To Ubound(a_core)
-			
+			If t = "on" Then
+				Execute "Set " & a_core(i) & " = New EasyAsp_obj"
+			ElseIf t = "off" Then
+				Execute "Set " & a_core(i) & " = Nothing"
+			End If
 		Next
 	End Sub
 	Public Property Let basePath(ByVal p)
@@ -214,6 +205,10 @@ Class EasyAsp
 	Function IfThen(ByVal Cn, ByVal T)
 		IfThen = IIF(Cn,T,"")
 	End Function
+	'如果第1项不为空则返回第1项，否则返回第2项
+	Function IfHas(ByVal v1, ByVal v2)
+		IfHas = IIF(Has(v1), v1, v2)
+	End Function
 	'服务器端输出javascript
 	Sub Js(ByVal s)
 		W JsCode(s)
@@ -236,15 +231,15 @@ Class EasyAsp
 	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
 		If isN(s) Then JsEncode = "" : Exit Function
-		Dim i, j, aL1, aL2, c, p, t
-		aL1 = Array(&h22, &h5C, &h2F, &h08, &h0C, &h0A, &h0D, &h09)
-		aL2 = Array(&h22, &h5C, &h2F, &h62, &h66, &h6E, &h72, &h74)
+		Dim arr1, arr2, i, j, c, p, t
+		arr1 = Array(&h27,&h22,&h5C,&h2F,&h08,&h0C,&h0A,&h0D,&h09)
+		arr2 = Array(&h27,&h22,&h5C,&h2F,&h62,&h66,&h6E,&h72,&h749)
 		For i = 1 To Len(s)
 			p = True
 			c = Mid(s, i, 1)
-			For j = 0 To 7
-				If c = Chr(aL1(j)) Then
-					t = t & "\" & Chr(aL2(j))
+			For j = 0 To Ubound(arr1)
+				If c = Chr(arr1(j)) Then
+					t = t & "\" & Chr(arr2(j))
 					p = False
 					Exit For
 				End If
@@ -725,6 +720,7 @@ Class EasyAsp
 	End Function
 	'过滤HTML标签
 	Function HtmlFilter(ByVal s)
+		If IsN(s) Then HtmlFilter = "" : Exit Function
 		s = regReplace(s,"<[^>]+>","")
 		s = Replace(s, ">", "&gt;")
 		HtmlFilter = Replace(s, "<", "&lt;")
@@ -909,7 +905,7 @@ Class EasyAsp
 	End Sub
 	'获取一个缓存记录
 	Function GetApp(ByVal AppName)
-		If IsN(AppName) Then GetApp = "" : Exit Function
+		If IsN(AppName) Then GetApp = Empty : Exit Function
 		GetApp = Application(AppName)
 	End Function
 	'删除一个缓存记录
@@ -1052,7 +1048,7 @@ Class EasyAsp
 	End Function
 	'动态载入文件
 	Sub Include(ByVal filePath)
-		On Error Resume Next
+		'On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),0)
 		If Err.Number<>0 Then
 			[error].Msg = " ( " & filePath & " )"
@@ -1061,7 +1057,7 @@ Class EasyAsp
 		Err.Clear()
 	End Sub
 	Function getInclude(ByVal filePath)
-		On Error Resume Next
+		'On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),1)
 		getInclude = EasyAsp_s_html
 		If Err.Number<>0 Then
@@ -1307,7 +1303,7 @@ Class EasyAsp
 	End Function
 End Class
 Class EasyAsp_obj : End Class
-
+'Easp内部多参数处理
 Private Function Easp_Param(ByVal s)
 	Dim arr(1),t : t = Instr(s,":")
 	If t > 0 Then
@@ -1325,3 +1321,4 @@ End Function
 <!--#include file="core/easp.tpl.asp"-->
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->
+<!--#include file="core/easp.cache.asp"-->
