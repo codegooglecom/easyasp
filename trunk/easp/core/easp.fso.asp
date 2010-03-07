@@ -123,7 +123,7 @@ Class EasyAsp_Fso
 	End Function
 	'创建文件并写入内容
 	Public Function CreateFile(ByVal filePath, ByVal fileContent)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim f,p,t, s_char
 		s_char = s_charset
 		If Instr(filePath,">")>0 Then
@@ -171,7 +171,7 @@ Class EasyAsp_Fso
 	End Function
 	'创建文件夹 MD
 	Public Function CreateFolder(ByVal folderPath)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim p,arrP,i : CreateFolder = True
 		p = absPath(folderPath)
 		arrP = Split(p,"\") : p = ""
@@ -195,7 +195,7 @@ Class EasyAsp_Fso
 	End Function
 	'列出文件夹下的所有文件夹或文件
 	Public Function List(ByVal folderPath, ByVal fileType)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim f,fs,k,arr(),i,l
 		folderPath = absPath(folderPath) : i = 0
 		Select Case LCase(fileType)
@@ -240,7 +240,7 @@ Class EasyAsp_Fso
 	End Function
 	'设置文件或文件夹属性
 	Public Function Attr(ByVal path, ByVal attrType)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim p,a,i,n,f,at : p = absPath(path) : n = 0 : Attr = True
 		If not isExists(p) Then
 			Attr = False
@@ -448,7 +448,7 @@ Class EasyAsp_Fso
 	End Function
 	'文件或文件夹操作原型
 	Private Function FOFO(ByVal fromPath, ByVal toPath, ByVal FOF, ByVal MOC)
-		On Error Resume Next
+		'On Error Resume Next
 		FOFO = True
 		Dim ff,tf,oc,of,oi,ot,os
 		'ff 来源路径				 'tf 目标路径
