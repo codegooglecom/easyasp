@@ -1,4 +1,4 @@
-﻿<%
+<%
 '######################################################################
 '## easp.cache.asp
 '## -------------------------------------------------------------------
@@ -11,17 +11,21 @@
 '######################################################################
 Class EasyAsp_Cache
 	Public Items, CountEnabled, Expires, FileType
-	Private s_path
+	Private s_path, b_fsoVH
 	'构造函数
 	Private Sub Class_Initialize
 		Set Items = Server.CreateObject("Scripting.Dictionary")
-		s_path = Server.MapPath("/_cache")&"\"
+		s_path = Server.MapPath("/_cache") & "\"
 		CountEnabled = True
 		Expires = 5
 		FileType = ".cache"
+		If TypeName(Easp.Fso) <> "EasyASP_Fso" Then Easp.Use "Fso"
+		b_fsoVH = Easp.Fso.IsVirtualHost
+		Easp.Fso.IsVirtualHost = True
 	End Sub
 	'析构函数
 	Private Sub Class_Terminate
+		If TypeName(Easp.Fso) = "EasyASP_Fso" Then Easp.Fso.IsVirtualHost = b_fsoVH
 		Set Items = Nothing
 	End Sub
 	'建新实例
@@ -133,7 +137,6 @@ class Easp_Cache_Info
 	Public SavePath, [Name], CountEnabled, FileType
 	Private i_exp, d_exp, o_value
 	Private Sub Class_Initialize
-		Easp.Use "Fso"
 		Easp.Error(91) = "当前对象不允许缓存到内存缓存"
 		Easp.Error(92) = "缓存文件不存在"
 		Easp.Error(93) = "当前内容不允许缓存到文件缓存"

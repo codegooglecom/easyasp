@@ -10,7 +10,7 @@
 '##
 '######################################################################
 Class EasyAsp_Fso
-	Public oFso
+	Public oFso, IsVirtualHost
 	Private Fso
 	Private b_force,b_overwrite
 	Private s_fsoName,s_sizeformat,s_charset
@@ -20,6 +20,7 @@ Class EasyAsp_Fso
 		s_charset	= Easp.CharSet
 		Set Fso 	= Server.CreateObject(s_fsoName)
 		Set oFso 	= Fso
+		IsVirtualHost = False
 		b_force		= True
 		b_overwrite	= True
 		s_sizeformat= "K"
@@ -177,7 +178,13 @@ Class EasyAsp_Fso
 		arrP = Split(p,"\") : p = ""
 		For i = 0 To Ubound(arrP)
 			p = p & arrP(i) & "\"
-			If Not isFolder(p) Then Fso.CreateFolder(p)
+			If IsVirtualHost Then
+				If Instr(p, absPath("/") & "\")>0 Then
+					If Not isFolder(p) And i>0 Then Fso.CreateFolder(p)
+				End If
+			Else
+				If Not isFolder(p) And i>0 Then Fso.CreateFolder(p)
+			End If
 		Next
 		If Err.Number<>0 Then
 			CreateFolder = False

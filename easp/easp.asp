@@ -18,7 +18,7 @@ Dim EasyAsp_s_html
 <!--#include file="easp.config.asp"-->
 <%
 Class EasyAsp
-	Public db,fso,upload,tpl,aes,[error],json,cache,xml,http,list
+	Public db,Fso,Upload,Tpl,Aes,[Error],Json,Cache,Xml,Http,List
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
 	Private s_url, s_rwtS, s_rwtU, s_cores
 	Private o_md5, o_rwt, o_ext, o_regex
@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "db,fso,upload,tpl,aes,[error],json,cache"
+		s_cores		= "db,Fso,Upload,Tpl,Aes,[Error],Json,Cache"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
