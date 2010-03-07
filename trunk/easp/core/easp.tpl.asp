@@ -96,11 +96,13 @@ Class EasyAsp_Tpl
 	End Sub
 	'替换标签(默认方法)
 	Public Default Sub Tag(ByVal s, ByVal v)
+		If Easp.IsN(v) Then v = ""
 		If o_tag.Exists(s) Then o_tag.Remove s
 		o_tag.Add s, Cstr(v)
 	End Sub
 	'在已替换标签后添加新内容
 	Public Sub Append(ByVal s, ByVal v)
+		If Easp.IsN(v) Then v = ""
 		Dim tmp
 		If o_tag.Exists(s) Then
 			tmp = o_tag.Item(s) & Cstr(v)
