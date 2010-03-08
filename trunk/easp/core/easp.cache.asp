@@ -164,7 +164,7 @@ class Easp_Cache_Info
   End Property
 	'显示过期时间
 	Public Property Get Expires()
-		Expires = Easp.IIF(Easp.Has(d_exp), d_exp, i_exp)
+		Expires = Easp.IfHas(d_exp, i_exp)
 	End Property
 	'给当前缓存赋值
 	Public Property Let [Value](ByVal s)

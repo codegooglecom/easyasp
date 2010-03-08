@@ -277,7 +277,7 @@ Class EasyAsp_db
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
-		'On Error Resume Next
+		On Error Resume Next
 		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue
 		o = Easp_Param(jName)
 		If Easp.Has(o(1)) Then
@@ -290,9 +290,9 @@ Class EasyAsp_db
 		If Easp.Has(rs) Then
 			total = rs.RecordCount
 			If Easp.Has(totalName) Then o(totalName) = total
-			Set o(jName) = Easp.Json.New(1)
+			o(jName) = Easp.Json.New(1)
 			While Not rs.Eof
-				Set o(jName)(Null) = Easp.Json.New(0)
+				o(jName)(Null) = Easp.Json.New(0)
 				For Each fi In rs.Fields
 					o(jName)(Null)(fi.Name) = fi.Value
 				Next
@@ -301,8 +301,6 @@ Class EasyAsp_db
 		End If
 		If Err.number <> 0 Then Easp.Error.Raise 15
 		tmpStr = o.JsString
-		Set o(jName)(Null) = Nothing
-		Set o(jName) = Nothing
 		Set o = Nothing
 		rs.Close() : Set rs = Nothing
 		Json = tmpStr
