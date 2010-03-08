@@ -20,7 +20,7 @@ Class EasyAsp_Fso
 		s_charset	= Easp.CharSet
 		Set Fso 	= Server.CreateObject(s_fsoName)
 		Set oFso 	= Fso
-		IsVirtualHost = False
+		IsVirtualHost = True
 		b_force		= True
 		b_overwrite	= True
 		s_sizeformat= "K"
