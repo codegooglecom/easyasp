@@ -484,7 +484,6 @@ Class EasyAsp
 	End Function
 	'安全获取值新版
 	Function Safe(ByVal s, ByVal t)
-		If IsN(s) Then Safe = Empty : Exit Function
 		Dim spl,d,l,li,i,tmp,arr() : l = False
 		'如果类型中有默认值
 		If Instr(t,":")>0 Then
@@ -537,7 +536,11 @@ Class EasyAsp
 					tmp = IIF(isN(li(i)), tmp & d, tmp & li(i))
 					If l Then arr(i) = IIF(isN(li(i)), d, li(i))
 			End Select
+			If l Then
+				If IsN(arr(i)) Then arr(i) = Empty
+			End If
 		Next
+		If IsN(tmp) Then tmp = Empty
 		Safe = IIF(l,arr,tmp)
 	End Function
 	'检查提交数据来源

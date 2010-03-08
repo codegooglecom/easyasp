@@ -11,7 +11,7 @@
 '######################################################################
 Class EasyAsp_Cache
 	Public Items, CountEnabled, Expires, FileType
-	Private s_path, b_fsoVH
+	Private s_path, b_fsoOn
 	'构造函数
 	Private Sub Class_Initialize
 		Set Items = Server.CreateObject("Scripting.Dictionary")
@@ -19,13 +19,19 @@ Class EasyAsp_Cache
 		CountEnabled = True
 		Expires = 5
 		FileType = ".cache"
-		If TypeName(Easp.Fso) <> "EasyASP_Fso" Then Easp.Use "Fso"
-		b_fsoVH = Easp.Fso.IsVirtualHost
-		Easp.Fso.IsVirtualHost = True
+		If TypeName(Easp.Fso) = "EasyASP_Fso" Then
+			b_fsoOn = True
+		Else
+			Easp.Use "Fso"
+			b_fsoOn = False
+		End If
 	End Sub
 	'析构函数
 	Private Sub Class_Terminate
-		If TypeName(Easp.Fso) = "EasyASP_Fso" Then Easp.Fso.IsVirtualHost = b_fsoVH
+		If Not b_fsoOn Then
+			Set Easp.Fso = Nothing
+			Set Easp.Fso = New EasyAsp_obj
+		End If
 		Set Items = Nothing
 	End Sub
 	'建新实例
