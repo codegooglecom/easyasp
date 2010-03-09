@@ -56,12 +56,13 @@ Class EasyAsp
 		[error](3) = "EasyASP系统路径错误，请检查'easp.config.asp'文件中的 Easp.BasePath 设置！"
 		Set db = New EasyAsp_db
 '{init}
-		Set fso = New EasyAsp_Fso
-		Set tpl = New EasyAsp_Tpl
-		Set upload = New EasyAsp_Upload
-		Set aes = New EasyAsp_AES
-		Set json = New EasyAsp_JSON
-		Set cache = New EasyAsp_Cache
+		Set Fso = New EasyAsp_Fso
+		Set Tpl = New EasyAsp_Tpl
+		Set Upload = New EasyAsp_Upload
+		Set Aes = New EasyAsp_AES
+		Set Json = New EasyAsp_JSON
+		Set Cache = New EasyAsp_Cache
+		Set List = New EasyAsp_List
 '{/init}
 	End Sub
 	Private Sub Core_Do(ByVal t, ByVal s)
@@ -1341,3 +1342,4 @@ End Function
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->
 <!--#include file="core/easp.cache.asp"-->
+<!--#include file="core/easp.list.asp"-->
