@@ -19,6 +19,9 @@ Class EasyAsp_Cache
 		CountEnabled = True
 		Expires = 5
 		FileType = ".cache"
+		Easp.Error(91) = "当前对象不允许缓存到内存缓存"
+		Easp.Error(92) = "缓存文件不存在"
+		Easp.Error(93) = "当前内容不允许缓存到文件缓存"
 		If TypeName(Easp.Fso) = "EasyASP_Fso" Then
 			b_fsoOn = True
 		Else
@@ -143,9 +146,6 @@ class Easp_Cache_Info
 	Public SavePath, [Name], CountEnabled, FileType
 	Private i_exp, d_exp, o_value
 	Private Sub Class_Initialize
-		Easp.Error(91) = "当前对象不允许缓存到内存缓存"
-		Easp.Error(92) = "缓存文件不存在"
-		Easp.Error(93) = "当前内容不允许缓存到文件缓存"
 		i_exp = 5
 		d_exp = ""
 	End Sub
