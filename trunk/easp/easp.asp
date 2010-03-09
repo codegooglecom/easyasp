@@ -21,7 +21,7 @@ Class EasyAsp
 	Public db,Fso,Upload,Tpl,Aes,[Error],Json,Cache,Xml,Http,List
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
 	Private s_url, s_rwtS, s_rwtU, s_cores
-	Private o_md5, o_rwt, o_ext, o_regex
+	Private o_md5, o_rwt, o_ext, o_regex, o_fso
 	Private b_cooen, i_rule, b_debug
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "db,Fso,Upload,Tpl,Aes,[Error],Json,Cache"
+		s_cores		= "db,Fso,Upload,Tpl,Aes,[Error],Json,Cache,List"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
@@ -47,11 +47,13 @@ Class EasyAsp
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 		Set o_regex = Nothing
+		If isObject(fso) Then Set o_fso = Nothing
 	End Sub
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
 		[error](1) = "包含文件内部运行错误，请检查包含文件代码！"
 		[error](2) = "读取文件错误，文件未找到！"
+		[error](3) = "EasyASP系统路径错误，请检查'easp.config.asp'文件中的 Easp.BasePath 设置！"
 		Set db = New EasyAsp_db
 '{init}
 		Set fso = New EasyAsp_Fso
@@ -566,7 +568,7 @@ Class EasyAsp
 		s = Replace(s,vbTab,"")
 		l = len(s) : t = 0 : d = ChrW(8230) : f = Easp_Param(strlen)
 		If Instr(strlen,":")>0 Then
-			d = IIF(Has(f(1)),f(1),"")
+			d = IfHas(f(1),"")
 		End If
 		strlen = Int(f(0)) : f = "" : n = 0
 		For j = 1 To Len(d)
@@ -1071,7 +1073,7 @@ Class EasyAsp
 	End Function
 	'读取文件内容
 	Function Read(ByVal filePath)
-		Dim p, f, o_fso, o_strm, tmpStr, s_char, t
+		Dim p, f, o_strm, tmpStr, s_char, t
 		s_char = s_charset
 		If Instr(filePath,"|")>0 Then
 			t = LCase(Trim(CRight(filePath,"|")))
@@ -1082,11 +1084,8 @@ Class EasyAsp
 			filePath = Trim(CLeft(filePath,">"))
 		End If
 		p = filePath
-		If Mid(p,2,1)<>":" Then
-			p = Server.MapPath(p)
-		End If
-		Set o_fso = Server.CreateObject(s_fsoName)
-		If o_fso.FileExists(p) Then
+		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
+		If isFile(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
 			With o_strm
 				.Type = 2
@@ -1122,7 +1121,6 @@ Class EasyAsp
 				[error].Raise 2
 			End If
 		End If
-		Set o_fso = Nothing
 		Read = tmpStr
 	End Function
 	'读取包含文件内容（无限级）
@@ -1179,6 +1177,12 @@ Class EasyAsp
 		If getHtml = 1 Then code = "EasyAsp_s_html = """" " & vbCrLf & code
 		GetIncCode = regReplace(code,"(\n\s*\r)+",vbCrLf)
 	End Function
+	Private Function isFile(ByVal p)
+		isFile = False
+		If TypeName(o_fso)<>"FileSystemObject" Then Set o_fso = Server.CreateObject(s_fsoName)
+		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
+		If o_fso.FileExists(p) Then isFile = True
+	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
 		Dim p, o, t : o = f
@@ -1186,13 +1190,19 @@ Class EasyAsp
 		If LCase(o) = "md5" Then o = "o_md5"
 		t = Eval("LCase(TypeName(" & o & "))")
 		If t = "easyasp_obj" Then
-			Include s_path & "core/" & p
-			Execute("Set " & o & " = New EasyAsp_" & f)
+			p = s_path & "core/" & p
+			If isFile(p) Then
+				Include p
+				Execute("Set " & o & " = New EasyAsp_" & f)
+			Else
+				[error].Msg = "(当前设置 """ & s_path & """ 是错误的)"
+				[error].Raise 3
+			End If
 		End If
 	End Sub
 	'加载插件
 	Function Ext(ByVal f)
-		Dim loaded
+		Dim loaded, p
 		f = Lcase(f) : loaded = True
 		If Not o_ext.Exists(f) Then
 			loaded = False
@@ -1200,8 +1210,14 @@ Class EasyAsp
 			If LCase(TypeName(o_ext(f))) <> "easyasp_" & f Then loaded = False
 		End If
 		If Not loaded Then
-			Include(s_plugin & "easp." & f & ".asp")
-			Execute("Set o_ext(""" & f & """) = New EasyAsp_" & f)
+			p = s_plugin & "easp." & f & ".asp"
+			If isFile(p) Then
+				Include p
+				Execute("Set o_ext(""" & f & """) = New EasyAsp_" & f)
+			Else
+				[error].Msg = "(当前设置 """ & s_path & """ 是错误的)"
+				[error].Raise 3
+			End If
 		End If
 		Set Ext = o_ext(f)
 	End Function
