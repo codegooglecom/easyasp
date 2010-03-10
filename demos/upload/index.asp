@@ -72,7 +72,7 @@ If Easp.Get("act") = "upload" Then
 			Easp.WN "================="
 		End If
 	Next
-	Easp.WE "<a href=""../upload/"">继续上传</a>"
+	Easp.WE "<a href=""index.asp"">继续上传</a>"
 End If
 '生成本次上传的唯一KEY
 random = Easp.Upload.GenKey
@@ -152,7 +152,7 @@ $('#formUpload').submit(function(){
 		return false;
 	} else {
 		//在Form的action中加入上传的唯一KEY
-		this.action = '?act=upload&json=<%=random%>';
+		this.action = 'index.asp?act=upload&json=<%=random%>';
 		//显示进度条
 		startProgress('<%=jsonFile%>');
 		return true;
