@@ -9,7 +9,8 @@
 '## Description :   A super Array class in EasyAsp
 '##
 '######################################################################
-'Filter 函数可利用
+
+'List.Times(a), list.Add(a), list.Has(s)要用到StrComp, list.IndexOf(s), list.In(a)
 
 Class EasyAsp_List
 	Public Size
@@ -33,25 +34,26 @@ Class EasyAsp_List
 		Set [New] = New EasyAsp_List
 	End Function
 	
+	'设置某一项值
+	Public Property Let At(ByVal n, ByVal v)
+		If isNumeric(n) Then
+			If n > [End] Then
+				ReDim Preserve a_list(n)
+				Size = n + 1
+			End If
+			a_list(n) = v
+		End If
+	End Property
+	
 	'取某一项值
 	Public Default Property Get At(ByVal n)
-		'If Size = 0 Then ReDim a_list(0)
 		If isNumeric(n) Then
 			If n < Size Then
 				At = a_list(n)
 			Else
-				Easp.Error.Msg = "(当前下标 "&n&" 超过了最大下标 "&Size-1&" )"
+				Easp.Error.Msg = "(当前下标 " & n & " 超过了最大下标 " & [End] & " )"
 				Easp.Error.Raise 41
 			End If
-		End If
-	End Property
-	
-	'设置某一项值
-	Public Property Let At(ByVal n, ByVal v)
-		If isNumeric(n) Then
-			If n >= Size Then ReDim Preserve a_list(n)
-			a_list(n) = v
-			Size = n + 1
 		End If
 	End Property
 	
@@ -114,12 +116,23 @@ Class EasyAsp_List
 	
 	'添加一个元素到开头
 	Public Sub UnShift(ByVal v)
-		
+		Dim arr(),i
+		ReDim arr(Size)
+		arr(0) = v
+		For i = 0 To [End]
+			arr(i+1) = At(i)
+		Next
+		Data = arr
 	End Sub
 	
 	'删除第一个元素
 	Public Sub Shift
-		
+		Dim arr(),i
+		ReDim arr([End]-1)
+		For i = 1 To [End]
+			arr(i-1) = At(i)
+		Next
+		Data = arr
 	End Sub
 	
 	'添加一个元素到结尾
@@ -133,26 +146,62 @@ Class EasyAsp_List
 		Size = Size - 1
 	End Sub
 	
-	'插入一个或多个元素
-	'Insert 2, "data"
-	'Insert "3,12", Array("data3", "data12")
-	'Insert "2-4", Array("data2","data3", "data4")
-	Public Sub Insert(ByVal i, ByVal v)
-		
+	'在指定下标插入一个元素
+	Public Sub Insert(ByVal n, ByVal v)
+		If n > [End] Then At(n) = v : Exit Sub
+		Dim arr(),i
+		ReDim arr(Size)
+		For i = 0 To (n - 1)
+			arr(i) = At(i)
+		Next
+		For i = (n + 1) To Size
+			arr(i) = At(i - 1)
+		Next
+		arr(n) = v
+		Data = arr
 	End Sub
 	
 	'删除一个或多个元素
-	Public Sub [Delete](ByVal i)
-		
+	Public Sub [Delete](ByVal n)
+		Dim arr(),tmp,a,x,y,i
+		If Instr(n, ",")>0 Or Instr(n,"-")>0 Then
+		'如果是删除多个元素
+			n = Replace(n,"\s","0")
+			n = Replace(n,"\e",[End])
+			a = Split(n, ",")
+			a = SortArray(a,0,UBound(a))
+			tmp = "0-"
+			For i = 0 To Ubound(a)
+				If Instr(a(i),"-")>0 Then
+					x = Easp.CLeft(a(i),"-")
+					y = Easp.CRight(a(i),"-")
+					'Easp.WN a(i)
+					tmp = tmp & x-1 & ","
+					tmp = tmp & y+1 & "-"
+				Else
+					tmp = tmp & a(i)-1 & "," & a(i)+1 & "-"
+				End If
+			Next
+			tmp = tmp & [End]
+			'Easp.WN tmp
+			Slice tmp
+		Else
+		'只删除一项
+			ReDim arr([End]-1)
+			If isNumeric(n) Then
+				For i = 0 To n-1
+					arr(i) = At(i)
+				Next
+				For i = n+1 To [End]
+					arr(i-1) = At(i)
+				Next
+				Data = arr
+			End If
+		End If
 	End Sub
 
 	'移除重复元素只保留一个
 	Public Sub Uniq
-		
-	End Sub
-
-	'搜索包含指定字符串的元素
-	Public Sub Search(ByVal s)
 		
 	End Sub
 
@@ -169,7 +218,17 @@ Class EasyAsp_List
 			arr(j) = At(i)
 			j = j + 1
 		Next
-		Me.Data = arr
+		Data = arr
+	End Sub
+
+	'搜索包含指定字符串的元素
+	Public Sub Search(ByVal s)
+		Data = Filter(a_list, s)
+	End Sub
+
+	'搜索包含指定字符串的元素
+	Public Sub SearchNot(ByVal s)
+		Data = Filter(a_list, s, False)
 	End Sub
 	
 	'删除空元素
@@ -182,7 +241,7 @@ Class EasyAsp_List
 				j = j + 1
 			End If
 		Next
-		Me.Data = arr
+		Data = arr
 	End Sub
 	
 	'清空
@@ -193,7 +252,7 @@ Class EasyAsp_List
 	
 	'排序
 	Public Sub Sort
-		Me.Data = SortArray(a_list, 0, [End])
+		Data = SortArray(a_list, 0, [End])
 	End Sub
 	'快速排序法
 	Private Function SortArray(ByRef arr, ByRef low, ByRef high)
@@ -221,7 +280,7 @@ Class EasyAsp_List
 	
 	'按下标取List的一部分元素
 	Public Sub Slice(ByVal s)
-		Me.Data = GetPart(s)
+		Data = GetPart(s)
 	End Sub
 	'按下标取List的一部分元素返回一个新的List对象
 	Public Function [Get](ByVal s)
@@ -230,17 +289,21 @@ Class EasyAsp_List
 	End Function
 	Private Function GetPart(ByVal s)
 		Dim a,i,j,k,x,y,arr
+		s = Replace(s,"\s",0)
+		s = Replace(s,"\e",[End])
 		a = Split(s, ",")
 		arr = Array() : k = 0
 		For i = 0 To Ubound(a)
 			ReDim Preserve arr(k)
+			'Easp.WN "Big:" & k
 			If Instr(a(i),"-")>0 Then
 				x = Int(Easp.CLeft(a(i),"-"))
 				y = Int(Easp.CRight(a(i),"-"))
 				For j = x To y
 					ReDim Preserve arr(k)
+					'Easp.WN "Small:"&k & "=" & x & "-" & y
 					arr(k) = At(j)
-					k = k + 1
+					If j < y Then k = k + 1
 				Next
 			Else
 				arr(k) = At(Int(Trim(a(i))))
