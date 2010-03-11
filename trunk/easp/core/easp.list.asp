@@ -7,32 +7,37 @@
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/03/09 16:08:30
 '## Description :   A super Array class in EasyAsp
-'##
+'## 								这只是操作数组的基本加强版，强悍版还在写，是真的很强悍滴 -_-
 '######################################################################
-
-'List.Times(a), list.Add(a), list.Has(s)要用到StrComp, list.IndexOf(s), list.In(a)
-
 Class EasyAsp_List
 	Public Size
 	Private o_list
 	Private a_list
-	Private i_count
+	Private i_count, i_comp
 	
 	Private Sub Class_Initialize
-		'Set o_list   = Server.CreateObject("Scripting.Dictionary")
 		a_list = Array()
 		Size = 0
 		Easp.Error(41) = "下标越界"
+		i_comp = 1
 	End Sub
 	
 	Private Sub Class_Terminate
-		'Set o_list = Nothing
+		
 	End Sub
 	
 	'建新实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_List
 	End Function
+	
+	'是否忽略大小写
+	Public Property Let IgnoreCase(ByVal b)
+		i_comp = Easp.IIF(b, 1, 0)
+	End Property
+	Public Property Get IgnoreCase
+		IgnoreCase = (i_comp = 1)
+	End Property
 	
 	'设置某一项值
 	Public Property Let At(ByVal n, ByVal v)
@@ -51,6 +56,7 @@ Class EasyAsp_List
 			If n < Size Then
 				At = a_list(n)
 			Else
+				At = Null
 				Easp.Error.Msg = "(当前下标 " & n & " 超过了最大下标 " & [End] & " )"
 				Easp.Error.Raise 41
 			End If
@@ -59,8 +65,12 @@ Class EasyAsp_List
 	
 	'源数据
 	Public Property Let Data(ByVal a)
-		a_list = a
-		Size = Ubound(a) + 1
+		If isArray(a) Then
+			a_list = a
+		Else
+			a_list = Split(a, " ")
+		End If
+		Size = Ubound(a_list) + 1
 	End Property
 	'取出为普通数组
 	Public Property Get Data
@@ -98,41 +108,36 @@ Class EasyAsp_List
 	
 	'获取最大元素
 	Public Property Get Max
-		Max = MaxMin(0)
+		Dim i, v
+		v = At(0)
+		If Size > 1 Then
+			For i = 1 To [End]
+				If StrComp(At(i),v,i_comp) = 1 Then v = At(i)
+			Next
+		End If
+		Max = v
 	End Property
 	
 	'获取最小元素
 	Public Property Get Min
-		Min = MaxMin(1)
+		Dim i, v
+		v = At(0)
+		If Size > 1 Then
+			For i = 1 To [End]
+				If StrComp(At(i),v,i_comp) = -1 Then v = At(i)
+			Next
+		End If
+		Min = v
 	End Property
-	
-	Private Function MaxMin(ByVal t)
-		Dim tmp : Set tmp = Me.Clone
-		tmp.Compact
-		tmp.Sort
-		MaxMin = Easp.IIF(t=0,tmp.Last,tmp.First)
-		Set tmp = Nothing
-	End Function
 	
 	'添加一个元素到开头
 	Public Sub UnShift(ByVal v)
-		Dim arr(),i
-		ReDim arr(Size)
-		arr(0) = v
-		For i = 0 To [End]
-			arr(i+1) = At(i)
-		Next
-		Data = arr
+		Insert 0, v
 	End Sub
 	
 	'删除第一个元素
 	Public Sub Shift
-		Dim arr(),i
-		ReDim arr([End]-1)
-		For i = 1 To [End]
-			arr(i-1) = At(i)
-		Next
-		Data = arr
+		[Delete] 0
 	End Sub
 	
 	'添加一个元素到结尾
@@ -161,6 +166,26 @@ Class EasyAsp_List
 		Data = arr
 	End Sub
 	
+	'检测是否包含某元素
+	Public Function Has(ByVal v)
+		Has = (indexOf__(a_list, v) > -1)
+	End Function
+	
+	'检测元素在数组中的下标
+	Public Function IndexOf(ByVal v)
+		IndexOf = indexOf__(a_list, v)
+	End Function	
+	Private Function indexOf__(ByVal arr, ByVal v)
+		Dim i
+		indexOf__ = -1
+		For i = 0 To UBound(arr)
+			If StrComp(arr(i),v,i_comp) = 0 Then
+				indexOf__ = i
+				Exit For
+			End If
+		Next
+	End Function
+	
 	'删除一个或多个元素
 	Public Sub [Delete](ByVal n)
 		Dim arr(),tmp,a,x,y,i
@@ -187,27 +212,39 @@ Class EasyAsp_List
 			Slice tmp
 		Else
 		'只删除一项
-			ReDim arr([End]-1)
 			If isNumeric(n) Then
-				For i = 0 To n-1
-					arr(i) = At(i)
-				Next
 				For i = n+1 To [End]
-					arr(i-1) = At(i)
+					At(i-1) = At(i)
 				Next
-				Data = arr
+				Pop
 			End If
 		End If
 	End Sub
 
 	'移除重复元素只保留一个
 	Public Sub Uniq
-		
+		Dim arr(),i,j : j = 0
+		ReDim arr(0)
+		For i = 0 To [End]
+			'如果新数组中没有该值
+			If indexOf__(arr, At(i)) = -1 Then
+				ReDim Preserve arr(j)
+				arr(j) = At(i)
+				j = j + 1
+			End If
+		Next
+		Data = arr
 	End Sub
 
-	'随机排序
+	'随机排序(洗牌)
 	Public Sub Rand
-		
+		Dim i, j, tmp
+		For i = 0 To [End]
+			j = Easp.Rand(0,[End])
+			tmp = At(j)
+			At(j) = At(i)
+			At(i) = tmp
+		Next
 	End Sub
 	
 	'反向排列数组
@@ -223,12 +260,12 @@ Class EasyAsp_List
 
 	'搜索包含指定字符串的元素
 	Public Sub Search(ByVal s)
-		Data = Filter(a_list, s)
+		Data = Filter(a_list, s, True, i_comp)
 	End Sub
 
-	'搜索包含指定字符串的元素
+	'搜索不包含指定字符串的元素
 	Public Sub SearchNot(ByVal s)
-		Data = Filter(a_list, s, False)
+		Data = Filter(a_list, s, False, i_comp)
 	End Sub
 	
 	'删除空元素
@@ -254,7 +291,6 @@ Class EasyAsp_List
 	Public Sub Sort
 		Data = SortArray(a_list, 0, [End])
 	End Sub
-	'快速排序法
 	Private Function SortArray(ByRef arr, ByRef low, ByRef high)
 		If Not IsArray(arr) Then Exit Function
 		If Easp.IsN(arr) Then Exit Function
@@ -262,10 +298,10 @@ Class EasyAsp_List
 		l = low : h = high
 		m = (low + high) \ 2 : v = arr(m)
 		Do While (l <= h)
-			Do While (arr(l) < v And l < high)
+			Do While (StrComp(arr(l),v,i_comp) = -1 And l < high)
 				l = l + 1
 			Loop
-			Do While (v < arr(h) And h > low)
+			Do While (StrComp(v,arr(h),i_comp) = -1 And h > low)
 				h = h - 1
 			Loop
 			If l <= h Then
@@ -280,14 +316,14 @@ Class EasyAsp_List
 	
 	'按下标取List的一部分元素
 	Public Sub Slice(ByVal s)
-		Data = GetPart(s)
+		Data = Slice__(s)
 	End Sub
 	'按下标取List的一部分元素返回一个新的List对象
 	Public Function [Get](ByVal s)
 		Set [Get] = Me.New
-		[Get].Data = GetPart(s)
+		[Get].Data = Slice__(s)
 	End Function
-	Private Function GetPart(ByVal s)
+	Private Function Slice__(ByVal s)
 		Dim a,i,j,k,x,y,arr
 		s = Replace(s,"\s",0)
 		s = Replace(s,"\e",[End])
@@ -310,7 +346,7 @@ Class EasyAsp_List
 				k = k + 1
 			End If
 		Next
-		GetPart = arr
+		Slice__ = arr
 	End Function
 	
 	'复制List对象
