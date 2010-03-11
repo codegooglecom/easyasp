@@ -1,5 +1,4 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
-Easp.Debug = True
 '先构造一个随机数组
 Dim arrayA(19),i
 For i = 0 To 19
