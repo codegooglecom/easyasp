@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "db,Fso,Upload,Tpl,Aes,[Error],Json,Cache,List"
+		s_cores		= "db,o_md5,Fso,Upload,Tpl,Aes,[Error],Json,Cache,List"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
