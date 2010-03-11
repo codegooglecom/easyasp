@@ -7,7 +7,7 @@
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/03/09 16:08:30
 '## Description :   A super Array class in EasyAsp
-'## 								这只是操作数组的基本加强版，强悍版还在写，是真的很强悍滴 -_-
+'##                 这只是操作数组的基本加强版，强悍版还在写，是真的很强悍滴 -_-
 '######################################################################
 Class EasyAsp_List
 	Public Size
@@ -16,6 +16,7 @@ Class EasyAsp_List
 	Private i_count, i_comp
 	
 	Private Sub Class_Initialize
+		'Set o_list = Server.CreateObject("Scripting.Dictionary")
 		a_list = Array()
 		Size = 0
 		Easp.Error(41) = "下标越界"
@@ -23,7 +24,7 @@ Class EasyAsp_List
 	End Sub
 	
 	Private Sub Class_Terminate
-		
+		'Set o_list = Nothing
 	End Sub
 	
 	'建新实例
