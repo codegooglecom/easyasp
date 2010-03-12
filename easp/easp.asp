@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "db,o_md5,Fso,Upload,Tpl,Aes,[Error],Json,Cache,List"
+		s_cores		= "[Error],db,List,o_md5,Fso,Upload,Tpl,Aes,Json,Cache"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
@@ -67,13 +67,16 @@ Class EasyAsp
 	End Sub
 	Private Sub Core_Do(ByVal t, ByVal s)
 		Dim a_core, i : a_core = Split(s,",")
-		For i = 0 To Ubound(a_core)
-			If t = "on" Then
-				Execute "Set " & a_core(i) & " = New EasyAsp_obj"
-			ElseIf t = "off" Then
-				Execute "Set " & a_core(i) & " = Nothing"
-			End If
-		Next
+		Select Case t
+			Case "on"
+				For i = 0 To Ubound(a_core)
+					Execute "Set " & a_core(i) & " = New EasyAsp_obj"
+				Next
+			Case "off"
+				For i = Ubound(a_core) To 0 Step -1
+					Execute "Set " & a_core(i) & " = Nothing"
+				Next
+		End Select
 	End Sub
 	Public Property Let basePath(ByVal p)
 		s_path = FixAbsPath(p)
@@ -1186,6 +1189,7 @@ Class EasyAsp
 	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
+		On Error Resume Next
 		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
 		If LCase(o) = "md5" Then o = "o_md5"
