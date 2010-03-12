@@ -16,7 +16,7 @@ Class EasyAsp_Upload
 	Private i_fileMaxSize,i_totalMaxSize,i_blockSize
 	Private b_useProgress, b_autoMD,b_random
 	'构造函数
-    Private Sub Class_Initialize 
+	Private Sub Class_Initialize 
 		'默认编码，继承自Easp
 		s_charset	= Easp.CharSet
 		'默认此次上传唯一ID，无（用于进度条）
@@ -55,7 +55,7 @@ Class EasyAsp_Upload
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Count = 0
-    End Sub
+	End Sub
 	
 	'属性：文件编码
 	Public Property Let CharSet(ByVal s)
@@ -332,8 +332,8 @@ Class EasyAsp_Upload
 			Next
 		End If
 	End Sub
-    '析构函数
-    Private Sub Class_Terminate  
+  '析构函数
+  Private Sub Class_Terminate  
 		If Request.TotalBytes > 0 Then
 			Form.RemoveAll
 			File.RemoveAll
@@ -345,7 +345,7 @@ Class EasyAsp_Upload
 			Easp.Use "Fso"
 			If Easp.Fso.IsFile(s_jsonPath) Then Easp.Fso.DelFile s_jsonPath
 		End If
-    End Sub
+  End Sub
 End Class
 '上传文件信息
 Class Easp_Upload_FileInfo
