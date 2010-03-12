@@ -1189,7 +1189,6 @@ Class EasyAsp
 	End Function
 	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
-		On Error Resume Next
 		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
 		If LCase(o) = "md5" Then o = "o_md5"
