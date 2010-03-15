@@ -7,24 +7,28 @@
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/03/09 16:08:30
 '## Description :   A super Array class in EasyAsp
-'##                 这只是操作数组的基本加强版，强悍版还在写，是真的很强悍滴 -_-
+'##
 '######################################################################
 Class EasyAsp_List
 	Public Size
-	Private o_list
+	Private o_hash, o_map
 	Private a_list
 	Private i_count, i_comp
 	
 	Private Sub Class_Initialize
-		'Set o_list = Server.CreateObject("Scripting.Dictionary")
+		Set o_hash = Server.CreateObject("Scripting.Dictionary")
+		Set o_map  = Server.CreateObject("Scripting.Dictionary")
 		a_list = Array()
 		Size = 0
 		Easp.Error(41) = "下标越界"
+		Easp.Error(42) = "下标不能为空"
+		Easp.Error(43) = "下标只能是数字、字母、下划线(_)、点(.)和斜杠(/)组成"
 		i_comp = 1
 	End Sub
 	
 	Private Sub Class_Terminate
-		'Set o_list = Nothing
+		Set o_map  = Nothing
+		Set o_hash = Nothing
 	End Sub
 	
 	'建新实例
@@ -42,23 +46,46 @@ Class EasyAsp_List
 	
 	'设置某一项值
 	Public Property Let At(ByVal n, ByVal v)
-		If isNumeric(n) Then
+		If Easp.IsN(n) Then Easp.Error.Raise 42 : Exit Property
+		If Easp.Test(n,"^\d+$") Then
+			'如果是数字就直接添加到数组下标
 			If n > [End] Then
 				ReDim Preserve a_list(n)
 				Size = n + 1
 			End If
 			a_list(n) = v
+		ElseIf Easp.Test(n,"^[\w\./]+$") Then
+		'如果是字符串
+			If Not o_map.Exists(n) Then
+			'如果散列中没有此项，添加映射关系及数组值
+				o_map(n) = Size
+				o_map(Size) = n
+				Push v
+			Else
+			'如果已有该项，更新数组值
+				a_list(o_map(n)) = v
+			End If
+		Else
+			Easp.Error.Raise 43
 		End If
 	End Property
 	
 	'取某一项值
 	Public Default Property Get At(ByVal n)
-		If isNumeric(n) Then
+		If Easp.Test(n,"^\d+$") Then
 			If n < Size Then
 				At = a_list(n)
 			Else
 				At = Null
 				Easp.Error.Msg = "(当前下标 " & n & " 超过了最大下标 " & [End] & " )"
+				Easp.Error.Raise 41
+			End If
+		ElseIf Easp.Test(n,"^[\w-\./]+$") Then
+			If o_map.Exists(n) Then
+				At = a_list(o_map(n))
+			Else
+				At = Null
+				Easp.Error.Msg = "(当前列 " & n & " 不在数组列中)"
 				Easp.Error.Raise 41
 			End If
 		End If
@@ -76,6 +103,14 @@ Class EasyAsp_List
 	'取出为普通数组
 	Public Property Get Data
 		Data = a_list
+	End Property
+	
+	'映射关系
+	Public Property Let Maps(ByVal d)
+		If TypeName(d) = "Dictionary" Then CloneDic o_map, d
+	End Property
+	Public Property Get Maps
+		Set Maps = o_map
 	End Property
 	
 	'长度
@@ -143,30 +178,74 @@ Class EasyAsp_List
 	
 	'添加一个元素到结尾
 	Public Sub Push(ByVal v)
-		At([End]+1) = v
+		ReDim Preserve a_list(Size)
+		a_list(Size) = v
+		Size = Size + 1
 	End Sub
 	
 	'删除最后一个元素
 	Public Sub Pop
+		RemoveMap [End]
 		ReDim Preserve a_list([End]-1)
 		Size = Size - 1
+	End Sub
+	Private Sub RemoveMap(ByVal i)
+		If o_map.Exists(i) Then
+			o_map.Remove o_map(i)
+			'Easp.WN "=Delete==mapRemove:" & o_map(i)
+			o_map.Remove i
+			'Easp.WN "=Delete==mapRemove:" & i
+		End If
+	End Sub
+	Private Sub UpFrom(ByVal n, ByVal i)
+		If n = i Then Exit Sub
+		If o_map.Exists(i) Then
+			o_map(o_map(i)) = n
+			o_map(n) = o_map(i)
+			o_map.Remove i
+			'Easp.WN "=Delete==UpFromRemove:" & i & "  o_map(count):" & o_map.count
+		End If
+		At(n) = At(i)
 	End Sub
 	
 	'在指定下标插入一个元素
 	Public Sub Insert(ByVal n, ByVal v)
-		If n > [End] Then At(n) = v : Exit Sub
-		Dim arr(),i
-		ReDim arr(Size)
-		For i = 0 To (n - 1)
-			arr(i) = At(i)
-		Next
-		For i = (n + 1) To Size
-			arr(i) = At(i - 1)
-		Next
-		arr(n) = v
-		Data = arr
+		Dim i,j
+		If n > [End] Then
+		'如果下标大于最大下标
+			If isArray(v) Then
+			'如果插入一个数组，逐个赋值
+				For i = 0 To UBound(v)
+					At(n+i) = v(i)
+				Next
+			Else
+			'是字符串直接赋值
+				At(n) = v
+			End If
+		Else
+		'如果插入到数组中间
+			'如果插入一个数组
+			For i = Size To (n+1) Step -1
+			'将原数组插入点之后的值移动到新位置（腾出位置）
+				If isArray(v) Then
+				'如果是数组，要腾出数组的长度个位置
+					UpFrom i+UBound(v), i-1
+					'Easp.WN "把 " &i-1& "的值修改到 " &i+UBound(v)& " 上"
+				Else
+				'否则只腾出一个位置
+					UpFrom i, i-1
+				End If
+			Next
+			'把新值插入腾出的位置上
+			If isArray(v) Then
+				For i = 0 To UBound(v)
+					At(n+i) = v(i)
+				Next
+			Else
+				At(n) = v
+			End If
+		End If
 	End Sub
-	
 	'检测是否包含某元素
 	Public Function Has(ByVal v)
 		Has = (indexOf__(a_list, v) > -1)
@@ -175,7 +254,16 @@ Class EasyAsp_List
 	'检测元素在数组中的下标
 	Public Function IndexOf(ByVal v)
 		IndexOf = indexOf__(a_list, v)
-	End Function	
+	End Function
+	Public Function IndexOfHash(ByVal v)
+		Dim i : i = indexOf__(a_list, v)
+		If i = -1 Then IndexOfHash = -1 : Exit Function
+		If o_map.Exists(i) Then
+			IndexOfHash = o_map(i)
+		Else
+			IndexOfHash = 0
+		End If
+	End Function
 	Private Function indexOf__(ByVal arr, ByVal v)
 		Dim i
 		indexOf__ = -1
@@ -213,12 +301,14 @@ Class EasyAsp_List
 			Slice tmp
 		Else
 		'只删除一项
-			If isNumeric(n) Then
-				For i = n+1 To [End]
-					At(i-1) = At(i)
-				Next
-				Pop
+			If Not isNumeric(n) And o_map.Exists(n) Then
+				n = o_map(n)
+				RemoveMap n
 			End If
+			For i = n+1 To [End]
+				UpFrom i-1, i
+			Next
+			Pop
 		End If
 	End Sub
 
@@ -226,25 +316,61 @@ Class EasyAsp_List
 	Public Sub Uniq
 		Dim arr(),i,j : j = 0
 		ReDim arr(0)
+		o_hash.RemoveAll
 		For i = 0 To [End]
 			'如果新数组中没有该值
 			If indexOf__(arr, At(i)) = -1 Then
 				ReDim Preserve arr(j)
 				arr(j) = At(i)
+				'Easp.WN "把元素" & i & "存入了新数组的 " & j
+				If o_map.Exists(i) Then
+					o_hash.Add j, o_map(i)
+					o_hash.Add o_map(i), j
+					'Easp.WN "把Hash中的第("&i&")项" &o_map(i)& "存入新Hash的" & j
+				End If
 				j = j + 1
 			End If
 		Next
 		Data = arr
+		CloneDic o_map, o_hash
+		o_hash.RemoveAll
 	End Sub
-
+	Private Sub CloneDic(ByRef map, ByRef hash)
+		Dim key
+		map.RemoveAll
+		For Each key In hash
+			map(key) = hash(key)
+		Next
+	End Sub
+	
 	'随机排序(洗牌)
 	Public Sub Rand
-		Dim i, j, tmp
+		Dim i, j, tmp, Ei, Ej, Ti, Tj
 		For i = 0 To [End]
 			j = Easp.Rand(0,[End])
+			'检测是否为Hash，如果是Hash就把值存起来
+			Ei = o_map.Exists(i)
+			Ej = o_map.Exists(j)
+			If Ei Then Ti = o_map(i)
+			If Ej Then Tj = o_map(j)
+			'数组值互换
 			tmp = At(j)
 			At(j) = At(i)
 			At(i) = tmp
+			'Hash值互换
+			If Ei Then
+				o_map(j) = Ti
+				o_map(Ti) = j
+			End If
+			If Ej Then
+				o_map(i) = Tj
+				o_map(Tj) = i
+			End If
+			'如果其中至少一个为空，则删除在Hash中的此下标
+			If Not (Ei And Ej) Then
+				If Ei Then o_map.Remove i
+				If Ej then o_map.Remove j
+			End If
 		Next
 	End Sub
 	
@@ -252,11 +378,18 @@ Class EasyAsp_List
 	Public Sub Reverse
 		Dim arr(),i,j : j = 0
 		ReDim arr([End])
+		o_hash.RemoveAll
 		For i = [End] To 0 Step -1
 			arr(j) = At(i)
+			If o_map.Exists(i) Then
+				o_hash.Add j, o_map(i)
+				o_hash.Add o_map(i), j
+			End If
 			j = j + 1
 		Next
 		Data = arr
+		CloneDic o_map, o_hash
+		o_hash.RemoveAll
 	End Sub
 
 	'搜索包含指定字符串的元素
@@ -272,14 +405,21 @@ Class EasyAsp_List
 	'删除空元素
 	Public Sub Compact
 		Dim arr(), i, j : j = 0
+		o_hash.RemoveAll
 		For i = 0 To [End]
 			If Easp.Has(At(i)) Then
 				ReDim Preserve arr(j)
 				arr(j) = At(i)
+				If o_map.Exists(i) Then
+					o_hash.Add j, o_map(i)
+					o_hash.Add o_map(i), j
+				End If
 				j = j + 1
 			End If
 		Next
 		Data = arr
+		CloneDic o_map, o_hash
+		o_hash.RemoveAll
 	End Sub
 	
 	'清空
@@ -340,6 +480,9 @@ Class EasyAsp_List
 					ReDim Preserve arr(k)
 					'Easp.WN "Small:"&k & "=" & x & "-" & y
 					arr(k) = At(j)
+					If o_map.Exists(j) Then
+						
+					End If
 					If j < y Then k = k + 1
 				Next
 			Else
@@ -354,6 +497,7 @@ Class EasyAsp_List
 	Public Function Clone
 		Set Clone = Me.New
 		Clone.Data = a_list
+		If o_map.Count>0 Then Clone.Maps = o_map
 	End Function
 	
 	'联连字符串

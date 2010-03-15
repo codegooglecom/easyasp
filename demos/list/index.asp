@@ -1,4 +1,5 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
+'Easp.Debug = False
 '先构造一个随机数组
 Dim arrayA(19),i
 For i = 0 To 19
@@ -15,9 +16,50 @@ Set list = Easp.List.New
 'list.Data = arrayA
 list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
 Easp.WN "初始数组为：" & list.ToString
+list("one") = "OneNumber"
+list("two") = "2222"
+list("six") = "SSSSix"
+list.Push "wobu"
+list.Push "zhidao"
+list.Push -349.89
+list.Push 80
+list.Insert 22, Array("seven","eight","nine")
+Easp.WN "添加一些元素后为：" & list.ToString
+list.Pop
+list.Delete 4
+list.Delete "two"
+Easp.WN "删除一些元素后为：" & list.ToString
+Easp.WN "现在数组的长度是：" & list.Count
 '去除重复元素
 list.Uniq
 Easp.WN "去除重复元素后为：" & list.ToString
+list.Compact
+Easp.WN "去除空元素后为：" & list.ToString
+list.Rand
+Easp.WN "打乱顺序后为：" & list.ToString
+list.Reverse
+Easp.WN "倒序后为：" & list.ToString
+
+
+Easp.WN "=========="
+Easp.wn "---遍历现在的List---"
+For i = 0 To list.End
+	Easp.WN "list("&i&") 的值是：" & list(i)
+Next
+Easp.WN "=========="
+Easp.wn "---遍历现在的List中的散列对值---"
+Dim Maps,key,x,y
+Set Maps = list.Maps
+For Each key In Maps
+	If Not isNumeric(key) Then
+		Easp.WN "list(""" & key & """) = list(" & Maps(key) &  ") = """ & list(key)  & """"
+	End If
+Next
+Set Maps = Nothing
+Easp.WN "=========="
+
+
+
 Easp.WN "是否包含字符串 bb ：" & list.Has("bb") & "，在数组中第1次出现的下标是：" & list.IndexOf("bb")
 '取值
 Easp.WN "下标为3的元素为：" & list.At(3)
