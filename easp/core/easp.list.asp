@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp List(Array) Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/03/09 16:08:30
+'## Update Date :   2010/03/17 04:08:30
 '## Description :   A super Array class in EasyAsp
 '##
 '######################################################################
@@ -257,11 +257,11 @@ Class EasyAsp_List
 	End Function
 	Public Function IndexOfHash(ByVal v)
 		Dim i : i = indexOf__(a_list, v)
-		If i = -1 Then IndexOfHash = -1 : Exit Function
+		If i = -1 Then IndexOfHash = Empty : Exit Function
 		If o_map.Exists(i) Then
 			IndexOfHash = o_map(i)
 		Else
-			IndexOfHash = 0
+			IndexOfHash = Empty
 		End If
 	End Function
 	Private Function indexOf__(ByVal arr, ByVal v)
@@ -283,6 +283,21 @@ Class EasyAsp_List
 			n = Replace(n,"\s","0")
 			n = Replace(n,"\e",[End])
 			a = Split(n, ",")
+			For i = 0 To Ubound(a)
+				If i>0 Then tmp = tmp & ","
+				If Instr(a(i),"-")>0 Then
+					x = Trim(Easp.CLeft(a(i),"-"))
+					y = Trim(Easp.CRight(a(i),"-"))
+					If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
+					If Not Isnumeric(y) And o_map.Exists(y) Then y = o_map(y)
+					tmp = tmp & x & "-" & y
+				Else
+					x = Trim(a(i))
+					If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
+					tmp = tmp & x
+				End If
+			Next
+			a = Split(tmp,",")
 			a = SortArray(a,0,UBound(a))
 			tmp = "0-"
 			For i = 0 To Ubound(a)
@@ -394,12 +409,23 @@ Class EasyAsp_List
 
 	'搜索包含指定字符串的元素
 	Public Sub Search(ByVal s)
-		Data = Filter(a_list, s, True, i_comp)
+		Search__ s, True
 	End Sub
 
 	'搜索不包含指定字符串的元素
 	Public Sub SearchNot(ByVal s)
-		Data = Filter(a_list, s, False, i_comp)
+		Search__ s, False
+	End Sub
+	
+	Private Sub Search__(ByVal s, ByVal keep)
+		Dim arr,i,tmp
+		'搜索结果
+		arr = Filter(a_list, s, keep, i_comp)
+		If o_map.Count = 0 Then
+			Data = arr
+		Else
+			AddHash__ arr
+		End If
 	End Sub
 	
 	'删除空元素
@@ -431,7 +457,14 @@ Class EasyAsp_List
 	
 	'排序
 	Public Sub Sort
-		Data = SortArray(a_list, 0, [End])
+		Dim arr
+		arr = a_list
+		arr = SortArray(arr, 0, [End])
+		If o_map.Count = 0 Then
+			Data = arr
+		Else
+			AddHash__ arr
+		End If
 	End Sub
 	Private Function SortArray(ByRef arr, ByRef low, ByRef high)
 		If Not IsArray(arr) Then Exit Function
@@ -455,19 +488,31 @@ Class EasyAsp_List
 		If (l < high) Then arr = SortArray(arr,l, high)
 		SortArray = arr
 	End Function
+	'For Sort & Search & SearchNot
+	Private Sub AddHash__(ByVal arr)
+		If o_hash.Count > 0 Then o_hash.RemoveAll
+		For i = 0 To Ubound(arr)
+			'如果结果中有Hash下标
+			'Easp.WN arr(i) & " index:" & IndexOfHash(arr(i))
+			If IndexOfHash(arr(i))>"" Then
+				'取出这个下标
+				tmp = IndexOfHash(arr(i))
+				'添加到新的索引值（只添加一次）
+				If Not o_hash.Exists(tmp) Then 
+					o_hash.Add i, tmp
+					o_hash.Add tmp, i
+				End If
+			End If
+		Next
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
 	
 	'按下标取List的一部分元素
 	Public Sub Slice(ByVal s)
-		Data = Slice__(s)
-	End Sub
-	'按下标取List的一部分元素返回一个新的List对象
-	Public Function [Get](ByVal s)
-		Set [Get] = Me.New
-		[Get].Data = Slice__(s)
-	End Function
-	Private Function Slice__(ByVal s, ByVal o)
-		Dim a,i,j,k,x,y,arr,map
-		CloneDic__ map, o
+		Dim a,i,j,k,x,y,arr',map
+		'CloneDic__ map, o
 		If o_hash.Count>0 Then o_hash.RemoveAll
 		s = Replace(s,"\s",0)
 		s = Replace(s,"\e",[End])
@@ -477,25 +522,54 @@ Class EasyAsp_List
 			ReDim Preserve arr(k)
 			'Easp.WN "Big:" & k
 			If Instr(a(i),"-")>0 Then
-				x = Int(Easp.CLeft(a(i),"-"))
-				y = Int(Easp.CRight(a(i),"-"))
+				x = Trim(Easp.CLeft(a(i),"-"))
+				y = Trim(Easp.CRight(a(i),"-"))
+				If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
+				If Not Isnumeric(y) And o_map.Exists(y) Then y = o_map(y)
+				x = Int(x) : y = Int(y)
+				'Easp.WN x & "-" & y
 				For j = x To y
 					ReDim Preserve arr(k)
 					'Easp.WN "Small:"&k & "=" & x & "-" & y
 					arr(k) = At(j)
 					If o_map.Exists(j) Then
-						
+						'Easp.WN o_map(j) & " "&k&" " & o_hash.Exists(o_map(j))
+						'如果出现多个相同的Hash下标则只保留第一个Hash下标
+						If Not o_hash.Exists(o_map(j)) Then
+							o_hash.Add k, o_map(j)
+							o_hash.Add o_map(j), k
+						End If
 					End If
-					If j < y Then k = k + 1
+					k = k + 1
 				Next
 			Else
 				x = Trim(a(i))
-'				If map.Exists(a(i))
-				arr(k) = At(Int(Trim(a(i))))
+				If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
+				x = Int(x)
+				If o_map.Exists(x) Then
+					'如果出现多个相同的Hash下标则只保留第一个Hash下标
+					'Easp.WN o_map(x) & " " & o_hash.Exists(o_map(x))
+					If Not o_hash.Exists(o_map(x)) Then
+						o_hash.Add k, o_map(x)
+						o_hash.Add o_map(x), k
+					End If
+				End If
+				arr(k) = At(x)
 				k = k + 1
 			End If
 		Next
-		Slice__ = arr
+'		Slice__ = arr
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
+	'按下标取List的一部分元素返回一个新的List对象
+	Public Function Slice_(ByVal s)
+		Set Slice_ = Me.Clone
+		Slice_.Slice s
+	End Function
+	Public Function [Get](ByVal s)
+		Set [Get] = Slice_(s)
 	End Function
 	
 	'联连字符串
