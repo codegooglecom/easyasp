@@ -107,7 +107,7 @@ Class EasyAsp_List
 	
 	'映射关系
 	Public Property Let Maps(ByVal d)
-		If TypeName(d) = "Dictionary" Then CloneDic o_map, d
+		If TypeName(d) = "Dictionary" Then CloneDic__ o_map, d
 	End Property
 	Public Property Get Maps
 		Set Maps = o_map
@@ -185,11 +185,11 @@ Class EasyAsp_List
 	
 	'删除最后一个元素
 	Public Sub Pop
-		RemoveMap [End]
+		RemoveMap__ [End]
 		ReDim Preserve a_list([End]-1)
 		Size = Size - 1
 	End Sub
-	Private Sub RemoveMap(ByVal i)
+	Private Sub RemoveMap__(ByVal i)
 		If o_map.Exists(i) Then
 			o_map.Remove o_map(i)
 			'Easp.WN "=Delete==mapRemove:" & o_map(i)
@@ -197,7 +197,7 @@ Class EasyAsp_List
 			'Easp.WN "=Delete==mapRemove:" & i
 		End If
 	End Sub
-	Private Sub UpFrom(ByVal n, ByVal i)
+	Private Sub UpFrom__(ByVal n, ByVal i)
 		If n = i Then Exit Sub
 		If o_map.Exists(i) Then
 			o_map(o_map(i)) = n
@@ -229,11 +229,11 @@ Class EasyAsp_List
 			'将原数组插入点之后的值移动到新位置（腾出位置）
 				If isArray(v) Then
 				'如果是数组，要腾出数组的长度个位置
-					UpFrom i+UBound(v), i-1
+					UpFrom__ i+UBound(v), i-1
 					'Easp.WN "把 " &i-1& "的值修改到 " &i+UBound(v)& " 上"
 				Else
 				'否则只腾出一个位置
-					UpFrom i, i-1
+					UpFrom__ i, i-1
 				End If
 			Next
 			'把新值插入腾出的位置上
@@ -303,10 +303,10 @@ Class EasyAsp_List
 		'只删除一项
 			If Not isNumeric(n) And o_map.Exists(n) Then
 				n = o_map(n)
-				RemoveMap n
+				RemoveMap__ n
 			End If
 			For i = n+1 To [End]
-				UpFrom i-1, i
+				UpFrom__ i-1, i
 			Next
 			Pop
 		End If
@@ -316,7 +316,7 @@ Class EasyAsp_List
 	Public Sub Uniq
 		Dim arr(),i,j : j = 0
 		ReDim arr(0)
-		o_hash.RemoveAll
+		If o_hash.Count>0 Then o_hash.RemoveAll
 		For i = 0 To [End]
 			'如果新数组中没有该值
 			If indexOf__(arr, At(i)) = -1 Then
@@ -332,12 +332,12 @@ Class EasyAsp_List
 			End If
 		Next
 		Data = arr
-		CloneDic o_map, o_hash
+		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
-	Private Sub CloneDic(ByRef map, ByRef hash)
+	Private Sub CloneDic__(ByRef map, ByRef hash)
 		Dim key
-		map.RemoveAll
+		If map.Count > 0 Then map.RemoveAll
 		For Each key In hash
 			map(key) = hash(key)
 		Next
@@ -378,7 +378,7 @@ Class EasyAsp_List
 	Public Sub Reverse
 		Dim arr(),i,j : j = 0
 		ReDim arr([End])
-		o_hash.RemoveAll
+		If o_hash.Count>0 Then o_hash.RemoveAll
 		For i = [End] To 0 Step -1
 			arr(j) = At(i)
 			If o_map.Exists(i) Then
@@ -388,7 +388,7 @@ Class EasyAsp_List
 			j = j + 1
 		Next
 		Data = arr
-		CloneDic o_map, o_hash
+		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
 
@@ -405,7 +405,7 @@ Class EasyAsp_List
 	'删除空元素
 	Public Sub Compact
 		Dim arr(), i, j : j = 0
-		o_hash.RemoveAll
+		If o_hash.Count>0 Then o_hash.RemoveAll
 		For i = 0 To [End]
 			If Easp.Has(At(i)) Then
 				ReDim Preserve arr(j)
@@ -418,13 +418,14 @@ Class EasyAsp_List
 			End If
 		Next
 		Data = arr
-		CloneDic o_map, o_hash
+		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
 	
 	'清空
 	Public Sub Clear
 		a_list = Array()
+		If o_map.Count>0 Then o_map.RemoveAll
 		Size = 0
 	End Sub
 	
@@ -464,8 +465,10 @@ Class EasyAsp_List
 		Set [Get] = Me.New
 		[Get].Data = Slice__(s)
 	End Function
-	Private Function Slice__(ByVal s)
-		Dim a,i,j,k,x,y,arr
+	Private Function Slice__(ByVal s, ByVal o)
+		Dim a,i,j,k,x,y,arr,map
+		CloneDic__ map, o
+		If o_hash.Count>0 Then o_hash.RemoveAll
 		s = Replace(s,"\s",0)
 		s = Replace(s,"\e",[End])
 		a = Split(s, ",")
@@ -486,18 +489,13 @@ Class EasyAsp_List
 					If j < y Then k = k + 1
 				Next
 			Else
+				x = Trim(a(i))
+'				If map.Exists(a(i))
 				arr(k) = At(Int(Trim(a(i))))
 				k = k + 1
 			End If
 		Next
 		Slice__ = arr
-	End Function
-	
-	'复制List对象
-	Public Function Clone
-		Set Clone = Me.New
-		Clone.Data = a_list
-		If o_map.Count>0 Then Clone.Maps = o_map
 	End Function
 	
 	'联连字符串
@@ -508,6 +506,13 @@ Class EasyAsp_List
 	'转换成字符串（,号隔开）
 	Public Function ToString()
 		ToString = J(",")
+	End Function
+	
+	'复制List对象
+	Public Function Clone
+		Set Clone = Me.New
+		Clone.Data = a_list
+		If o_map.Count>0 Then Clone.Maps = o_map
 	End Function
 End Class
 %>
