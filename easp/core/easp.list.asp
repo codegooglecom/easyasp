@@ -165,16 +165,40 @@ Class EasyAsp_List
 		End If
 		Min = v
 	End Property
+	'比较函数
+	Private Function Compare__(ByVal t, ByVal a, ByVal b)
+		If VarType(a) = 8 Or VarType(b) = 8 Then
+			Select Case LCase(t)
+				Case "lt" Compare__ = (StrComp(a,b,i_comp) = -1)
+				Case "gt" Compare__ = (StrComp(a,b,i_comp) = 1)
+				Case "eq" Compare__ = (StrComp(a,b,i_comp) = 0)
+			End Select
+		Else
+			Select Case LCase(t)
+				Case "lt" Compare__ = (a < b)
+				Case "gt" Compare__ = (a > b)
+				Case "eq" Compare__ = (a = b)
+			End Select
+		End If
+	End Function
 	
 	'添加一个元素到开头
 	Public Sub UnShift(ByVal v)
 		Insert 0, v
 	End Sub
+	Public Function UnShift_(ByVal v)
+		Set UnShift_ = Me.Clone
+		UnShift_.UnShift v
+	End Function
 	
 	'删除第一个元素
 	Public Sub Shift
 		[Delete] 0
 	End Sub
+	Public Function Shift_
+		Set Shift_ = Me.Clone
+		Shift_.Shift
+	End Function
 	
 	'添加一个元素到结尾
 	Public Sub Push(ByVal v)
@@ -182,6 +206,10 @@ Class EasyAsp_List
 		a_list(Size) = v
 		Size = Size + 1
 	End Sub
+	Public Function Push_(ByVal v)
+		Set Push_ = Me.Clone
+		Push_.Push v
+	End Function
 	
 	'删除最后一个元素
 	Public Sub Pop
@@ -189,6 +217,10 @@ Class EasyAsp_List
 		ReDim Preserve a_list([End]-1)
 		Size = Size - 1
 	End Sub
+	Public Function Pop_
+		Set Pop_ = Me.Clone
+		Pop_.Pop
+	End Function
 	Private Sub RemoveMap__(ByVal i)
 		If o_map.Exists(i) Then
 			o_map.Remove o_map(i)
@@ -246,6 +278,11 @@ Class EasyAsp_List
 			End If
 		End If
 	End Sub
+	Public Function Insert_(ByVal n, ByVal v)
+		Set Insert_ = Me.Clone
+		Insert_.Insert n, v
+	End Function
+	
 	'检测是否包含某元素
 	Public Function Has(ByVal v)
 		Has = (indexOf__(a_list, v) > -1)
@@ -277,7 +314,7 @@ Class EasyAsp_List
 	
 	'删除一个或多个元素
 	Public Sub [Delete](ByVal n)
-		Dim arr(),tmp,a,x,y,i
+		Dim tmp,a,x,y,i
 		If Instr(n, ",")>0 Or Instr(n,"-")>0 Then
 		'如果是删除多个元素
 			n = Replace(n,"\s","0")
@@ -326,9 +363,13 @@ Class EasyAsp_List
 			Pop
 		End If
 	End Sub
+	Public Function Delete_(ByVal n)
+		Set Delete_ = Me.Clone
+		Delete_.Delete n
+	End Function
 
 	'移除重复元素只保留一个
-	Public Sub Uniq
+	Public Sub Uniq()
 		Dim arr(),i,j : j = 0
 		ReDim arr(0)
 		If o_hash.Count>0 Then o_hash.RemoveAll
@@ -350,6 +391,10 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	Public Function Uniq_()
+		Set Uniq_ = Me.Clone
+		Uniq_.Uniq
+	End Function
 	Private Sub CloneDic__(ByRef map, ByRef hash)
 		Dim key
 		If map.Count > 0 Then map.RemoveAll
@@ -388,6 +433,10 @@ Class EasyAsp_List
 			End If
 		Next
 	End Sub
+	Public Function Rand_()
+		Set Rand_ = Me.Clone
+		Rand_.Rand
+	End Function
 	
 	'反向排列数组
 	Public Sub Reverse
@@ -406,16 +455,28 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	Public Function Reverse_()
+		Set Reverse_ = Me.Clone
+		Reverse_.Reverse
+	End Function
 
 	'搜索包含指定字符串的元素
 	Public Sub Search(ByVal s)
 		Search__ s, True
 	End Sub
+	Public Function Search_(ByVal s)
+		Set Search_ = Me.Clone
+		Search_.Search s
+	End Function
 
 	'搜索不包含指定字符串的元素
 	Public Sub SearchNot(ByVal s)
 		Search__ s, False
 	End Sub
+	Public Function SearchNot_(ByVal s)
+		Set SearchNot_ = Me.Clone
+		SearchNot_. s
+	End Function
 	
 	Private Sub Search__(ByVal s, ByVal keep)
 		Dim arr,i,tmp
@@ -447,6 +508,10 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	Public Function Compact_()
+		Set Compact_ = Me.Clone
+		Compact_.Compact
+	End Function
 	
 	'清空
 	Public Sub Clear
@@ -466,6 +531,10 @@ Class EasyAsp_List
 			AddHash__ arr
 		End If
 	End Sub
+	Public Function Sort_()
+		Set Sort_ = Me.Clone
+		Sort_.Sort
+	End Function
 	Private Function SortArray(ByRef arr, ByRef low, ByRef high)
 		If Not IsArray(arr) Then Exit Function
 		If Easp.IsN(arr) Then Exit Function
@@ -511,8 +580,7 @@ Class EasyAsp_List
 	
 	'按下标取List的一部分元素
 	Public Sub Slice(ByVal s)
-		Dim a,i,j,k,x,y,arr',map
-		'CloneDic__ map, o
+		Dim a,i,j,k,x,y,arr
 		If o_hash.Count>0 Then o_hash.RemoveAll
 		s = Replace(s,"\s",0)
 		s = Replace(s,"\e",[End])
@@ -558,7 +626,6 @@ Class EasyAsp_List
 				k = k + 1
 			End If
 		Next
-'		Slice__ = arr
 		Data = arr
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
@@ -588,5 +655,91 @@ Class EasyAsp_List
 		Clone.Data = a_list
 		If o_map.Count>0 Then Clone.Maps = o_map
 	End Function
+	
+	'=============
+	'以下是迭代处理部分
+	'=============
+	'对数组的每个元素按值进行迭代操作并返回新值到数组
+	Public Sub Map(ByVal f)
+		Map__ f, 0
+	End Sub
+	Public Function Map_(ByVal f)
+		Set Map_ = Me.Clone
+		Map_.Map f
+	End Function
+	
+	'对数组的每个元素按值进行迭代操作
+	Public Sub [Each](ByVal f)
+		Map__ f, 1
+	End Sub
+	Private Sub Map__(ByVal f, ByVal t)
+		Dim i, tmp
+		For i = 0 To [End]
+			tmp = Value__(At(i))
+			If t = 0 Then
+				'返回值到数组
+				At(i) = Eval(f & "("& tmp &")")
+			ElseIf t = 1 Then
+				'直接执行
+				ExecuteGlobal f & "("& tmp &")"
+			End If
+		Next
+	End Sub
+	Private Function Value__(ByVal s)
+		Dim tmp
+		Select Case VarType(s)
+			Case 7,8 tmp = """" & s & """"
+			Case Else tmp = s
+		End Select
+		Value__ = tmp
+	End Function
+	
+	'返回第一个符合条件的元素值
+	Public Function Find(ByVal f)
+		Dim i, k, tmp
+		'默认标识符为 i
+		k = "i"
+		If Easp.Test(f,"[a-zA-Z]+:(.+)") Then
+			'如果有自定义的标识符
+			k = Easp.CLeft(f,":")
+			f = Easp.CRight(f,":")
+		End If
+		k = "%" & k
+		For i = 0 To [End]
+			tmp = Replace(Trim(f), k, Value__(At(i)))
+			If Eval(tmp) Then
+				Find = At(i) : Exit Function
+			End If
+		Next
+		Find = Empty
+	End Function
+	
+	'删除所有不符合条件的元素
+	Public Sub [Select](ByVal f)
+		Dim i, j, k, tmp, arr
+		arr = Array() : j = 0
+		If o_hash.Count>0 Then o_hash.RemoveAll
+		k = "i"
+		If Easp.Test(f,"[a-zA-Z]+:(.+)") Then
+			k = Easp.CLeft(f,":")
+			f = Easp.CRight(f,":")
+		End If
+		k = "%" & k
+		For i = 0 To [End]
+			tmp = Replace(Trim(f), k, Value__(At(i)))
+			If Eval(tmp) Then
+				ReDim Preserve arr(j)
+				arr(j) = At(i)
+				If o_map.Exists(i) Then
+					o_hash.Add j, o_map(i)
+					o_hash.Add o_map(i), j
+				End If
+				j = j + 1
+			End If
+		Next
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
 End Class
 %>
