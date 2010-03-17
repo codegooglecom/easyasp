@@ -1,5 +1,13 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 'Easp.Debug = False
+Function testmy(ByVal s)
+	testmy = "U:" & UCase(s)
+End Function
+
+Sub WN(ByVal s)
+	Easp.WN s & "----" & s
+End Sub
+
 '先构造一个随机数组
 Dim arrayA(19),i
 For i = 0 To 19
@@ -13,8 +21,8 @@ Set list = Easp.List.New
 '忽略大小写(去重复项、搜索、取索引值、排序时)
 'list.IgnoreCase = False
 '把数组存入List对象管理
-'list.Data = arrayA
-list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
+list.Data = arrayA
+'list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
 Easp.WN "初始数组为：" & list.ToString
 list("one") = "OneNumber"
 list("two") = "2222"
@@ -35,14 +43,17 @@ list.Uniq
 Easp.WN "去除重复元素后为：" & list.ToString
 list.Compact
 Easp.WN "去除空元素后为：" & list.ToString
-list.Rand
-Easp.WN "打乱顺序后为：" & list.ToString
 list.Reverse
 Easp.WN "倒序后为：" & list.ToString
 list.Sort
 Easp.WN "排序后为：" & list.ToString
+list.Rand
+Easp.WN "打乱顺序后为：" & list.ToString
+'list.Each("WN")
+Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
+list.Select("Not isNumeric(%i)")
+Easp.WN "选择所有非数字的值后为：" & list.ToString
 
-'list.Search "o"
 
 Easp.WN "=========="
 Easp.wn "---遍历现在的List---"
