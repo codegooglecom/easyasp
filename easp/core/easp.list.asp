@@ -93,10 +93,26 @@ Class EasyAsp_List
 	
 	'源数据
 	Public Property Let Data(ByVal a)
+		Dim arr, i, j
 		If isArray(a) Then
 			a_list = a
 		Else
-			a_list = Split(a, " ")
+			arr = Split(a, " ")
+			'如果有Hash特征值
+			If Instr(a, ":")>0 Then
+				For i = 0 To Ubound(arr)
+					'如果此元素是Hash下标
+					If Instr(arr(i),":")>0 Then
+						j = Easp.CLeft(arr(i),":")
+						If Not o_map.Exists(j) Then
+							o_map.Add i, j
+							o_map.Add j, i
+						End If
+						arr(i) = Easp.CRight(arr(i),":")
+					End If
+				Next
+			End If
+			a_list = arr
 		End If
 		Size = Ubound(a_list) + 1
 	End Property
@@ -148,7 +164,7 @@ Class EasyAsp_List
 		v = At(0)
 		If Size > 1 Then
 			For i = 1 To [End]
-				If StrComp(At(i),v,i_comp) = 1 Then v = At(i)
+				If Compare__("gt", At(i), v) Then v = At(i)
 			Next
 		End If
 		Max = v
@@ -160,7 +176,7 @@ Class EasyAsp_List
 		v = At(0)
 		If Size > 1 Then
 			For i = 1 To [End]
-				If StrComp(At(i),v,i_comp) = -1 Then v = At(i)
+				If Compare__("lt", At(i), v) Then v = At(i)
 			Next
 		End If
 		Min = v
@@ -305,7 +321,7 @@ Class EasyAsp_List
 		Dim i
 		indexOf__ = -1
 		For i = 0 To UBound(arr)
-			If StrComp(arr(i),v,i_comp) = 0 Then
+			If Compare__("eq", arr(i),v) Then
 				indexOf__ = i
 				Exit For
 			End If
@@ -542,10 +558,10 @@ Class EasyAsp_List
 		l = low : h = high
 		m = (low + high) \ 2 : v = arr(m)
 		Do While (l <= h)
-			Do While (StrComp(arr(l),v,i_comp) = -1 And l < high)
+			Do While (Compare__("lt",arr(l),v) And l < high)
 				l = l + 1
 			Loop
-			Do While (StrComp(v,arr(h),i_comp) = -1 And h > low)
+			Do While (Compare__("lt",v,arr(h)) And h > low)
 				h = h - 1
 			Loop
 			If l <= h Then
@@ -659,7 +675,8 @@ Class EasyAsp_List
 	'=============
 	'以下是迭代处理部分
 	'=============
-	'对数组的每个元素按值进行迭代操作并返回新值到数组
+	'按元素值进行迭代操作并返回新值
+	'意思是依次对数组中的元素调用某个方法进行处理并将处理后的值替换到数组
 	Public Sub Map(ByVal f)
 		Map__ f, 0
 	End Sub
@@ -668,7 +685,8 @@ Class EasyAsp_List
 		Map_.Map f
 	End Function
 	
-	'对数组的每个元素按值进行迭代操作
+	'按元素值进行迭代操作
+	'意思是依次把数组中的元素作用参数调用某个方法
 	Public Sub [Each](ByVal f)
 		Map__ f, 1
 	End Sub
@@ -678,6 +696,7 @@ Class EasyAsp_List
 			tmp = Value__(At(i))
 			If t = 0 Then
 				'返回值到数组
+				'Easp.WN f & "("& tmp &")"
 				At(i) = Eval(f & "("& tmp &")")
 			ElseIf t = 1 Then
 				'直接执行
@@ -694,7 +713,7 @@ Class EasyAsp_List
 		Value__ = tmp
 	End Function
 	
-	'返回第一个符合条件的元素值
+	'返回第一个符合表达式的元素值
 	Public Function Find(ByVal f)
 		Dim i, k, tmp
 		'默认标识符为 i
@@ -714,8 +733,15 @@ Class EasyAsp_List
 		Find = Empty
 	End Function
 	
-	'删除所有不符合条件的元素
+	'删除所有不符合表达式条件的元素
 	Public Sub [Select](ByVal f)
+		Select__ f, 0
+	End Sub
+	Public Function Select_(ByVal f)
+		Set Select_ = Me.Clone
+		Select_.Select f
+	End Function
+	Private Sub Select__(ByVal f, ByVal t)
 		Dim i, j, k, tmp, arr
 		arr = Array() : j = 0
 		If o_hash.Count>0 Then o_hash.RemoveAll
@@ -727,7 +753,12 @@ Class EasyAsp_List
 		k = "%" & k
 		For i = 0 To [End]
 			tmp = Replace(Trim(f), k, Value__(At(i)))
-			If Eval(tmp) Then
+			If t = 0 Then
+				tmp = Eval(tmp)
+			ElseIf t = 1 Then
+				tmp = (Not Eval(tmp))
+			End If
+			If tmp Then
 				ReDim Preserve arr(j)
 				arr(j) = At(i)
 				If o_map.Exists(i) Then
@@ -741,5 +772,48 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	
+	'删除所有符合表达式条件的元素
+	Public Sub Reject(ByVal f)
+		Select__ f, 1
+	End Sub
+	Public Function Reject_(ByVal f)
+		Set Reject_ = Me.Clone
+		Reject_.Reject f
+	End Function
+	
+	'按元素值返回符合正则表达式的元素
+	Public Sub Grep(ByVal g)
+		Dim i,j,arr
+		arr = Array() : j = 0
+		If o_hash.Count>0 Then o_hash.RemoveAll
+		For i = 0 To [End]
+			If Easp.Test(At(i),g) Then
+				ReDim Preserve arr(j)
+				arr(j) = At(i)
+				If o_map.Exists(i) Then
+					o_hash.Add j, o_map(i)
+					o_hash.Add o_map(i), j
+				End If
+				j = j + 1
+			End If
+		Next
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
+	Public Function Grep_(ByVal g)
+		Set Grep_ = Me.Clone
+		Grep_.Grep g
+	End Function
+	
+	'按元素值进行迭代处理后并排序
+	Public Sub SortBy(ByVal f)
+		Map f : Sort
+	End Sub
+	Public Function SortBy_(ByVal f)
+		Set SortBy_ = Me.Clone
+		SortBy_.SortBy f
+	End Function
 End Class
 %>

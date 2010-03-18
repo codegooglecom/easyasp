@@ -21,8 +21,8 @@ Set list = Easp.List.New
 '忽略大小写(去重复项、搜索、取索引值、排序时)
 'list.IgnoreCase = False
 '把数组存入List对象管理
-list.Data = arrayA
-'list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
+'list.Data = arrayA
+list.Data = "aa a ee se:ddd A AA aa my:Ab ab a bb b  bb c la:ccc  ddd b d"
 Easp.WN "初始数组为：" & list.ToString
 list("one") = "OneNumber"
 list("two") = "2222"
@@ -37,23 +37,28 @@ list.Pop
 list.Delete 4
 list.Delete "two"
 Easp.WN "删除一些元素后为：" & list.ToString
-Easp.WN "现在数组的长度是：" & list.Count
+Easp.WN "现在数组的长度是：" & list.Size
+Easp.WN "数组的有效值个数（非空值）是：" & list.Count
 '去除重复元素
 list.Uniq
 Easp.WN "去除重复元素后为：" & list.ToString
 list.Compact
 Easp.WN "去除空元素后为：" & list.ToString
-list.Reverse
-Easp.WN "倒序后为：" & list.ToString
+Easp.WN "数组的最大值是：" & list.Max
+Easp.WN "数组的最小值是：" & list.Min
+Easp.WN "数组的第一个元素是：" & list.First
+Easp.WN "数组的最后一个元素是：" & list.Last
 list.Sort
 Easp.WN "排序后为：" & list.ToString
+list.Reverse
+Easp.WN "倒序后为：" & list.ToString
 list.Rand
 Easp.WN "打乱顺序后为：" & list.ToString
 'list.Each("WN")
 Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
-list.Select("Not isNumeric(%i)")
-Easp.WN "选择所有非数字的值后为：" & list.ToString
-
+Easp.WN "选择所有非数字的值：" & list.Select_("Not isNumeric(%i)").ToString
+Easp.WN "选择所有以数字开头的值：" & list.Grep_("^\d.+").ToString
+Easp.WN "执行迭代后排序：" & list.SortBy_("testmy").ToString
 
 Easp.WN "=========="
 Easp.wn "---遍历现在的List---"
