@@ -91,13 +91,55 @@ Class EasyAsp_List
 		End If
 	End Property
 	
-	'源数据
+	'设置源数组为简单数组
 	Public Property Let Data(ByVal a)
+		Data__ a, 0
+	End Property
+	
+	'设置源数组为哈希(Hash)表
+	Public Property Let Hash(ByVal a)
+		Data__ a, 1
+	End Property
+	
+	'取出为普通数组
+	Public Property Get Data
+		Data = a_list
+	End Property
+	
+	'取出为普通数组(带Hash表转换)
+	Public Property Get Hash
+		Dim arr, i
+		arr = a_list
+		For i = 0 To [End]
+			If o_map.Exists(i) Then
+				arr(i) = o_map(i) & ":" & arr(i)
+			End If
+		Next
+		Hash = arr
+	End Property
+	Public Sub Data__(ByVal a, ByVal t)
 		Dim arr, i, j
 		If isArray(a) Then
 			a_list = a
+			Size = Ubound(a_list) + 1
+			If t = 0 Then Exit Sub
+			For i = 0 To Ubound(a)
+				If Instr(a(i),":")>0 Then
+					j = Easp.CLeft(a(i),":")
+					If Not o_map.Exists(j) Then
+						'Easp.WN j
+						o_map.Add i, j
+						o_map.Add j, i
+					End If
+					a(i) = Easp.CRight(a(i),":")
+				End If
+			Next
+			a_list = a
 		Else
 			arr = Split(a, " ")
+			a_list = arr
+			Size = Ubound(a_list) + 1
+			If t = 0 Then Exit Sub
 			'如果有Hash特征值
 			If Instr(a, ":")>0 Then
 				For i = 0 To Ubound(arr)
@@ -114,12 +156,7 @@ Class EasyAsp_List
 			End If
 			a_list = arr
 		End If
-		Size = Ubound(a_list) + 1
-	End Property
-	'取出为普通数组
-	Public Property Get Data
-		Data = a_list
-	End Property
+	End Sub
 	
 	'映射关系
 	Public Property Let Maps(ByVal d)
@@ -183,7 +220,13 @@ Class EasyAsp_List
 	End Property
 	'比较函数
 	Private Function Compare__(ByVal t, ByVal a, ByVal b)
+		Dim isStr : isStr = False
 		If VarType(a) = 8 Or VarType(b) = 8 Then
+			isStr = True
+			If IsNumeric(a) And IsNumeric(b) Then isStr = False
+			If IsDate(a) And IsDate(b) Then isStr = False
+		End If
+		If isStr Then
 			Select Case LCase(t)
 				Case "lt" Compare__ = (StrComp(a,b,i_comp) = -1)
 				Case "gt" Compare__ = (StrComp(a,b,i_comp) = 1)
@@ -559,9 +602,13 @@ Class EasyAsp_List
 		m = (low + high) \ 2 : v = arr(m)
 		Do While (l <= h)
 			Do While (Compare__("lt",arr(l),v) And l < high)
+			'Do While (arr(l) < v And l < high)
+				'Easp.WN arr(l) & " &lt; " & v
 				l = l + 1
 			Loop
 			Do While (Compare__("lt",v,arr(h)) And h > low)
+			'Do While (v < arr(h) And h > low)
+				'Easp.WN v & " &lt; " & arr(h)
 				h = h - 1
 			Loop
 			If l <= h Then
@@ -663,6 +710,11 @@ Class EasyAsp_List
 	'转换成字符串（,号隔开）
 	Public Function ToString()
 		ToString = J(",")
+	End Function
+	
+	'取出为普通数组(无Hash标识的普通数组)
+	Public Function ToArray
+		ToArray = a_list
 	End Function
 	
 	'复制List对象

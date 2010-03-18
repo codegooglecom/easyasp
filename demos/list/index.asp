@@ -1,7 +1,7 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 'Easp.Debug = False
 Function testmy(ByVal s)
-	testmy = "U:" & UCase(s)
+	testmy = "U > " & UCase(s)
 End Function
 
 Sub WN(ByVal s)
@@ -18,12 +18,23 @@ Dim list, list1, list2
 Easp.Use "List"
 '创建一个List对象
 Set list = Easp.List.New
-'忽略大小写(去重复项、搜索、取索引值、排序时)
+'忽略大小写(去重复项、搜索、取索引值、排序、比较时)
 'list.IgnoreCase = False
-'把数组存入List对象管理
+'-----------------------------------------------
+'把数组存入List对象管理(可以用2种方法接受共4种形式的数据)
+'-------------
+'第1种：简单数组
 'list.Data = arrayA
-list.Data = "aa a ee se:ddd A AA aa my:Ab ab a bb b  bb c la:ccc  ddd b d"
+'第2种：用空格隔开的字符串，每个字符串会解析为数组的一个元素
+'list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
+'-------------
+'第3种：带下标的数组，如果数组元素中包含 : 号，则会解析为Hash表值对， : 号前的字符串为Hash的下标
+list.Hash = Array("test:34", "name:coldstone", 344.89, "birth:81/01/01", "Others", "btime:81/01/32", "addtime:"&True)
+'第4种：用空格隔开的字符串，字符串中包含 : 号，也会把带 : 号的字符串解析为Hash表值对
+'list.Hash = "aa a ee se:ddd A AA aa my:Ab ab a bb b  bb c la:ccc  ddd b d"
+'-----------------------------------------------
 Easp.WN "初始数组为：" & list.ToString
+
 list("one") = "OneNumber"
 list("two") = "2222"
 list("six") = "SSSSix"
@@ -54,12 +65,13 @@ list.Reverse
 Easp.WN "倒序后为：" & list.ToString
 list.Rand
 Easp.WN "打乱顺序后为：" & list.ToString
+Easp.WN "执行迭代处理(不影响原数组)：" & list.Map_("testmy").ToString
 'list.Each("WN")
 Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
-Easp.WN "选择所有非数字的值：" & list.Select_("Not isNumeric(%i)").ToString
-Easp.WN "选择所有以数字开头的值：" & list.Grep_("^\d.+").ToString
-Easp.WN "执行迭代后排序：" & list.SortBy_("testmy").ToString
-
+Easp.WN "选择所有非数字的值(不影响原数组)：" & list.Select_("Not isNumeric(%i)").ToString
+Easp.WN "选择所有以数字开头的值(不影响原数组)：" & list.Grep_("^\d.+").ToString
+Easp.WN "执行迭代处理后排序(不影响原数组)：" & list.SortBy_("testmy").ToString
+'
 Easp.WN "=========="
 Easp.wn "---遍历现在的List---"
 For i = 0 To list.End
@@ -71,7 +83,7 @@ Dim Maps,key,x,y
 Set Maps = list.Maps
 For Each key In Maps
 	If Not isNumeric(key) Then
-		Easp.WN "list(""" & key & """) = list(" & Maps(key) &  ") = """ & list(key)  & """"
+		Easp.WN "list(""" & key & """) = list(" & Maps(key) &  ") = " & list(key)
 	End If
 Next
 Set Maps = Nothing
@@ -147,13 +159,19 @@ Easp.WN "=========="
 'For i = 0 To list.End
 '	Easp.WN "list("&i&") 的值是：" & list(i)
 'Next
-'Easp.WN "=========="
-'
-'Easp.wn "---取出为普通数组后再遍历---"
-'arr = list.Data
-'For i = 0 To Ubound(arr)
-'	Easp.WN "arr("&i&") 的值是：" & arr(i)
-'Next
+
+Easp.WN "=========="
+Easp.wn "---取出为普通数组(带Hash转换)后再遍历---"
+arr = list.Hash
+For i = 0 To Ubound(arr)
+	Easp.WN "arr("&i&") 的值是：" & arr(i)
+Next
+Easp.WN "=========="
+Easp.wn "---取出为普通数组后再遍历---"
+arr = list.Data
+For i = 0 To Ubound(arr)
+	Easp.WN "arr("&i&") 的值是：" & arr(i)
+Next
 
 Easp.wn "------------------------------------"
 Easp.w "页面执行时间： " & Easp.ScriptTime & " 秒"
