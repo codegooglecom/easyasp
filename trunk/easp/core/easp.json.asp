@@ -11,7 +11,7 @@
 '##
 '######################################################################
 Class EasyAsp_JSON
-	Public Collection, Count, QuotedVars, Kind
+	Public Collection, Count, QuotedVars, Kind, StrEncode
 	'Kind : 0 = object, 1 = array
 	Private Sub Class_Initialize
 		Set Collection = CreateObject("Scripting.Dictionary")
@@ -22,6 +22,7 @@ Class EasyAsp_JSON
 			QuotedVars = True
 		End If
 		Count = 0
+		StrEncode = True
 	End Sub
 
 	Private Sub Class_Terminate
@@ -73,7 +74,7 @@ Class EasyAsp_JSON
 			Case 7
 				toJSON = """" & CStr(vPair) & """"
 			Case 8
-				toJSON = """" & Easp.JSEncode(vPair) & """"
+				toJSON = """" & Easp.IIF(StrEncode,Easp.JSEncode(vPair),vPair) & """"
 			Case 9
 				Dim bFI,i 
 				bFI = True

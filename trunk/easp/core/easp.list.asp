@@ -96,14 +96,14 @@ Class EasyAsp_List
 		Data__ a, 0
 	End Property
 	
-	'设置源数组为哈希(Hash)表
-	Public Property Let Hash(ByVal a)
-		Data__ a, 1
-	End Property
-	
 	'取出为普通数组
 	Public Property Get Data
 		Data = a_list
+	End Property
+	
+	'设置源数组为哈希(Hash)表
+	Public Property Let Hash(ByVal a)
+		Data__ a, 1
 	End Property
 	
 	'取出为普通数组(带Hash表转换)
@@ -117,6 +117,7 @@ Class EasyAsp_List
 		Next
 		Hash = arr
 	End Property
+	'取值原型
 	Public Sub Data__(ByVal a, ByVal t)
 		Dim arr, i, j
 		If isArray(a) Then
@@ -867,5 +868,29 @@ Class EasyAsp_List
 		Set SortBy_ = Me.Clone
 		SortBy_.SortBy f
 	End Function
+	'=============
+	'以下是数组处理部分
+	'=============
+	'数组重复
+	'把一个数组重复多次
+	
+	'附加数组
+	'把一个数组拼接到另一个数组最后
+	
+	'数组合集
+	'把两个数组合并并删除重复项
+	
+	'数组交集
+	'取出在两个数组中都存在的元素
+	
+	'数组差集
+	'取出在一个数组中存在而在另一个数组中不存在的元素
+		
+	'比较数组
+	'比较两个数组的大小
+	
+	'同步数组排序
+	'把一个数组按另一个一一对应的数组排序后的结果进行排序
+	
 End Class
 %>

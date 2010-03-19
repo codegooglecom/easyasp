@@ -22,7 +22,7 @@ Class EasyAsp
 	Private s_path, s_plugin, s_fsoName, s_dicName, s_charset, s_rq, s_bom
 	Private s_url, s_rwtS, s_rwtU, s_cores
 	Private o_md5, o_rwt, o_ext, o_regex, o_fso
-	Private b_cooen, i_rule, b_debug
+	Private b_cooen, b_debug, i_rule
 	Private Sub Class_Initialize()
 		s_path		= "/easp/"
 		s_plugin	= s_path & "plugin/"
@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "[Error],db,List,o_md5,Fso,Upload,Tpl,Aes,Json,Cache"
+		s_cores		= "[Error],db,List,o_md5,Fso,Upload,Tpl,Aes,JSON,Cache"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
