@@ -1,7 +1,7 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 'Easp.Debug = False
 Function testmy(ByVal s)
-	testmy = "U > " & UCase(s)
+	testmy = "U : " & UCase(s)
 End Function
 
 Sub WN(ByVal s)
@@ -13,7 +13,7 @@ Dim arrayA(19),i
 For i = 0 To 19
 	arrayA(i) = Easp.RandStr(Easp.Rand(0,6)&":abcdeABCDE1234567890")
 Next
-Dim list, list1, list2
+Dim list, Alist, list1, list2
 '加载List核心
 Easp.Use "List"
 '创建一个List对象
@@ -42,6 +42,7 @@ list.Push "wobu"
 list.Push "zhidao"
 list.Push -349.89
 list.Push 80
+list.Push "ssssix"
 list.Insert 22, Array("seven","eight","nine")
 Easp.WN "添加一些元素后为：" & list.ToString
 list.Pop
@@ -71,7 +72,21 @@ Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
 Easp.WN "选择所有非数字的值(不影响原数组)：" & list.Select_("Not isNumeric(%i)").ToString
 Easp.WN "选择所有以数字开头的值(不影响原数组)：" & list.Grep_("^\d.+").ToString
 Easp.WN "执行迭代处理后排序(不影响原数组)：" & list.SortBy_("testmy").ToString
-'
+'数组重复
+'list.Times 2
+
+Set Alist = Easp.List.New
+'Alist.Hash = "aaa:ssssix b:wefewr c:sfwef one:weioid six:yesterday ee"
+Alist.Data = Array("ssssix","OneNumber","zhidao",234.234,35235,3534.345)
+'附加数组
+'list.Splice Alist
+'合并数组
+'list.Merge Alist
+'数组交集
+'list.Inter Alist
+'数组差集
+'list.Diff Alist
+
 Easp.WN "=========="
 Easp.wn "---遍历现在的List---"
 For i = 0 To list.End
@@ -161,7 +176,7 @@ Easp.WN "=========="
 'Next
 
 Easp.WN "=========="
-Easp.wn "---取出为普通数组(带Hash转换)后再遍历---"
+Easp.wn "---取出为普通数组(如果是Hash表就把Hash名称转换为前缀)后再遍历---"
 arr = list.Hash
 For i = 0 To Ubound(arr)
 	Easp.WN "arr("&i&") 的值是：" & arr(i)
