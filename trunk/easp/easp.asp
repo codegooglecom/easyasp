@@ -47,7 +47,7 @@ Class EasyAsp
 		ClearExt() : Set o_ext	= Nothing
 		Set o_rwt	= Nothing
 		Set o_regex = Nothing
-		If isObject(fso) Then Set o_fso = Nothing
+		If isObject(o_fso) Then Set o_fso = Nothing
 	End Sub
 	Public Sub Init()
 		Set [error] = New EasyAsp_Error
@@ -474,13 +474,13 @@ Class EasyAsp
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
 		Dim FormType
-		If Has(rqsv("HTTP_CONTENT_TYPE")) Then
+		If Has(Request.ServerVariables("HTTP_CONTENT_TYPE")) Then
 			FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")(0)
 		Else
 			FormType = "notupload"
 		End If
 		If LCase(FormType) = "multipart/form-data" Then
-			If TypeName(upload) = "EasyASP_Upload" Then
+			If Lcase(TypeName(upload)) = "easyasp_upload" Then
 				If upload.Form.Count>0 Then tmp = upload.Form(s)
 			End If
 		Else

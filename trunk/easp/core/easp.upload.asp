@@ -14,7 +14,7 @@ Class EasyAsp_Upload
 	Private s_charset,s_key,s_allowed,s_denied
 	Private s_savePath,s_jsonPath,s_progressPath,s_progExt
 	Private i_fileMaxSize,i_totalMaxSize,i_blockSize
-	Private b_useProgress, b_autoMD,b_random
+	Private b_useProgress, b_autoMD,b_random, o_fso
 	'构造函数
 	Private Sub Class_Initialize 
 		'默认编码，继承自Easp
@@ -123,6 +123,10 @@ Class EasyAsp_Upload
 	'属性：是否使用进度条
 	Public Property Let UseProgress(ByVal b)
 		b_useProgress = b
+		If b Then 
+			Easp.Use "Fso"
+			Set o_fso = New EasyAsp_Fso
+		End If
 	End Property
 	'属性：保存进度条临时文件的文件夹
 	Public Property Let ProgressPath(ByVal s)
@@ -342,8 +346,8 @@ Class EasyAsp_Upload
 		Set Form=Nothing
 		Set File=Nothing
 		If b_useProgress Then
-			Easp.Use "Fso"
-			If Easp.Fso.IsFile(s_jsonPath) Then Easp.Fso.DelFile s_jsonPath
+			If o_fso.IsFile(s_jsonPath) Then o_fso.DelFile s_jsonPath
+			Set o_fso = Nothing
 		End If
   End Sub
 End Class

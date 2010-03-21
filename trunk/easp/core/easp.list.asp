@@ -23,6 +23,7 @@ Class EasyAsp_List
 		Easp.Error(41) = "下标越界"
 		Easp.Error(42) = "下标不能为空"
 		Easp.Error(43) = "下标只能是数字、字母、下划线(_)、点(.)和斜杠(/)组成"
+		Easp.Error(44) = "参数必须是数组或者List对象"
 		i_comp = 1
 	End Sub
 	
@@ -34,6 +35,7 @@ Class EasyAsp_List
 	'建新实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_List
+		[New].IgnoreCase = Me.IgnoreCase
 	End Function
 	
 	'是否忽略大小写
@@ -868,29 +870,183 @@ Class EasyAsp_List
 		Set SortBy_ = Me.Clone
 		SortBy_.SortBy f
 	End Function
+	
 	'=============
 	'以下是数组处理部分
 	'=============
 	'数组重复
 	'把一个数组重复多次
+	Public Sub Times(ByVal t)
+		Dim i, arr
+		arr = a_list
+		For i = 1 To t
+			Insert Size, arr
+		Next
+	End Sub
+	Public Function Times_(ByVal t)
+		Set Times_ = Me.Clone
+		Times_.Times t
+	End Function
+	'判断是不是Easp的List对象
+	Private Function IsList(ByVal o)
+		IsList = (Lcase(TypeName(o)) = "easyasp_list")
+	End Function
 	
 	'附加数组
 	'把一个数组拼接到另一个数组最后
+	Public Sub Splice(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Sub
+		Dim omap,dic,i
+		'如果是数组，直接拼接在最后
+		If isArray(o) Then
+			Insert Size, o
+		'如果是List对象
+		ElseIf IsList(o) Then
+				'先检测是否有Hash值
+				Set omap = o.Maps
+				'如果有Hash值
+				If omap.Count > 0 Then
+					For i = 0 To o.End
+						'Easp.WN Easp.Str("{3}...{1} = {2}", Array(omap.Exists(i), (Not o_map.Exists(omap(i))), i))
+						'取出Hash值名，存入原数组
+						If omap.Exists(i) And (Not o_map.Exists(omap(i))) Then
+							o_map.Add Size + i, omap(i)
+							o_map.Add omap(i), Size + i
+							'Easp.WN Easp.Str("{1} = {2}", Array(omap(i), Size + i))
+						End If
+					Next
+				End If
+				'把新值插入原数组
+				Insert Size, o.Data
+		End If
+	End Sub
+	Public Function Splice_(ByVal o)
+		Set Splice_ = Me.Clone
+		Splice_.Splice o
+	End Function
 	
 	'数组合集
 	'把两个数组合并并删除重复项
+	Public Sub Merge(ByVal o)
+		Splice o
+		Uniq
+	End Sub
+	Public Function Merge_(ByVal o)
+		Set Merge_ = Me.Clone
+		Merge_.Merge o
+	End Function
 	
 	'数组交集
 	'取出在两个数组中都存在的元素
+	Public Sub Inter(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Sub
+		Dim i,j,k,omap,arr
+		arr = Array() : j = 0
+		If o_hash.Count>0 Then o_hash.RemoveAll
+		'如果是数组
+		If isArray(o) Then
+			'遍历数组
+			For i = 0 To Ubound(o)
+				'如果数组中的值在List中
+				If Has(o(i)) Then
+					ReDim Preserve arr(j)
+					'把值存入临时数组
+					arr(j) = o(i)
+					'取值在原List中的下标
+					k = IndexOf(o(i))
+					'如果是hash值，则写入中转字典
+					If o_map.Exists(k) Then
+						o_hash.Add j, o_map(k)
+						o_hash.Add o_map(k), j
+					End If
+					j = j + 1
+				End If
+			Next
+		'如果是List对象
+		ElseIf IsList(o) Then
+			'取出Hash映射表
+			Set omap = o.Maps
+			'遍历List对象
+			For i = 0 To o.End
+				'如果在原List中存在
+				If Has(o(i)) Then
+					ReDim Preserve arr(j)
+					arr(j) = o(i)
+					k = IndexOf(o(i))
+					'检测在原List中是否是Hash值
+					If o_map.Exists(k) Then
+						o_hash.Add j, o_map(k)
+						o_hash.Add o_map(k), j
+					'检测在新List中是否是Hash值
+					ElseIf omap.Exists(i) Then
+						o_hash.Add j, omap(i)
+						o_hash.Add omap(i), j
+					End If
+					j = j + 1
+				End If
+			Next
+		End If
+		'把新值存入当前List
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
+	Public Function Inter_(ByVal o)
+		Set Inter_ = Me.Clone
+		Inter_.Inter o
+	End Function
 	
 	'数组差集
 	'取出在一个数组中存在而在另一个数组中不存在的元素
-		
+	Public Sub Diff(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Sub
+		Dim i,j,arr,a
+		arr = Array() : j = 0
+		If o_hash.Count>0 Then o_hash.RemoveAll
+		If isArray(o) Then
+			a = o
+			Set o = Me.New
+			o.Data = a
+		End If
+		For i = 0 To [End]
+			If Not o.Has(At(i)) Then
+				ReDim Preserve arr(j)
+				arr(j) = At(i)
+				If o_map.Exists(i) Then
+					o_hash.Add j, o_map(i)
+					o_hash.Add o_map(i), j
+				End If
+				j = j + 1
+			End If
+		Next
+		'把新值存入当前List
+		Data = arr
+		CloneDic__ o_map, o_hash
+		o_hash.RemoveAll
+	End Sub
+	Public Function Diff_(ByVal o)
+		Set Diff_ = Me.Clone
+		Diff_.Diff o
+	End Function
+	
 	'比较数组
 	'比较两个数组的大小
+	Public Function Eq(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Function
+		
+	End Function
+	
+	'是否包含数组
+	Public Function Son(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Function
+		
+	End Function
 	
 	'同步数组排序
 	'把一个数组按另一个一一对应的数组排序后的结果进行排序
+	Public Sub SortWith(ByVal o)
+		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Sub
 	
+	End Sub
 End Class
 %>
