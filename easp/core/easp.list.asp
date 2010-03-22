@@ -234,12 +234,16 @@ Class EasyAsp_List
 				Case "lt" Compare__ = (StrComp(a,b,i_comp) = -1)
 				Case "gt" Compare__ = (StrComp(a,b,i_comp) = 1)
 				Case "eq" Compare__ = (StrComp(a,b,i_comp) = 0)
+				Case "lte" Compare__ = (StrComp(a,b,i_comp) = -1 Or StrComp(a,b,i_comp) = 0)
+				Case "gte" Compare__ = (StrComp(a,b,i_comp) = 1 Or StrComp(a,b,i_comp) = 0)
 			End Select
 		Else
 			Select Case LCase(t)
 				Case "lt" Compare__ = (a < b)
 				Case "gt" Compare__ = (a > b)
 				Case "eq" Compare__ = (a = b)
+				Case "lte" Compare__ = (a <= b)
+				Case "gte" Compare__ = (a >= b)
 			End Select
 		End If
 	End Function
@@ -537,7 +541,7 @@ Class EasyAsp_List
 	End Sub
 	Public Function SearchNot_(ByVal s)
 		Set SearchNot_ = Me.Clone
-		SearchNot_. s
+		SearchNot_.SearchNot s
 	End Function
 	
 	Private Sub Search__(ByVal s, ByVal keep)
@@ -1033,20 +1037,42 @@ Class EasyAsp_List
 	'比较两个数组的大小
 	Public Function Eq(ByVal o)
 		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Function
-		
+		Dim a, e, m, i, j
+		If isArray(o) Then
+			a = o
+			e = Ubound(a)
+		ElseIf isList(o) Then
+			a = o.Data
+			e = o.End
+		End If
+		m = Easp.IIF([End] < e, [End], e)
+		'遍历List，逐个比较元素，如不同则出结果
+		For i = 0 To m
+			If Compare__("gt", At(i), a(i)) Then
+				Eq = 1 : Exit Function
+			ElseIf Compare__("lt", At(i), a(i)) Then
+				Eq = -1 : Exit Function
+			End If
+		Next
+		'如果在短的数组遍历完后仍相等，则长的那个数组较大
+		If [End] > e Then
+			Eq = 1
+		ElseIf [End] < e Then
+			Eq = -1
+		Else
+			Eq = 0
+		End If
 	End Function
 	
 	'是否包含数组
 	Public Function Son(ByVal o)
 		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Function
-		
+		Son = True
+		Dim i
+		If isList(o) Then o = o.Data
+		For i = 0 To Ubound(o)
+			If Not Has(o(i)) Then Son = False : Exit Function
+		Next
 	End Function
-	
-	'同步数组排序
-	'把一个数组按另一个一一对应的数组排序后的结果进行排序
-	Public Sub SortWith(ByVal o)
-		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Sub
-	
-	End Sub
 End Class
 %>
