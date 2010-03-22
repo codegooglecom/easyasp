@@ -5,8 +5,9 @@
 '## Feature     :   EasyAsp List(Array) Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/03/17 04:08:30
+'## Update Date :   2010/03/22 21:24:30
 '## Description :   A super Array class in EasyAsp
+'##                 Support Array and Hash (like Dictionary Object)
 '##
 '######################################################################
 Class EasyAsp_List

@@ -1,19 +1,10 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
-'Easp.Debug = False
-Function testmy(ByVal s)
-	testmy = "U : " & UCase(s)
-End Function
-
-Sub WN(ByVal s)
-	Easp.WN s & "----" & s
-End Sub
-
-'先构造一个随机数组
+'先构造一个随机数组，给下面的第1种方法用：
 Dim arrayA(19),i
 For i = 0 To 19
 	arrayA(i) = Easp.RandStr(Easp.Rand(0,6)&":abcdeABCDE1234567890")
 Next
-Dim list, Alist, list1, list2
+Dim list, Alist
 '加载List核心
 Easp.Use "List"
 '创建一个List对象
@@ -38,14 +29,23 @@ Easp.WN "初始数组为：" & list.ToString
 list("one") = "OneNumber"
 list("two") = "2222"
 list("six") = "SSSSix"
+'删除第一个元素
+list.Shift
+'添加一个元素到开头
+list.UnShift "first"
+'在结尾添加一个元素
 list.Push "wobu"
 list.Push "zhidao"
 list.Push -349.89
 list.Push 80
 list.Push "ssssix"
+'插入元素
 list.Insert 22, Array("seven","eight","nine")
-Easp.WN "添加一些元素后为：" & list.ToString
+Easp.WN "添加一些元素(包括Hash表值)后为：" & list.ToString
+Easp.WN "所有的Hash表值都可以同时用Hash名称下标和数字下标取值(就像记录集的字段那样)，如：list(""one"") = " & list("one") & " ，list(20) = " & list(20)
+'删除最后一个元素
 list.Pop
+'删除指定元素
 list.Delete 4
 list.Delete "two"
 Easp.WN "删除一些元素后为：" & list.ToString
@@ -60,38 +60,68 @@ Easp.WN "数组的最大值是：" & list.Max
 Easp.WN "数组的最小值是：" & list.Min
 Easp.WN "数组的第一个元素是：" & list.First
 Easp.WN "数组的最后一个元素是：" & list.Last
+Easp.WN "=========="
 list.Sort
 Easp.WN "排序后为：" & list.ToString
 list.Reverse
 Easp.WN "倒序后为：" & list.ToString
 list.Rand
 Easp.WN "打乱顺序后为：" & list.ToString
-Easp.WN "数组中包含字符串 a 的元素(不影响原数组)：" & list.Search_("a").ToString
-Easp.WN "数组中不包含字符串 a 的元素(不影响原数组)：" & list.SearchNot_("a").ToString
+Easp.WN "是否包含字符串 ""bb"" ：" & list.Has("bb") & "，在数组中第1次出现的下标是：" & list.IndexOf("bb")
+Easp.WN "=========="
+Easp.WN ""
+Easp.WN "所有可以操作数组的方法后加 _ 则是返回一个新的数组对象，不会改变原数组的数据："
+Easp.wn "--------"
+Easp.WN "数组中包含字符串 ""a"" 的元素(不影响原数组)：" & list.Search_("a").ToString
+Easp.WN "数组中不包含字符串 ""a"" 的元素(不影响原数组)：" & list.SearchNot_("a").ToString
 Easp.WN "执行迭代处理(不影响原数组)：" & list.Map_("testmy").ToString
-'list.Each("WN")
+'按条件选择
 Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
 Easp.WN "选择所有非数字的值(不影响原数组)：" & list.Select_("Not isNumeric(%i)").ToString
+'按正则表达式选择
 Easp.WN "选择所有以数字开头的值(不影响原数组)：" & list.Grep_("^\d.+").ToString
+'迭代：依次用函数处理每个值并返回
 Easp.WN "执行迭代处理后排序(不影响原数组)：" & list.SortBy_("testmy").ToString
+Easp.WN ""
+'迭代处理：依次用数组作为参数值执行函数
+Easp.WN "==以下是迭代执行函数：=="
+list.Each("toUp")
+Easp.WN "==迭代执行函数结束=="
+Easp.WN ""
+
+'迭代用的函数
+Function testmy(ByVal s)
+	testmy = "U : " & UCase(s)
+End Function
+
+'迭代用的函数
+Sub toUp(ByVal s)
+	Easp.WN s & " ==&gt; " & UCase(s)
+End Sub
+
+'取得数组的其中一部分（按下标）
+'可取多个元素，用逗号隔开，可以用 - 表示范围（如2-5表示第2到第5下标，\s表示开头，\e表示结尾, list.Delete也可以用这样的下标删除）
+list.Slice "1,3,6-\e"
+Easp.WN "取下标为 ""1,3,6-结束"" 的结果用 | 连起来是：" & list.J(" | ")
+
 '数组重复
-'list.Times 2
+Easp.WN "数组重复2遍后的结果(不影响原数组)：" & list.Times_(2).ToString
 
 Set Alist = Easp.List.New
 'Alist.Hash = "aaa:ssssix b:wefewr c:sfwef one:weioid six:yesterday ee"
-Alist.Data = Array("ssssix","OneNumber","zhidao",234.234,35235,3534.345)
-'附加数组
-'list.Splice Alist
+Alist.Data = Array("ssssix","OneNumber","zhidao",234.234,35235,3534.345,78)
+'附加数组(参数可以是Array数组，也可以是List对象)
+Easp.WN "附加一个数组后的结果(不影响原数组)：" & list.Splice_(Alist).ToString
 '合并数组
-'list.Merge Alist
+Easp.WN "合并数组后的结果(不影响原数组)：" & list.Merge_(Alist).ToString
 '数组交集
-'list.Inter Alist
+Easp.WN "取数组交集后的结果(不影响原数组)：" & list.Inter_(Alist).ToString
 '数组差集
-'list.Diff Alist
+Easp.WN "取数组差集后的结果(不影响原数组)：" & list.Diff_(Alist).ToString
 '比较数组的大小
-Easp.wn Alist.Eq(Array("ssssix","OneNumber","zhidao1",234.234,35235,3534.345,33))
+Easp.wn "数组比较的结果(1：大于，-1小于，0等于)：" & Alist.Eq(Array("ssssix","OneNumber","zhidao1",234.234,35235,3534.345))
 '数组是否包含另一数组
-Easp.wn Alist.Son(Alist.Pop_)
+Easp.wn "是否包含另一数组的结果：" & Alist.Son(Alist.Pop_)
 Set Alist = Nothing
 
 Easp.WN "=========="
@@ -109,86 +139,17 @@ For Each key In Maps
 	End If
 Next
 Set Maps = Nothing
-Easp.WN "=========="
-
-
-
-'Easp.WN "是否包含字符串 bb ：" & list.Has("bb") & "，在数组中第1次出现的下标是：" & list.IndexOf("bb")
-''取值
-'Easp.WN "下标为3的元素为：" & list.At(3)
-''赋值
-'list.At(3) = "three"
-''list.At(n)可以简写为 list(n)
-'Easp.WN "下标为5的元素为：" & list(5)
-'list(5) = "five"
-''可以向超过当前最大下标的元素赋值，相当于添加元素
-'list(22) = "this22"
-'Easp.WN "添加和更改元素后的数组为：" & list.ToString
-'Easp.WN "数组的长度（元素个数）是：" & list.Size
-'Easp.WN "数组的有效长度（非空值）是：" & list.Count
-''去除空元素
-'list.Compact
-'Easp.WN "去除所有空元素的结果是：" & list.ToString
-'Easp.WN "数组的最大值是：" & list.Max
-'Easp.WN "数组的最小值是：" & list.Min
-'Easp.WN "数组的第一个元素是：" & list.First
-'Easp.WN "数组的最后一个元素是：" & list.Last
-''排序
-'list.Sort
-'Easp.WN "将数组排序后的结果是：" & list.ToString
-''反向
-'list.Reverse
-'Easp.WN "将数组反向排列结果是：" & list.ToString
-''随机排序
-'list.Rand
-'Easp.WN "将数随机排序结果是：" & list.ToString
-''删除指定下标项
-'list.Delete 12
-'Easp.WN "删除下标为12的元素后结果是：" & list.ToString
-'Set list1 = list.Clone
-''因为Search方法会更改当前的List对象，所以这里复制为新list对象操作
-'list1.Search("a")
-'Easp.WN "数组中包含字符串 a 的元素：" & list1.ToString
-'Set list1 = list.Clone
-'list1.SearchNot("a")
-'Easp.WN "数组中不包含字符串 a 的元素：" & list1.ToString
-'Easp.C(list1)
-'Easp.WN "=========="
-''取得数组的其中一部分（按下标），返回一个新的List对象
-''可取多个元素，用逗号隔开，可以用 - 表示范围（如2-5表示第2到第5下标，\s表示开头，\e表示结尾）
-'Set arr = list.Get("1,3,7-\e")
-'Easp.WN "取得下标为1,3,7-\e的新数组为：" & arr.ToString
-'Easp.WN "新数组的长度是：" & arr.Length
-'Easp.WN "用 | 符号连接起是：" & arr.J("|")
-''删除第一个元素
-'arr.Shift
-''添加一个元素到开头
-'arr.UnShift "first"
-''删除最后一个元素
-'arr.Pop
-''添加一个元素到最后
-'arr.Push "last"
-''插入一个元素到指定下标
-'arr.Insert 4, "four"
-'Easp.WN "删除和添加元素后是：" & arr.ToString
-''删除多个元素，用逗号隔开，可以用 - 表示范围（如2-5表示第2到第5下标，\s表示开头，\e表示结尾）
-'arr.Delete "\s-2,5-\e"
-'Easp.WN "删除\s-2,5-\e后是：" & arr.ToString
-'Easp.C(arr)
-'Easp.WN "=========="
-'
-'Easp.wn "---遍历现在的List---"
-'For i = 0 To list.End
-'	Easp.WN "list("&i&") 的值是：" & list(i)
-'Next
 
 Easp.WN "=========="
-Easp.wn "---取出为普通数组(如果是Hash表就把Hash名称转换为前缀)后再遍历---"
+
+Easp.WN "---取出为普通数组(如果是Hash表值就把Hash名称转换为前缀带:)后再遍历---"
 arr = list.Hash
 For i = 0 To Ubound(arr)
 	Easp.WN "arr("&i&") 的值是：" & arr(i)
 Next
+
 Easp.WN "=========="
+
 Easp.wn "---取出为普通数组后再遍历---"
 arr = list.Data
 For i = 0 To Ubound(arr)
