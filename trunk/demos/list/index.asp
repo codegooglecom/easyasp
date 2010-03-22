@@ -29,9 +29,9 @@ Set list = Easp.List.New
 'list.Data = "aa a ee ddd A AA aa Ab ab a bb b  bb c ccc  ddd b d"
 '-------------
 '第3种：带下标的数组，如果数组元素中包含 : 号，则会解析为Hash表值对， : 号前的字符串为Hash的下标
-list.Hash = Array("test:34", "name:coldstone", 344.89, "birth:81/01/01", "Others", "btime:81/01/32", "addtime:"&True)
+'list.Hash = Array("test:34", "name:coldstone", 344.89, "birth:81/01/01", "Others", "btime:81/01/32", "addtime:"&True)
 '第4种：用空格隔开的字符串，字符串中包含 : 号，也会把带 : 号的字符串解析为Hash表值对
-'list.Hash = "aa a ee se:ddd A AA aa my:Ab ab a bb b  bb c la:ccc  ddd b d"
+list.Hash = "aa a ee se:ddd A AA aa my:Ab ab a bb b  bb c la:ccc  ddd b d"
 '-----------------------------------------------
 Easp.WN "初始数组为：" & list.ToString
 
@@ -66,6 +66,8 @@ list.Reverse
 Easp.WN "倒序后为：" & list.ToString
 list.Rand
 Easp.WN "打乱顺序后为：" & list.ToString
+Easp.WN "数组中包含字符串 a 的元素(不影响原数组)：" & list.Search_("a").ToString
+Easp.WN "数组中不包含字符串 a 的元素(不影响原数组)：" & list.SearchNot_("a").ToString
 Easp.WN "执行迭代处理(不影响原数组)：" & list.Map_("testmy").ToString
 'list.Each("WN")
 Easp.WN "第一个是数字的值是：" & list.Find("isNumeric(%i)")
@@ -86,6 +88,11 @@ Alist.Data = Array("ssssix","OneNumber","zhidao",234.234,35235,3534.345)
 'list.Inter Alist
 '数组差集
 'list.Diff Alist
+'比较数组的大小
+Easp.wn Alist.Eq(Array("ssssix","OneNumber","zhidao1",234.234,35235,3534.345,33))
+'数组是否包含另一数组
+Easp.wn Alist.Son(Alist.Pop_)
+Set Alist = Nothing
 
 Easp.WN "=========="
 Easp.wn "---遍历现在的List---"
