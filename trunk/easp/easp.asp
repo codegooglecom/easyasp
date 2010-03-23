@@ -6,13 +6,13 @@
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/1/20 0:09
+'## Update Date :   2010/3/23 23:33
 '## Description :   EasyAsp Class
 '##
 '######################################################################
 Dim Easp_Timer : Easp_Timer = Timer()
 Dim Easp_DbQueryTimes : Easp_DbQueryTimes = 0
-Dim Easp : Set Easp = New EasyASP : Easp.Init()
+Dim Easp : Set Easp = New EasyAsp : Easp.Init()
 Dim EasyAsp_s_html
 %>
 <!--#include file="easp.config.asp"-->
@@ -39,7 +39,7 @@ Class EasyAsp
 		Set o_regex = New Regexp
 		o_regex.Global = True
 		o_regex.IgnoreCase = True
-		s_cores		= "[Error],db,List,o_md5,Fso,Upload,Tpl,Aes,JSON,Cache"
+		s_cores		= "[Error],db,List,o_md5,Fso,Upload,Tpl,Aes,JSON,Cache,Http"
 		Core_Do "on", s_cores
 	End Sub
 	Private Sub Class_Terminate()
@@ -63,6 +63,7 @@ Class EasyAsp
 		Set Aes = New EasyAsp_AES
 		Set Json = New EasyAsp_JSON
 		Set Cache = New EasyAsp_Cache
+		Set Http = New EasyAsp_Http
 '{/init}
 	End Sub
 	Private Sub Core_Do(ByVal t, ByVal s)
@@ -1339,10 +1340,11 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
+<!--#include file="core/easp.list.asp"-->
 <!--#include file="core/easp.fso.asp"-->
 <!--#include file="core/easp.upload.asp"-->
 <!--#include file="core/easp.tpl.asp"-->
 <!--#include file="core/easp.json.asp"-->
 <!--#include file="core/easp.aes.asp"-->
 <!--#include file="core/easp.cache.asp"-->
-<!--#include file="core/easp.list.asp"-->
+<!--#include file="core/easp.http.asp"-->
