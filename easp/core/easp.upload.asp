@@ -258,7 +258,7 @@ Class EasyAsp_Upload
 			i_dataEnd = InStr(i_dataStart,s_data,"""",1)
 			s_formName = Mid(s_data,i_dataStart,i_dataEnd-i_dataStart)
 			'如果是文件
-			If InStr(45,s_data,"filename=""",1) > 0 Then
+			If InStr(43,s_data,"filename=""",1) > 0 Then
 				Set o_file = New Easp_Upload_FileInfo
 				o_file.autoMD = b_autoMD
 				'取得文件大小

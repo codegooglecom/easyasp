@@ -11,7 +11,7 @@
 '##
 '######################################################################
 Class EasyAsp_List
-	Public Size
+	Public Size, OverError
 	Private o_hash, o_map
 	Private a_list
 	Private i_count, i_comp
@@ -21,6 +21,7 @@ Class EasyAsp_List
 		Set o_map  = Server.CreateObject("Scripting.Dictionary")
 		a_list = Array()
 		Size = 0
+		OverError = True
 		Easp.Error(41) = "下标越界"
 		Easp.Error(42) = "下标不能为空"
 		Easp.Error(43) = "下标只能是数字、字母、下划线(_)、点(.)和斜杠(/)组成"
@@ -80,16 +81,20 @@ Class EasyAsp_List
 				At = a_list(n)
 			Else
 				At = Null
-				Easp.Error.Msg = "(当前下标 " & n & " 超过了最大下标 " & [End] & " )"
-				Easp.Error.Raise 41
+				If OverError Then
+					Easp.Error.Msg = "(当前下标 " & n & " 超过了最大下标 " & [End] & " )"
+					Easp.Error.Raise 41
+				End If
 			End If
 		ElseIf Easp.Test(n,"^[\w-\./]+$") Then
 			If o_map.Exists(n) Then
 				At = a_list(o_map(n))
 			Else
 				At = Null
-				Easp.Error.Msg = "(当前列 " & n & " 不在数组列中)"
-				Easp.Error.Raise 41
+				If OverError Then
+					Easp.Error.Msg = "(当前列 " & n & " 不在数组列中)"
+					Easp.Error.Raise 41
+				End If
 			End If
 		End If
 	End Property
