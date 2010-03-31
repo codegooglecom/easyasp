@@ -216,6 +216,18 @@ Class EasyAsp
 	Function IfHas(ByVal v1, ByVal v2)
 		IfHas = IIF(Has(v1), v1, v2)
 	End Function
+	'不够长度的字符串填充内容
+	Function Fill(ByVal s, ByVal l, ByVal f)
+		Dim le,i,tmp
+		le = len(s)
+		If isN(f) Then f = "&nbsp;"
+		If le < l Then
+			For i = 1 To l-le
+				tmp = tmp & f
+			Next
+		End If
+		Fill = s & tmp
+	End Function
 	'服务器端输出javascript
 	Sub Js(ByVal s)
 		W JsCode(s)
