@@ -66,11 +66,20 @@ Class EasyAsp_Http
 			o.send
 		End If
 		If o.readyState <> 4 Then
+			GetData = "error:server is down"
 			Easp.Error.Raise 46
 			Set o = Nothing
 			Exit Function
+		ElseIf o.Status = 200 Then
+			GetData = Bytes2Bstr(o.responseBody, CharSet)
+		Else
+			Select Case o.Status
+				Case 400 GetData = "error:400 request invalid"
+				Case 403 GetData = "error:403 forbidden"
+				Case 404 GetData = "error:404 not found"
+				Case 500 GetData = "error:500 server error"
+			End Select
 		End If
-		GetData = Bytes2Bstr(o.responseBody, CharSet)
 		Set o = Nothing
 	End Function
 
