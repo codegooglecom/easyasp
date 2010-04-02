@@ -1,5 +1,5 @@
 <%
-'Option Explicit
+Option Explicit
 '######################################################################
 '## easp.asp
 '## -------------------------------------------------------------------
@@ -100,6 +100,7 @@ Class EasyAsp
 	End Property
 	Public Property Let [CharSet](ByVal s)
 		s_charset = Ucase(s)
+		Response.Charset = s_charset
 	End Property
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
@@ -742,10 +743,13 @@ Class EasyAsp
 	End Function
 	'过滤HTML标签
 	Function HtmlFilter(ByVal s)
-		If IsN(s) Then HtmlFilter = "" : Exit Function
-		s = regReplace(s,"<[^>]+>","")
-		s = Replace(s, ">", "&gt;")
-		HtmlFilter = Replace(s, "<", "&lt;")
+		If Has(s) Then
+			If IsN(s) Then HtmlFilter = "" : Exit Function
+			s = regReplace(s,"<[^>]+>","")
+			s = Replace(s, ">", "&gt;")
+			s = Replace(s, "<", "&lt;")
+		End If
+		HtmlFilter = s
 	End Function
 	'精确到毫秒的脚本执行时间
 	Function GetScriptTime(t)
