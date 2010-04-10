@@ -125,7 +125,7 @@ Class EasyAsp_Fso
 	'创建文件并写入内容
 	Public Function CreateFile(ByVal filePath, ByVal fileContent)
 		On Error Resume Next
-		Dim f,p,t, s_char
+		Dim f,p,t, s_char, o_strm
 		s_char = s_charset
 		If Instr(filePath,">")>0 Then
 			s_char = UCase(Trim(Easp.CRight(filePath,">")))
