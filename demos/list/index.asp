@@ -4,7 +4,7 @@ Dim arrayA(19),i
 For i = 0 To 19
 	arrayA(i) = Easp.RandStr(Easp.Rand(0,6)&":abcdeABCDE1234567890")
 Next
-Dim list, Alist
+Dim list, Alist, arr
 '加载List核心
 Easp.Use "List"
 '创建一个List对象
@@ -60,6 +60,8 @@ Easp.WN "数组的最大值是：" & list.Max
 Easp.WN "数组的最小值是：" & list.Min
 Easp.WN "数组的第一个元素是：" & list.First
 Easp.WN "数组的最后一个元素是：" & list.Last
+Easp.WN "是否包含下标为 ""six"" 的元素：" & list.HasIndex("six") & "， 它的数字下标是： " & list.Index("six")
+Easp.WN "把包含的Hash表对值转化为url参数字符串为：" & list.Serialize
 Easp.WN "=========="
 list.Sort
 Easp.WN "排序后为：" & list.ToString

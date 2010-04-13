@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp List(Array) Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/03/22 21:24:30
+'## Update Date :   2010/04/13 12:03:30
 '## Description :   A super Array class in EasyAsp
 '##                 Support Array and Hash (like Dictionary Object)
 '##
@@ -38,6 +38,18 @@ Class EasyAsp_List
 	Public Function [New]()
 		Set [New] = New EasyAsp_List
 		[New].IgnoreCase = Me.IgnoreCase
+	End Function
+	'建新数组实例
+	Public Function NewArray(ByVal a)
+		Set NewArray = New EasyAsp_List
+		NewArray.IgnoreCase = Me.IgnoreCase
+		NewArray.Data = a
+	End Function
+	'建新Hash实例
+	Public Function NewHash(ByVal a)
+		Set NewHash = New EasyAsp_List
+		NewHash.IgnoreCase = Me.IgnoreCase
+		NewHash.Hash = a
 	End Function
 	
 	'是否忽略大小写
@@ -92,7 +104,7 @@ Class EasyAsp_List
 			Else
 				At = Null
 				If OverError Then
-					Easp.Error.Msg = "(当前列 " & n & " 不在数组列中)"
+					Easp.Error.Msg = "(当前列 " & n & " 不在数组Hash列中)"
 					Easp.Error.Raise 41
 				End If
 			End If
@@ -227,6 +239,36 @@ Class EasyAsp_List
 		End If
 		Min = v
 	End Property
+	
+	'序列化Hash表，即转化为a=1&b=2&c=3型字符串
+	Public Property Get Serialize
+		Dim tmp, i : tmp = ""
+		For i = 0 To [End]
+			If o_map.Exists(i) Then
+				tmp = tmp & "&" & o_map(i) & "=" & Server.URLEncode(At(i))
+			End If
+		Next
+		If Len(tmp)>1 Then tmp = Mid(tmp,2)
+		Serialize = tmp
+	End Property
+	
+	'是否包含某个下标
+	Public Function HasIndex(ByVal i)
+		HasIndex = Index(i) >= 0
+	End Function
+	
+	'取得下标数字
+	Public Function Index(ByVal i)
+		If isNumeric(i) Then
+			Index = Easp.IIF(i >= 0 And i <= [End], i, -1)
+		Else
+			If o_map.Exists(i) Then
+				Index = o_map(i)
+			Else
+				Index = -1
+			End If
+		End If
+	End Function
 	'比较函数
 	Private Function Compare__(ByVal t, ByVal a, ByVal b)
 		Dim isStr : isStr = False
@@ -635,6 +677,7 @@ Class EasyAsp_List
 	End Function
 	'For Sort & Search & SearchNot
 	Private Sub AddHash__(ByVal arr)
+		Dim tmp
 		If o_hash.Count > 0 Then o_hash.RemoveAll
 		For i = 0 To Ubound(arr)
 			'如果结果中有Hash下标

@@ -329,6 +329,7 @@ Class EasyAsp
 	End Function
 	'格式化日期时间
 	Function DateTime(ByVal iTime, ByVal iFormat)
+		If IsN(iTime) Then DateTime = "" : Exit Function
 		If Not IsDate(iTime) Then DateTime = "Date Error" : Exit Function
 		If Instr(",0,1,2,3,4,",","&iFormat&",")>0 Then DateTime = FormatDateTime(iTime,iFormat) : Exit Function
 		Dim diffs,diffd,diffw,diffm,diffy,dire,before,pastTime
