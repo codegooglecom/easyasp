@@ -10,11 +10,15 @@
 '## http://msdn.microsoft.com/en-us/library/ms535874(VS.85).aspx
 '######################################################################
 Class EasyAsp_Http
-	Public CharSet 
-	'Private
+	Public Url, Method, CharSet, Async, User, Password
+	Private s_data
 	
 	Private Sub Class_Initialize
 		CharSet = Easp.CharSet
+		Async = False
+		User = ""
+		Password = ""
+		s_data = ""
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
 		Easp.Error(48) = "要获取的页面地址不能为空"
@@ -29,18 +33,23 @@ Class EasyAsp_Http
 		Set [New] = New EasyAsp_Http
 	End Function
 	
+	'提交的数据
+	Public Property Let Data(ByVal s)
+		s_data = s
+	End Property
+	
 	'Get取远程页
-	Public Function [Get](ByVal url)
-		[Get] = GetData(url, "GET", False, "", "", "")
+	Public Function [Get](ByVal uri)
+		[Get] = GetData(uri, "GET", Async, s_data, User, Password)
 	End Function
 	
 	'Get取远程页
-	Public Function Post(ByVal url)
-		Post = GetData(url, "POST", False, "", "", "")
+	Public Function Post(ByVal uri)
+		Post = GetData(uri, "POST", Async, s_data, User, Password)
 	End Function
 	
 	'XMLHTTP原始方法
-	Public Function GetData(ByVal url, ByVal method, ByVal async, ByVal data, ByVal user, ByVal pass)
+	Public Function GetData(ByVal uri, ByVal m, ByVal async, ByVal data, ByVal u, ByVal p)
 		Dim o
 		'建立XMLHttp对象
 		If Easp.isInstall("MSXML2.serverXMLHTTP") Then
@@ -54,26 +63,23 @@ Class EasyAsp_Http
 			Exit Function
 		End If
 		'抓取地址
-		If Easp.IsN(url) Then Easp.Error.Raise 48 : Exit Function
+		If Easp.IsN(uri) Then Easp.Error.Raise 48 : Exit Function
 		'方法：POST或GET
-		method = Easp.IIF(Easp.Has(method),UCase(method),"GET")
+		m = Easp.IIF(Easp.Has(m),UCase(m),"GET")
 		'异步
 		If Easp.IsN(async) Then async = False
-		'构造获取条件(Post还是Get)
-		If method = "POST" Then
-			o.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
-		Else
-			If Easp.Has(data) Then url = url & Easp.IIF(Instr(url,"?")>0, "&", "?") & Serialize(data)
-		End If
+		'构造Get传数据的URL
+		If m = "GET" And Easp.Has(data) Then uri = uri & Easp.IIF(Instr(uri,"?")>0, "&", "?") & Serialize__(data)
 		'打开远程页
-		If Easp.Has(user) And Easp.Has(pass) Then
+		If Easp.Has(u) Then
 			'如果有用户名和密码
-			o.open method, url, async, user, pass
+			o.open m, uri, async, u, p
 		Else
 			'匿名
-			o.open method, url, async
+			o.open m, uri, async
 		End If
-		If method = "POST" Then
+		If m = "POST" Then
+			o.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
 			'有发送的数据
 			o.send data
 		Else
@@ -86,20 +92,15 @@ Class EasyAsp_Http
 			Set o = Nothing
 			Exit Function
 		ElseIf o.Status = 200 Then
-			GetData = Bytes2Bstr(o.responseBody, CharSet)
+			GetData = Bytes2Bstr__(o.responseBody, CharSet)
 		Else
-			Select Case o.Status
-				Case 400 GetData = "error:400 bad request"
-				Case 403 GetData = "error:403 forbidden"
-				Case 404 GetData = "error:404 not found"
-				Case 500 GetData = "error:500 server error"
-			End Select
+			GetData = "error:" & o.Status & " " & o.StatusText
 		End If
 		Set o = Nothing
 	End Function
 	
 	'url参数化
-	Private Function Serialize(ByVal a)
+	Private Function Serialize__(ByVal a)
 		Dim tmp, i, n, v : tmp = ""
 		If Easp.IsN(a) Then Exit Function
 		If isArray(a) Then
@@ -109,14 +110,14 @@ Class EasyAsp_Http
 				tmp = tmp & "&" & n & "=" & Server.URLEncode(v)
 			Next
 			If Len(tmp)>1 Then tmp = Mid(tmp,2)
-			Serialize = tmp
+			Serialize__ = tmp
 		Else
-			Serialize = a
+			Serialize__ = a
 		End If
 	End Function
 	
 	'编码转换
-	Private Function Bytes2Bstr(ByVal s, ByVal char) 
+	Private Function Bytes2Bstr__(ByVal s, ByVal char) 
 		dim oStrm
 		set oStrm = Server.CreateObject("Adodb.Stream")
 		oStrm.Type = 1
@@ -126,7 +127,7 @@ Class EasyAsp_Http
 		oStrm.Position = 0
 		oStrm.Type = 2
 		oStrm.Charset = CharSet
-		Bytes2Bstr = oStrm.ReadText
+		Bytes2Bstr__ = oStrm.ReadText
 		oStrm.Close
 		set oStrm = nothing
 	End Function
