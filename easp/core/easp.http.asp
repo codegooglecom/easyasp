@@ -10,7 +10,7 @@
 '## http://msdn.microsoft.com/en-us/library/ms535874(VS.85).aspx
 '######################################################################
 Class EasyAsp_Http
-	Public Url, Method, CharSet, Async, User, Password
+	Public Url, Method, CharSet, Async, User, Password, Html
 	Private s_data
 	
 	Private Sub Class_Initialize
@@ -19,9 +19,11 @@ Class EasyAsp_Http
 		User = ""
 		Password = ""
 		s_data = ""
+		Html = ""
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
 		Easp.Error(48) = "要获取的页面地址不能为空"
+
 	End Sub
 	
 	Private Sub Class_Terminate
@@ -97,7 +99,13 @@ Class EasyAsp_Http
 			GetData = "error:" & o.Status & " " & o.StatusText
 		End If
 		Set o = Nothing
+		Html = GetData
 	End Function
+	
+	'保存远程图片至本地
+	Public Sub SaveImagesTo(ByVal path)
+	
+	End Sub
 	
 	'url参数化
 	Private Function Serialize__(ByVal a)
