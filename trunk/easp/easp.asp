@@ -152,6 +152,7 @@ Class EasyAsp
 	End Sub
 	Sub WE(ByVal s)
 		W(s)
+		Set Easp = Nothing
 		Response.End()
 	End Sub
 	'生成动态字符串

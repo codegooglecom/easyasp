@@ -192,6 +192,7 @@ Class EasyAsp_Upload
 		Dim o_strm, o_prog, o_file
 		Dim s_block, s_blockData, s_start, s_formName, s_formValue, s_fileName, s_data
 		Dim i_total, i_loaded, i_block, i_formStart, i_formEnd, i_Start, i_End, i_dataStart, i_dataEnd
+		Dim CrLf
 		'取得表单总大小
 		i_total = Request.TotalBytes
 		'如果表单的内容为空，则退出上传程序
