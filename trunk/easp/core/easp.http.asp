@@ -11,7 +11,7 @@
 '######################################################################
 Class EasyAsp_Http
 	Public Url, Method, CharSet, Async, User, Password, Html
-	Private s_data
+	Private s_data, s_url, s_ohtml
 	
 	Private Sub Class_Initialize
 		CharSet = Easp.CharSet
@@ -19,6 +19,7 @@ Class EasyAsp_Http
 		User = ""
 		Password = ""
 		s_data = ""
+		s_url = ""
 		Html = ""
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
@@ -66,6 +67,7 @@ Class EasyAsp_Http
 		End If
 		'抓取地址
 		If Easp.IsN(uri) Then Easp.Error.Raise 48 : Exit Function
+		s_url = uri
 		'方法：POST或GET
 		m = Easp.IIF(Easp.Has(m),UCase(m),"GET")
 		'异步
@@ -90,8 +92,8 @@ Class EasyAsp_Http
 		'检测返回数据
 		If o.readyState <> 4 Then
 			GetData = "error:server is down"
-			Easp.Error.Raise 46
 			Set o = Nothing
+			Easp.Error.Raise 46
 			Exit Function
 		ElseIf o.Status = 200 Then
 			GetData = Bytes2Bstr__(o.responseBody, CharSet)
@@ -99,7 +101,8 @@ Class EasyAsp_Http
 			GetData = "error:" & o.Status & " " & o.StatusText
 		End If
 		Set o = Nothing
-		Html = GetData
+		s_ohtml = GetData
+		Html = s_ohtml
 	End Function
 	
 	'保存远程图片至本地

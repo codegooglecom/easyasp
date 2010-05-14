@@ -942,6 +942,28 @@ Class EasyAsp
 		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
+	'获取文本中的图片地址存为一个数组
+	Function GetImg(ByVal s)
+		Dim a(), img, Matches, m, i : i = 0
+		ReDim a(-1)
+		img = "<img([^>]+?)(/?)>"
+		If Has(s) And Easp_Test(s, img) Then
+			'取消所有的换行和缩进
+			s = Replace(s, vbCrLf, " ")
+			s = Replace(s, vbTab, " ")
+			'在img标签结尾添加一个空格方便使用正则取值
+			s = RegReplace(s, img, "<img$1 $2>")
+			'正则匹配所有的img标签
+			Set Matches = RegMatch(s, "<img\s([^>]+)?src\s*=\s*([""|']?)([^""'>]+?)?\2\s([^>]+)?>")
+			'取出每个img的src存入数组
+			For Each m In Matches
+				ReDim Preserve a(i)
+				a(i) = m.SubMatches(2)
+				i = i + 1
+			Next
+		End If
+		GetImg = a
+	End Function
 	'验证身份证号码
 	Private Function isIDCard(ByVal s)
 		Dim Ai, BirthDay, arrVerifyCode, Wi, i, AiPlusWi, modValue, strVerifyCode
@@ -1122,7 +1144,7 @@ Class EasyAsp
 			End With
 			Set o_strm = Nothing
 			If s_char = "UTF-8" Then
-				Select Case Easp.FileBOM
+				Select Case s_bom
 					Case "keep"
 						'Do Nothing
 					Case "remove"
@@ -1308,7 +1330,7 @@ Class EasyAsp
 					s = "[Empty Array]"
 				Else
 					s = "<h3>[Array]</h3>"
-					s = htmlEncode(Join(o,", "))
+					s = s & htmlEncode(Join(o,vbCrLf))
 				End If
 		End Select
 		W s
