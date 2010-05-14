@@ -485,7 +485,7 @@ Class EasyAsp_List
 	'移除重复元素只保留一个
 	Public Sub Uniq()
 		Dim arr(),i,j : j = 0
-		ReDim arr(0)
+		ReDim arr(-1)
 		If o_hash.Count>0 Then o_hash.RemoveAll
 		For i = 0 To [End]
 			'如果新数组中没有该值

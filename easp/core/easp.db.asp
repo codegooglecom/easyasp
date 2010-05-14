@@ -151,10 +151,10 @@ Class EasyAsp_db
 		Dim objConn : Set objConn = Server.CreateObject("ADODB.Connection")
 		objConn.Open ConnStr
 		If Err.number <> 0 Then
-			Easp.Error.Msg = "<br />(""" & ConnStr & """)"
-			Easp.Error.Raise 12
 			objConn.Close
 			Set objConn = Nothing
+			Easp.Error.Msg = "<br />(""" & ConnStr & """)"
+			Easp.Error.Raise 12
 		End If
 		Set CreatConn = objConn
 	End Function
