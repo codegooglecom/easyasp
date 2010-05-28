@@ -245,6 +245,40 @@ Class EasyAsp_Fso
 		End If
 		Err.Clear()
 	End Function
+	'取文件名
+	Public Function NameOf(ByVal f)
+		NameOf = GetNameOf(f, 0)
+	End Function
+	'取文件扩展名
+	Public Function ExtOf(ByVal f)
+		ExtOf = GetNameOf(f, 1)
+	End Function
+	Private Function GetNameOf(ByVal f, ByVal t)
+		Dim re,na,ex
+		If Easp.isN(f) Then GetNameOf = "" : Exit Function
+		f = Replace(f,"\","/")
+		If Right(f,1) = "/" Then
+			re = Split(f,"/")
+			GetNameOf = Easp.IIF(t=0,re(Ubound(re)-1),"")
+			Exit Function
+		ElseIf Instr(f,"/")>0 Then
+			re = Split(f,"/")(Ubound(Split(f,"/")))
+		Else
+			re = f
+		End If
+		If Instr(re,".")>0 Then
+			na = Left(re,InstrRev(re,".")-1)
+			ex = Mid(re,InstrRev(re,"."))
+		Else
+			na = re
+			ex = ""
+		End If
+		If t = 0 Then
+			GetNameOf = na
+		ElseIf t = 1 Then
+			GetNameOf = ex
+		End If
+	End Function
 	'设置文件或文件夹属性
 	Public Function Attr(ByVal path, ByVal attrType)
 		On Error Resume Next
@@ -494,7 +528,7 @@ Class EasyAsp_Fso
 				End If
 				'执行复制或者移动，如果是复制要考虑是否覆盖
 				Execute("Fso."&ot&of&" ff,tf"&Easp.IfThen(MOC=0,",b_overwrite"))
-				Easp.wn("Fso."&ot&of&" "&ff&","&tf&","&b_overwrite&"")
+				'Easp.wn("Fso."&ot&of&" "&ff&","&tf&","&b_overwrite&"")
 			Else
 				'删除，考虑是否删除只读
 				Execute("Fso."&ot&of&" ff,b_force")
