@@ -571,6 +571,8 @@ Class EasyAsp_db
 			Else
 				cmd.Execute : doSP = cmd(0)
 			End If
+			'通过存储过程查询也要计入数据库查询次数
+			Easp_DbQueryTimes = Easp_DbQueryTimes + 1
 		If Err.number <> 0 Then Easp.Error.Raise 24
 		Set cmd = Nothing
 		Err.Clear
