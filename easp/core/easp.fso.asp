@@ -330,7 +330,7 @@ Class EasyAsp_Fso
 	End Function
 	'获取文件或文件夹属性
 	Public Function getAttr(ByVal path, ByVal attrType)
-		Dim f,s : p = absPath(path)
+		Dim f,s,p : p = absPath(path)
 		If isFile(p) Then
 			Set f = Fso.GetFile(p)
 		ElseIf isFolder(p) Then
