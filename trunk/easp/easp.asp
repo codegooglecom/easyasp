@@ -29,6 +29,7 @@ Class EasyAsp
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "UTF-8"
+		Response.Charset = s_charset
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
@@ -1032,7 +1033,7 @@ Class EasyAsp
 			Case "zip"		Pa = "^\d{6}$"
 			Case "qq"		Pa = "^[1-9]\d{4,9}$"
 			Case "phone"	Pa = "^((\(\+?\d{2,3}\))|(\+?\d{2,3}\-))?(\(0?\d{2,3}\)|0?\d{2,3}-)?[1-9]\d{4,7}(\-\d{1,4})?$"
-			Case "mobile"	Pa = "^(\+?\d{2,3})?0?1(3\d|5\d|8[0789])\d{8}$"
+			Case "mobile"	Pa = "^(\+?\d{2,3})?0?1(3\d|5\d|8[06789])\d{8}$"
 			Case "url"		Pa = "^(?:(https|http|ftp|rtsp|mms)://(?:([\w!~\*'\(\).&=\+\$%-]+)(?::([\w!~\*'\(\).&=\+\$%-]+))?@)?)?((?:(?:(?:25[0-5]|2[0-4]\d|(?:1\d|[1-9])?\d)\.){3}(?:25[0-5]|2[0-4]\d|(?:1\d|[1-9])?\d))|(?:(?:(?:[\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+(?:[a-zA-Z]{2,4}(?:\.[a-zA-Z]{2})?)|localhost))(?::(\d{1,5}))?([#\?/].*)?$"
 			Case "domain"	Pa = "^(([\da-zA-Z][\da-zA-Z-]{0,61})?[\da-zA-Z]\.)+([a-zA-Z]{2,4}(?:\.[a-zA-Z]{2})?)$"
 			Case "ip"		Pa = "^((25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)\.){3}(25[0-5]|2[0-4]\d|(1\d|[1-9])?\d)$"
