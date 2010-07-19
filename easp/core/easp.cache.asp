@@ -279,6 +279,7 @@ class Easp_Cache_Info
 	Private Function TransPath(ByVal fe)
 		Dim s_p : s_p = ""
 		Dim parr : parr = split(Me.Name,"/")
+		Dim i
 		for i = 0 to UBound(parr)
 			If Easp.Test(parr(i),fe) Then parr(i)=Server.URLEncode(parr(i))
 			s_p = s_p & "_" & parr(i)
