@@ -174,7 +174,12 @@ Class EasyAsp_Tpl
 	End Sub
 	'生成html标签
 	Public Function MakeTag(ByVal t, ByVal f)
-		Dim s,e,a,i
+		Dim s,e,a,i,m
+		If Instr(t,":")>0 Then
+			m = Easp.CRight(t,":")
+			t = Easp.CLeft(t,":")
+			m = Easp.DateTime(Now,m)
+		End If
 		Select Case Lcase(t)
 			Case "css"
 				s = "<link href="""
@@ -191,7 +196,7 @@ Class EasyAsp_Tpl
 		End Select
 		a = Split(f,"|")
 		For i = 0 To Ubound(a)
-			a(i) = s & Trim(a(i)) & e
+			a(i) = s & Trim(a(i)) & Easp.IfThen(Easp.Has(m),"?" & m) & e
 		Next
 		MakeTag = Join(a,vbCrLf)
 	End Function
