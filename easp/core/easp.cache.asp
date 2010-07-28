@@ -159,7 +159,11 @@ class Easp_Cache_Info
 			d_exp = CDate(i)
 		ElseIf isNumeric(i) Then
 			'数值（分钟）
-			If i>0 Then i_exp = i
+			If i>0 Then
+				i_exp = i
+			ElseIf i=0 Then
+				i_exp = 60*24*365*99
+			End If
 		End If
   End Property
 	'显示过期时间
