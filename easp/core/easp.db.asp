@@ -278,14 +278,20 @@ Class EasyAsp_db
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
 		On Error Resume Next
-		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue
+		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue, notjs
 		o = Easp_Param(jName)
+		notjs = False
 		If Easp.Has(o(1)) Then
 			jName = o(0) : totalName = o(1)
+			o = Easp_Param(totalName)
+			If Easp.Has(o(1)) Then
+				totalName = o(0) : notjs = LCase(o(1)) = "notjs"
+			End If
 		End If
 		Set rs = jRs.Clone
 		Easp.Use "JSON"
 		Set o = Easp.Json.New(0)
+		If notjs Then o.StrEncode = False
 		total = 0
 		If Easp.Has(rs) Then
 			total = rs.RecordCount
