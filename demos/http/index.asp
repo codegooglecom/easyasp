@@ -20,13 +20,27 @@ Dim http, tmp
 'http.User = ""	'如果访问目标URL需要用户名
 'http.Password = ""	'如果访问目标URL需要密码
 
-Set http = Easp.Http.New()
-http.CharSet = "GB2312"
-tmp = http.Get("http://www.cnbeta.com/articles/110634.htm")
-tmp = Easp.GetImg(tmp)
-Easp.Trace tmp
+'Set http = Easp.Http.New()
+'http.CharSet = "GB2312"
+'tmp = http.Get("http://www.cnbeta.com/articles/110634.htm")
+'tmp = Easp.GetImg(tmp)
+'Easp.Trace tmp
+'Set http = Nothing
 
-Set http = Nothing
+Dim s,re,ma,logtime,logdate,logversion,uplog,user
+s = Easp.Http.Get("http://code.google.com/p/easyasp/updates/list")
+Set re = Easp.RegMatch(s,"<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
+Easp.WN "Easp's Update Log:"
+For Each ma In re
+	logtime = ma.SubMatches(0)
+	logdate = ma.SubMatches(1)
+	logversion = ma.SubMatches(2)
+	uplog = ma.SubMatches(3)
+	user = ma.SubMatches(4)
+	If uplog<>"[No log message]" Then Easp.WN Easp.Format("<li>{2}, {3} ({4} @ {1})</li>",Array(logtime,logdate,logversion,uplog,user))
+Next
+Set re = Nothing
+
 Easp.WN ""
 Easp.wn "------------------------------------"
 Easp.w "页面执行时间： " & Easp.ScriptTime & " 秒"

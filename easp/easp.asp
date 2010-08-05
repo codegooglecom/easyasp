@@ -158,23 +158,33 @@ Class EasyAsp
 	End Sub
 	'生成动态字符串
 	Function Str(ByVal s, ByVal v)
-		Dim i
-		s = Replace(s,"\\",Chr(0))
-		s = Replace(s,"\{",Chr(1))
-		If isArray(v) Then
-			For i = 0 To Ubound(v)
-				s = Replace(s,"{"&(i+1)&"}",v(i))
-			Next
-		Else
-			s = Replace(s,"{1}",v)
-		End If
-		s = Replace(s,Chr(1),"{")
-		Str = Replace(s,Chr(0),"\")
+		Str = FormatString(s, v, 1)
 	End Function
 	'输出动态字符串
 	Sub WStr(ByVal s, ByVal v)
 		W Str(s,v)
 	End Sub
+	Function Format(ByVal s, ByVal v)
+		Format = FormatString(s, v, 0)
+	End Function
+	'输出动态字符串
+	Sub WFormat(ByVal s, ByVal v)
+		W Format(s,v)
+	End Sub
+	Private Function FormatString(ByVal s, ByVal v, ByVal t)
+		Dim i
+		s = Replace(s,"\\",Chr(0))
+		s = Replace(s,"\{",Chr(1))
+		If isArray(v) Then
+			For i = 0 To Ubound(v)
+				s = Replace(s,"{"&(i+t)&"}",v(i))
+			Next
+		Else
+			s = Replace(s,"{"&t&"}",v)
+		End If
+		s = Replace(s,Chr(1),"{")
+		FormatString = Replace(s,Chr(0),"\")
+	End Function
 	'服务器端跳转
 	Sub RR(ByVal u)
 		Response.Redirect(u)
