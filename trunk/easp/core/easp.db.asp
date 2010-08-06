@@ -15,7 +15,7 @@ Class EasyAsp_db
 	Private o_conn, o_pageDic
 	Private Sub Class_Initialize()
 		Easp.Error(11) = "无效的查询条件，无法获取记录集！"
-		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接信息（用户名/密码/服务器地址/端口号/数据库名）是否正确！"
+		Easp.Error(12) = "数据库服务器端连接错误，请检查数据库连接信息是否正确！"
 		Easp.Error(13) = "无效的数据库连接！"
 		Easp.Error(14) = "无效的查询条件，无法获取新的ID号！"
 		Easp.Error(15) = "生成Json格式代码出错！"
@@ -204,8 +204,8 @@ Class EasyAsp_db
 				newRs.Close() : Set newRs = Nothing
 			End If
 		End If
-		If Err.number <> 0 Then Easp.Error.Raise 14
 		rs.Close() : Set rs = Nothing
+		If Err.number <> 0 Then Easp.Error.Raise 14
 		AutoID = tmpID
 	End Function
 	'取得符合条件的纪录列表
@@ -305,10 +305,10 @@ Class EasyAsp_db
 				rs.MoveNext
 			Wend
 		End If
-		If Err.number <> 0 Then Easp.Error.Raise 15
 		tmpStr = o.JsString
 		Set o = Nothing
 		rs.Close() : Set rs = Nothing
+		If Err.number <> 0 Then Easp.Error.Raise 15
 		Json = tmpStr
 	End Function
 	'生成指定长度的不重复的字符串
@@ -510,8 +510,8 @@ Class EasyAsp_db
 				TempStr = rs.Fields.Item(0).Value
 			End If
 		End If
-		If Err.number <> 0 Then Easp.Error.Raise 23
-		rs.close() : Set rs = Nothing : Err.Clear
+		rs.close() : Set rs = Nothing
+		If Err.number <> 0 Then Easp.Error.Raise 23 : Err.Clear
 		ReadTable = TempStr
 	End Function
 	Public Function RT(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
@@ -528,59 +528,59 @@ Class EasyAsp_db
 		p = Easp_Param(spName)
 		If Easp.Has(p(1)) Then : spType = UCase(Trim(p(1))) : spName = Trim(p(0)) : p = "" : End If
 		Set cmd = Server.CreateObject("ADODB.Command")
-			With cmd
-				.ActiveConnection = o_conn
-				.CommandText = spName
-				.CommandType = 4
-				.Prepared = true
-				.Parameters.append .CreateParameter("return",3,4)
-				outParam = "return"
-				If Not IsArray(spParam) Then
-					If spParam<>"" Then
-						spParam = Easp.IIF(Instr(spParam,",")>0, spParam = Split(spParam,","), Array(spParam))
-					End If
+		With cmd
+			.ActiveConnection = o_conn
+			.CommandText = spName
+			.CommandType = 4
+			.Prepared = true
+			.Parameters.append .CreateParameter("return",3,4)
+			outParam = "return"
+			If Not IsArray(spParam) Then
+				If spParam<>"" Then
+					spParam = Easp.IIF(Instr(spParam,",")>0, spParam = Split(spParam,","), Array(spParam))
 				End If
-				If IsArray(spParam) Then
-					For i = 0 To Ubound(spParam)
-						Dim pName, pValue
-						If (spType = "1" or spType = "OUT" or spType = "3" or spType = "ALL") And Instr(spParam(i),"@@")=1 Then
-							.Parameters.append .CreateParameter(spParam(i),200,2,8000)
-							outParam = outParam & "," & spParam(i)
-						Else
-							If Instr(spParam(i),"@")=1 And Instr(spParam(i),":")>2 Then
-								pName = Left(spParam(i),Instr(spParam(i),":")-1)
-								outParam = outParam & "," & pName
-								pValue = Mid(spParam(i),Instr(spParam(i),":")+1)
-								If pValue = "" Then pValue = NULL
-								.Parameters.append .CreateParameter(pName,200,1,8000,pValue)
-							Else
-								.Parameters.append .CreateParameter("@param"&(i+1),200,1,8000,spParam(i))
-								outParam = outParam & "," & "@param"&(i+1)
-							End If
-						End If
-					Next
-				End If
-			End With
-			outParam = Easp.IIF(Instr(outParam,",")>0, Split(outParam,","), Array(outParam))
-			If spType = "1" or spType = "OUT" Then
-				cmd.Execute : doSP = cmd
-			ElseIf spType = "2" or spType = "RS" Then
-				Set doSP = cmd.Execute
-			ElseIf spType = "3" or spType = "ALL" Then
-				Dim NewOut,pa : Set NewOut = Server.CreateObject("Scripting.Dictionary")
-				Set NewRS = cmd.Execute : NewRS.close
-				For i = 0 To Ubound(outParam)
-					NewOut(Trim(outParam(i))) = cmd(i)
-				Next
-				NewRs.open : doSP = Array(NewRS,NewOut)
-				Set NewOut = Nothing
-			Else
-				cmd.Execute : doSP = cmd(0)
 			End If
-			'通过存储过程查询也要计入数据库查询次数
-			Easp_DbQueryTimes = Easp_DbQueryTimes + 1
-		If Err.number <> 0 Then Easp.Error.Raise 24
+			If IsArray(spParam) Then
+				For i = 0 To Ubound(spParam)
+					Dim pName, pValue
+					If (spType = "1" or spType = "OUT" or spType = "3" or spType = "ALL") And Instr(spParam(i),"@@")=1 Then
+						.Parameters.append .CreateParameter(spParam(i),200,2,8000)
+						outParam = outParam & "," & spParam(i)
+					Else
+						If Instr(spParam(i),"@")=1 And Instr(spParam(i),":")>2 Then
+							pName = Left(spParam(i),Instr(spParam(i),":")-1)
+							outParam = outParam & "," & pName
+							pValue = Mid(spParam(i),Instr(spParam(i),":")+1)
+							If pValue = "" Then pValue = NULL
+							.Parameters.append .CreateParameter(pName,200,1,8000,pValue)
+						Else
+							.Parameters.append .CreateParameter("@param"&(i+1),200,1,8000,spParam(i))
+							outParam = outParam & "," & "@param"&(i+1)
+						End If
+					End If
+				Next
+			End If
+		End With
+		outParam = Easp.IIF(Instr(outParam,",")>0, Split(outParam,","), Array(outParam))
+		If spType = "1" or spType = "OUT" Then
+			cmd.Execute : doSP = cmd
+		ElseIf spType = "2" or spType = "RS" Then
+			Set doSP = cmd.Execute
+		ElseIf spType = "3" or spType = "ALL" Then
+			Dim NewOut,pa : Set NewOut = Server.CreateObject("Scripting.Dictionary")
+			Set NewRS = cmd.Execute : NewRS.close
+			For i = 0 To Ubound(outParam)
+				NewOut(Trim(outParam(i))) = cmd(i)
+			Next
+			NewRs.open : doSP = Array(NewRS,NewOut)
+			Set NewOut = Nothing
+		Else
+			cmd.Execute : doSP = cmd(0)
+		End If
+		'通过存储过程查询也要计入数据库查询次数
+		Easp_DbQueryTimes = Easp_DbQueryTimes + 1
 		Set cmd = Nothing
+		If Err.number <> 0 Then Easp.Error.Raise 24
 		Err.Clear
 	End Function
 	'释放记录集对象
@@ -638,8 +638,8 @@ Class EasyAsp_db
 					End Select
 				End If
 			Next
-			If Err.number <> 0 Then Easp.Error.Raise 26
-			rsTemp.Close() : Set rsTemp = Nothing : Err.Clear
+			rsTemp.Close() : Set rsTemp = Nothing 
+			If Err.number <> 0 Then Easp.Error.Raise 26 : Err.Clear
 		End If
 		ValueToSql = StrTemp
 	End Function
