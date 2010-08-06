@@ -198,6 +198,7 @@ Class EasyAsp
 					Case "ISubMatches"
 						For i = 0 To v.Count - 1
 							s = Replace(s,"{"&(i+t)&"}",v(i))
+							s = Replace(s,"{$"&(i+t)&"}",v(i))
 						Next
 				End Select
 			'字符串
@@ -206,8 +207,10 @@ Class EasyAsp
 					'正则搜索集合
 					Case "IMatch2"
 						s = Replace(s,"{"&t&"}",v.Value)
+						s = Replace(s,"{$"&t&"}",v.Value)
 						For i = 0 To v.SubMatches.Count - 1
 							s = Replace(s,"{"&(i+t+1)&"}",v.SubMatches(i))
+							s = Replace(s,"{$"&(i+t+1)&"}",v.SubMatches(i))
 						Next
 					'字符串
 					Case Else
@@ -436,7 +439,7 @@ Class EasyAsp
 		For i = 0 To 6 : iFormat = Replace(iFormat,"\"&SpecialText(i), SpecialTextRe(i)) : Next
 		t = Replace(iFormat,"yyyy", iiYear) : t = Replace(t, "yyy", iiYear)
 		t = Replace(t, "yy", iYear) : t = Replace(t, "y", iiYear)
-		t = Replace(t, "mmmm", iiiiMonth(iMonth-1)) : t = Replace(t, "mmm", iiiMonth(iMonth-1))
+		t = Replace(t, "mmmm", Replace(iiiiMonth(iMonth-1),"m",Chr(1))) : t = Replace(t, "mmm", iiiMonth(iMonth-1))
 		t = Replace(t, "mm", iiMonth) : t = Replace(t, "m", iMonth)
 		t = Replace(t, "dd", iiDay) : t = Replace(t, "d", iDay)
 		t = Replace(t, "hh", iiHour) : t = Replace(t, "h", iHour)
