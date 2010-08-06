@@ -27,17 +27,12 @@ Dim http, tmp
 'Easp.Trace tmp
 'Set http = Nothing
 
-Dim s,re,ma,logtime,logdate,logversion,uplog,user
+Dim s,re,ma
 s = Easp.Http.Get("http://code.google.com/p/easyasp/updates/list")
 Set re = Easp.RegMatch(s,"<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
 Easp.WN "Easp's Update Log:"
 For Each ma In re
-	logtime = ma.SubMatches(0)
-	logdate = ma.SubMatches(1)
-	logversion = ma.SubMatches(2)
-	uplog = ma.SubMatches(3)
-	user = ma.SubMatches(4)
-	If uplog<>"[No log message]" Then Easp.WN Easp.Format("<li>{2}, {3} ({4} @ {1})</li>",Array(logtime,logdate,logversion,uplog,user))
+	If ma.SubMatches(3)<>"[No log message]" Then Easp.WN Easp.Format("<li>{3}, {4} ({5} @ {2})</li>",ma)
 Next
 Set re = Nothing
 
