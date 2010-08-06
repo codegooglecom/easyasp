@@ -164,7 +164,7 @@ Class EasyAsp
 	Function Format(ByVal s, ByVal v)
 		Format = FormatString(s, v, 0)
 	End Function
-	Private Function FormatString(ByVal s, ByVal v, ByVal t)
+	Private Function FormatString(ByVal s, ByRef v, ByVal t)
 		Dim i,n,k
 		s = Replace(s,"\\",Chr(0))
 		s = Replace(s,"\{",Chr(1))
