@@ -269,6 +269,16 @@ Class EasyAsp_List
 			End If
 		End If
 	End Function
+	
+	'取数字下标的Hash名称
+	Public Function IndexHash(ByVal i)
+		If isNumeric(i) Then
+			IndexHash = Easp.IfThen(o_map.Exists(i), o_map(i))
+		Else
+			IndexHash = Easp.IfThen(o_map.Exists(i), i)
+		End If
+	End Function
+	
 	'比较函数
 	Private Function Compare__(ByVal t, ByVal a, ByVal b)
 		Dim isStr : isStr = False
