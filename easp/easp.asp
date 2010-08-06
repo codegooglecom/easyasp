@@ -160,28 +160,60 @@ Class EasyAsp
 	Function Str(ByVal s, ByVal v)
 		Str = FormatString(s, v, 1)
 	End Function
-	'输出动态字符串
-	Sub WStr(ByVal s, ByVal v)
-		W Str(s,v)
-	End Sub
+	'格式化字符串
 	Function Format(ByVal s, ByVal v)
 		Format = FormatString(s, v, 0)
 	End Function
-	'输出动态字符串
-	Sub WFormat(ByVal s, ByVal v)
-		W Format(s,v)
-	End Sub
 	Private Function FormatString(ByVal s, ByVal v, ByVal t)
-		Dim i
+		Dim i,n,k
 		s = Replace(s,"\\",Chr(0))
 		s = Replace(s,"\{",Chr(1))
-		If isArray(v) Then
-			For i = 0 To Ubound(v)
-				s = Replace(s,"{"&(i+t)&"}",v(i))
-			Next
-		Else
-			s = Replace(s,"{"&t&"}",v)
-		End If
+		Select Case VarType(v)
+			'数组
+			Case 8192,8194,8204,8209
+				For i = 0 To Ubound(v)
+					s = Replace(s,"{"&(i+t)&"}",v(i))
+				Next
+			'对象
+			Case 9
+				Select Case TypeName(v)
+					'记录集
+					Case "Recordset"
+						For i = 0 To v.Fields.Count - 1
+							s = Replace(s,"{"&(i+t)&"}",v(i))
+							s = Replace(s,"{"&v.Fields.Item(i+t).Name&"}",v(i),1,-1,1)
+						Next
+					'字典
+					Case "Dictionary"
+						For Each k In v
+							s = Replace(s,"{"&k&"}",v(k),1,-1,1)
+						Next
+					'Easp List
+					Case "EasyAsp_List"
+						For i = 0 To v.End
+							s = Replace(s,"{"&(i+t)&"}",v(i))
+							s = Replace(s,"{"&v.IndexHash(i)&"}",v(i),1,-1,1)
+						Next
+					'正则搜索子集合
+					Case "ISubMatches"
+						For i = 0 To v.Count - 1
+							s = Replace(s,"{"&(i+t)&"}",v(i))
+						Next
+				End Select
+			'字符串
+			Case 8
+				Select Case TypeName(v)
+					'正则搜索集合
+					Case "IMatch2"
+						s = Replace(s,"{"&t&"}",v.Value)
+						For i = 0 To v.SubMatches.Count - 1
+							s = Replace(s,"{"&(i+t+1)&"}",v.SubMatches(i))
+						Next
+					'字符串
+					Case Else
+						s = Replace(s,"{"&t&"}",v)
+				End Select
+		End Select
 		s = Replace(s,Chr(1),"{")
 		FormatString = Replace(s,Chr(0),"\")
 	End Function
