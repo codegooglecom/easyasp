@@ -36,7 +36,7 @@ Class EasyAsp_Upload
 		'默认总文件大小，不限制
 		i_totalMaxSize = 0
 		'分块上传默认每次上传64K
-		i_blockSize = 64 * 1024
+		i_blockSize = 16 * 1024
 		b_useProgress = False
 		'默认进度条临时文件夹，根目录下的/__uptemp/目录
 		s_progressPath = "/__uptemp/"
@@ -208,7 +208,7 @@ Class EasyAsp_Upload
 		'如果使用进度条
 		If b_useProgress Then
 			'创建进度条文件夹
-			Easp.Use "Fso"
+			'Easp.Use "Fso"
 			If Not Easp.Fso.IsFolder(s_progressPath) Then
 				Easp.Fso.MD s_progressPath
 			End If
@@ -267,6 +267,7 @@ Class EasyAsp_Upload
 				'如果文件大小超过了限制
 				If (i_fileMaxSize>0 And (o_file.Size)>i_fileMaxSize) Then
 					o_file.isSize = False
+					DelProgressFile()
 					Easp.Error.Raise 75
 				End If
 				'如果不为空
@@ -285,6 +286,7 @@ Class EasyAsp_Upload
 					'如果文件类型不允许
 					If Not checkFileType(o_file.Ext) Then
 						o_file.isType = False
+						DelProgressFile()
 						Easp.Error.Raise 76
 					End If
 					'取得MIME类型
@@ -335,6 +337,7 @@ Class EasyAsp_Upload
 			For Each f In File
 				File(f).Save
 			Next
+			DelProgressFile()
 		End If
 	End Sub
   '析构函数
@@ -346,11 +349,15 @@ Class EasyAsp_Upload
 		End If
 		Set Form=Nothing
 		Set File=Nothing
+		DelProgressFile()
+  End Sub
+	'删除临时进度条文件
+	Public Sub DelProgressFile()
 		If b_useProgress Then
 			If o_fso.IsFile(s_jsonPath) Then o_fso.DelFile s_jsonPath
 			Set o_fso = Nothing
 		End If
-  End Sub
+	End Sub
 End Class
 '上传文件信息
 Class Easp_Upload_FileInfo
@@ -423,6 +430,7 @@ Class Easp_Upload_FileInfo
 		o_strm.SaveToFile p, 2
 		o_strm.Close
 		Set o_strm = Nothing
+		'Easp.Upload.DelProgressFile()
 	End Function
 	'保存(自动选择地址)
 	Public Function Save
