@@ -277,7 +277,7 @@ Class EasyAsp_db
 	End Function
 	'根据记录集生成Json格式代码
 	Public Function Json(ByVal jRs, ByVal jName)
-		On Error Resume Next
+		'On Error Resume Next
 		Dim tmpStr, rs, fi, o, totalName, total, tName, tValue, notjs
 		o = Easp_Param(jName)
 		notjs = False
