@@ -18,11 +18,12 @@ Class EasyAsp_JSON
 		'名称是否用引号
 		If TypeName(Easp.Json) = "EasyAsp_JSON" Then
 			QuotedVars = Easp.Json.QuotedVars
+			StrEncode = Easp.Json.StrEncode
 		Else
 			QuotedVars = True
+			StrEncode = True
 		End If
 		Count = 0
-		StrEncode = True
 	End Sub
 
 	Private Sub Class_Terminate
@@ -44,10 +45,14 @@ Class EasyAsp_JSON
 	'赋值，值可以是Easp的Json对象
 	Public Property Let Pair(p, v)
 		If IsNull(p) Then p = Counter
-		If TypeName(v) = "EasyAsp_JSON" Then
-			Set Collection(p) = v
+		If vartype(v) = 9 Then
+			If TypeName(v) = "EasyAsp_JSON" Then
+				Set Collection(p) = v
+			Else
+				Collection(p) = v
+			End If
 		Else
-			Collection(p) = v
+				Collection(p) = v
 		End If
 	End Property
 	Public Default Property Get Pair(p)
@@ -74,7 +79,7 @@ Class EasyAsp_JSON
 			Case 7
 				toJSON = """" & CStr(vPair) & """"
 			Case 8
-				toJSON = """" & Easp.IIF(StrEncode,Easp.JSEncode(vPair),vPair) & """"
+				toJSON = """" & Easp.IIF(StrEncode,Easp.JSEncode(vPair),JSEncode__(vPair)) & """"
 			Case 9
 				Dim bFI,i 
 				bFI = True
@@ -142,6 +147,26 @@ Class EasyAsp_JSON
 			End If
 		Next
 		Set ColClone = jsc
+	End Function
+	'处理字符串中的Javascript特殊字符，不处理中文
+	Private Function JsEncode__(ByVal s)
+		If Easp.isN(s) Then JsEncode__ = "" : Exit Function
+		Dim arr1, arr2, i, j, c, p, t
+		arr1 = Array(&h27,&h22,&h5C,&h2F,&h08,&h0C,&h0A,&h0D,&h09)
+		arr2 = Array(&h27,&h22,&h5C,&h2F,&h62,&h66,&h6E,&h72,&h749)
+		For i = 1 To Len(s)
+			p = True
+			c = Mid(s, i, 1)
+			For j = 0 To Ubound(arr1)
+				If c = Chr(arr1(j)) Then
+					t = t & "\" & Chr(arr2(j))
+					p = False
+					Exit For
+				End If
+			Next
+			If p Then t = t & c
+		Next
+		JsEncode__ = t
 	End Function
 End Class
 %>
