@@ -12,7 +12,7 @@ Easp.BasePath = "/easp/"
 Easp.CharSet = "UTF-8"
 
 ''打开开发者调试模式：
-Easp.Debug = True
+Easp.Debug = False
 
 ''不加密Cookies数据:
 'Easp.CookieEncode = False

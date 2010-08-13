@@ -1,7 +1,8 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
+Easp.Debug = False
 'EasyASP 上传类 Demo，此例子为UTF-8编码，客户端进度条展示采用了jQuery，需要jQuery库支持
 '(此例子是Upload类的基础功能，Upload类尚有功能在开发中，不过目前已有功能基本不会再做更改，可放心使用。)
-'友情提示：因为上传类的表单验证是要等文件上传完成之后才能做出判断，所以建议表单的验证请尽量同时做到客户端的验证，否则用户体验将打大折扣。
+'友情提示：因为上传类的表单验证是要等文件上传完成之后才能做出判断，所以建议表单的验证请尽量同时做到客户端的验证，否则用户体验将打大折扣。运行此Demo请使用发行版的Easp程序，如果使用开发版，则可能出现进度条临时文件无法正常删除的情况。
 Response.Charset = "UTF-8"
 '=====================================
 Dim random, jsonFile, i, j, f, e
@@ -16,9 +17,9 @@ Easp.Upload.Allowed = "exe|jpg|gif|png|rar|zip"
 '禁止上传的文件类型，如果设置了仅允许上传文件类型，则此设置不生效(建议先在客户端判断)
 'Easp.Upload.Denied = "exe|msi|bat|cmd|asp|asa"
 '单个文件最大允许值，单位为KB（如果是图片建议在客户端判断）
-Easp.Upload.FileMaxSize = 1024*5
+Easp.Upload.FileMaxSize = 1024*10
 '全部文件最大允许值，单位为KB
-Easp.Upload.TotalMaxSize = 1024*50
+Easp.Upload.TotalMaxSize = 1024*30
 '点击上传后执行
 If Easp.Get("act") = "upload" Then
 	'上传文件保存路径:
@@ -27,7 +28,7 @@ If Easp.Get("act") = "upload" Then
 	'或者，可用<>带日期标志（参见Easp.DateTime）按日期建立相应文件夹：
 	Easp.Upload.SavePath = "uploadfiles/<yyyy>/<mm>/"
 	'保存时使用随机文件名，默认为False，即不使用
-	'Easp.Upload.Random = True
+	Easp.Upload.Random = True
 	'是否自动建立不存在的文件夹，默认为True，即会自动建立
 	'Easp.Upload.AutoMD = False
 	'获取上传的唯一KEY用于生成进度条数据Json文件给js调用
@@ -66,14 +67,16 @@ If Easp.Get("act") = "upload" Then
 			Easp.WN "文件大小：" & f.Size
 			Easp.WN "文件名称：" & f.Name
 			Easp.WN "文件扩展名：" & f.Ext
-			Easp.WN "文件类型：" & f.MIME
+			Easp.WN "文件MIME类型：" & f.MIME
 			Easp.WN "新路径："& f.NewPath
 			Easp.WN "新名称："& f.NewName
 			Easp.WN "Web路径：" & f.WebPath & Server.URLEncode(f.NewName)
 			Easp.WN "================="
 		End If
 	Next
-	Easp.WE "<a href=""index.asp"">继续上传</a>"
+	'显式的释放，才能删除进度条数据文件
+	Set Easp.Upload = Nothing
+	Easp.WE "<a href=""../upload/"">继续上传</a>"
 End If
 '生成本次上传的唯一KEY
 random = Easp.Upload.GenKey
@@ -107,7 +110,7 @@ jsonFile = Easp.Upload.ProgressFile(random)
 </style>
 </head>
 <body>
-<fieldset class="upload"><legend>Easp.Upload上传文件示例</legend>
+<fieldset class="upload"><legend>Easp.Upload上传文件示例 （多文件带进度条）</legend>
 <!-- form的method是post，enctype是multipart/form-data，这在上传表单里是必需的 -->
 <form id="formUpload" method="post" enctype="multipart/form-data">
 	<p>昵 称：<input type="text" name="nick" class="ipt" /></p>

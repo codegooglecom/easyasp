@@ -5,7 +5,7 @@
 '##	Feature		:	EasyAsp Upload Class
 '##	Version		:	v2.2 Alpha
 '##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2010/02/10 23:15:14
+'##	Update Date	:	2010/08/13 12:15:14
 '##	Description	:	Upload file(s) with EasyASP
 '#################################################################################
 Dim EasyAsp_o_updata
@@ -14,9 +14,9 @@ Class EasyAsp_Upload
 	Private s_charset,s_key,s_allowed,s_denied
 	Private s_savePath,s_jsonPath,s_progressPath,s_progExt
 	Private i_fileMaxSize,i_totalMaxSize,i_blockSize
-	Private b_useProgress, b_autoMD,b_random, o_fso
+	Private b_useProgress, b_autoMD,b_random, o_fso, o_db
 	'构造函数
-	Private Sub Class_Initialize 
+	Private Sub Class_Initialize
 		'默认编码，继承自Easp
 		s_charset	= Easp.CharSet
 		'默认此次上传唯一ID，无（用于进度条）
@@ -36,7 +36,7 @@ Class EasyAsp_Upload
 		'默认总文件大小，不限制
 		i_totalMaxSize = 0
 		'分块上传默认每次上传64K
-		i_blockSize = 16 * 1024
+		i_blockSize = 64 * 1024
 		b_useProgress = False
 		'默认进度条临时文件夹，根目录下的/__uptemp/目录
 		s_progressPath = "/__uptemp/"
@@ -55,12 +55,36 @@ Class EasyAsp_Upload
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Count = 0
+		'初始化数据库连接
+		Set o_db = Easp.db.New
+		GetConn Easp.db.Conn
 	End Sub
 	
 	'属性：文件编码
 	Public Property Let CharSet(ByVal s)
 		s_charset = UCase(s)
 	End Property
+	'属性：数据库连接
+	Public Property Let Conn(ByVal o)
+		GetConn o
+	End Property
+	Public Property Get Conn
+		If TypeName(o_db.Conn) = "Connection" Then
+			Set Conn = o_db.Conn
+		Else
+			Set Conn = Nothing
+			Easp.Error.Raise 13
+		End If
+	End Property
+	Private Sub GetConn(ByVal o)
+		If TypeName(o) = "Connection" Then
+			If o.State = 1 Then
+				o_db.Conn = o
+			Else
+				Easp.Error.Raise 13
+			End If
+		End If
+	End Sub
 	'属性：进度条Json文件保位置：
 	Public Property Let Key(ByVal s)
 		If Not b_useProgress Then Exit Property
@@ -183,6 +207,7 @@ Class EasyAsp_Upload
 	End Function
 	'初始化，开始上传：
 	Public Sub StartUpload
+		If TypeName(o_db.Conn) <> "Connection" Then GetConn Easp.db.Conn
 		'检测表单是否multipart/form-data类型
 		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
 		If LCase(FormType(0)) <> "multipart/form-data" Then
@@ -208,7 +233,7 @@ Class EasyAsp_Upload
 		'如果使用进度条
 		If b_useProgress Then
 			'创建进度条文件夹
-			'Easp.Use "Fso"
+			Easp.Use "Fso"
 			If Not Easp.Fso.IsFolder(s_progressPath) Then
 				Easp.Fso.MD s_progressPath
 			End If
@@ -267,7 +292,6 @@ Class EasyAsp_Upload
 				'如果文件大小超过了限制
 				If (i_fileMaxSize>0 And (o_file.Size)>i_fileMaxSize) Then
 					o_file.isSize = False
-					DelProgressFile()
 					Easp.Error.Raise 75
 				End If
 				'如果不为空
@@ -286,7 +310,6 @@ Class EasyAsp_Upload
 					'如果文件类型不允许
 					If Not checkFileType(o_file.Ext) Then
 						o_file.isType = False
-						DelProgressFile()
 						Easp.Error.Raise 76
 					End If
 					'取得MIME类型
@@ -337,7 +360,6 @@ Class EasyAsp_Upload
 			For Each f In File
 				File(f).Save
 			Next
-			DelProgressFile()
 		End If
 	End Sub
   '析构函数
@@ -347,17 +369,15 @@ Class EasyAsp_Upload
 			File.RemoveAll
 			Easp.C(EasyAsp_o_updata)
 		End If
-		Set Form=Nothing
-		Set File=Nothing
-		DelProgressFile()
-  End Sub
-	'删除临时进度条文件
-	Public Sub DelProgressFile()
+		Set Form = Nothing
+		Set File = Nothing
+		Set o_db = Nothing
+		'删除临时进度条文件
 		If b_useProgress Then
 			If o_fso.IsFile(s_jsonPath) Then o_fso.DelFile s_jsonPath
 			Set o_fso = Nothing
 		End If
-	End Sub
+  End Sub
 End Class
 '上传文件信息
 Class Easp_Upload_FileInfo
@@ -499,9 +519,11 @@ Class Easp_Upload_Progress
 		Dim h : h = "00"
 		Dim m : m = "00"
 		Dim s : s = "00"
-		h = Right("0" & Round(sec/3600), 2)
-		m = Right("0" & Round((sec mod 3600) / 60), 2)
-		s = Right("0" & Round(sec mod 60), 2)
+		If isNumeric(sec) Then
+			h = Right("0" & Round(sec/3600), 2)
+			m = Right("0" & Round((sec mod 3600) / 60), 2)
+			s = Right("0" & Round(sec mod 60), 2)
+		End If
 		SecToTime = (h & ":" & m & ":" & s)
 	End Function
 End Class
