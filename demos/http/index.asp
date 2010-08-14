@@ -27,14 +27,24 @@ Dim http, tmp
 'Easp.Trace tmp
 'Set http = Nothing
 
-Dim s,re,ma
-s = Easp.Http.Get("http://code.google.com/p/easyasp/updates/list")
-Set re = Easp.RegMatch(s,"<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
-Easp.WN "Easp's Update Log:"
-For Each ma In re
-	If ma.SubMatches(3)<>"[No log message]" Then Easp.WN Easp.Format("<li>{3}, {4} ({5} @ {2})</li>",ma)
-Next
-Set re = Nothing
+Dim s,re,ma,i
+Easp.Http.Get "http://code.google.com/p/easyasp/updates/list"
+'s = Easp.Http.Search("<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
+'For i = 0 To Ubound(s)
+'	Easp.WN Easp.HtmlEncode(s(i))
+'	Easp.wn "======================================="
+'Next
+'s = Easp.Http.Find("<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
+'s = Easp.Http.SubStr("<span class=""date below-more"" title=""Fri Aug 13 02:47:39 2010""","r199</a>",0)
+Easp.WN Easp.HtmlEncode(s)
+
+'s = Easp.Http.Get("http://code.google.com/p/easyasp/updates/list")
+'Set re = Easp.RegMatch(s,"<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
+'Easp.WN "Easp's Update Log:"
+'For Each ma In re
+'	If ma.SubMatches(3)<>"[No log message]" Then Easp.WN Easp.Format("<li>{3}, {4} ({5} @ {2})</li>",ma)
+'Next
+'Set re = Nothing
 
 Easp.WN ""
 Easp.wn "------------------------------------"
