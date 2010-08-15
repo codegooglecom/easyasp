@@ -15,8 +15,8 @@ Class EasyAsp_Http
 	Private s_data, s_url, s_ohtml
 	
 	Private Sub Class_Initialize
-		'编码默认继承上级
-		CharSet = Easp.CharSet
+		'编码默认为空，将自动获取编码
+		CharSet = ""
 		'异步模式关闭
 		Async = False
 		User = ""
@@ -53,6 +53,10 @@ Class EasyAsp_Http
 		s_data = s
 	End Property
 	
+	Public Function [Open]
+		[Open] = GetData(Url, Method, Async, s_data, User, Password)
+	End Function
+	
 	'Get取远程页
 	Public Function [Get](ByVal uri)
 		[Get] = GetData(uri, "GET", Async, s_data, User, Password)
@@ -65,7 +69,7 @@ Class EasyAsp_Http
 	
 	'XMLHTTP原始方法
 	Public Function GetData(ByVal uri, ByVal m, ByVal async, ByVal data, ByVal u, ByVal p)
-		Dim o
+		Dim o,chru
 		'建立XMLHttp对象
 		If Easp.isInstall("MSXML2.serverXMLHTTP") Then
 			Set o = Server.CreateObject("MSXML2.serverXMLHTTP")
@@ -99,7 +103,7 @@ Class EasyAsp_Http
 		If m = "POST" Then
 			o.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
 			'有发送的数据
-			o.send data
+			o.send Serialize__(data)
 		Else
 			o.send
 		End If
@@ -110,8 +114,17 @@ Class EasyAsp_Http
 			Easp.Error.Raise 46
 			Exit Function
 		ElseIf o.Status = 200 Then
-			GetData = Bytes2Bstr__(o.responseBody, CharSet)
 			Headers = o.getAllResponseHeaders()
+			If Easp.IsN(CharSet) Then
+				If Easp.Test(Headers,"charset=([\w-]+)") Then
+					CharSet = Easp.RegReplace(Headers,"([\s\S]+)charset=([\w-]+)([\s\S]+)","$2")
+				ElseIf Easp.Test(o.responseText,"<meta\s+http-equiv\s*=[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>") Then
+					CharSet = Easp.RegReplace(o.responseText,"([\s\S]+)<meta\s+http-equiv\s*=[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>([\s\S]+)","$2")
+				Else
+					CharSet = Easp.CharSet
+				End If
+			End If
+			GetData = Bytes2Bstr__(o.responseBody, CharSet)
 		Else
 			GetData = "error:" & o.Status & " " & o.StatusText
 		End If
@@ -125,10 +138,20 @@ Class EasyAsp_Http
 		Find = Find_(s_ohtml, rule)
 	End Function
 	Public Function Find_(ByVal s, ByVal rule)
-		Dim matches
-		Set matches = Easp.RegMatch(s,rule)
-		Find_ = matches(0)
-		Set matches = Nothing
+		If Easp.Test(s,rule) Then Find_ = Easp.RegReplace(s,"([\s\S]*)("&rule&")([\s\S]*)","$2")
+	End Function
+	
+	'按正则查找符合的第一个字符串，可按正则编组选择其中的一部分
+	Public Function [Select](ByVal rule, ByVal part)
+		[Select] = Select_(s_ohtml, rule, part)
+	End Function
+	Public Function Select_(ByVal s, ByVal rule, ByVal part)
+		If Easp.Test(s,rule) Then
+			'$0匹配字符串本身
+			part = Replace(part,"$0",Find_(s,rule))
+			'按正则编组分别替换
+			Select_ = Easp.RegReplace(s,"(?:[\s\S]*)(?:"&rule&")(?:[\s\S]*)",part)
+		End If
 	End Function
 	
 	'按正则查找符合的字符串组，返回数组
@@ -157,9 +180,9 @@ Class EasyAsp_Http
 	End Function
 	Public Function SubStr_(ByVal s, ByVal tagStart, ByVal tagEnd, ByVal tagSelf)
 		Dim posA, posB, first, between
-		posA = instr(s,tagStart)
-		posB = instr(s,tagEnd) 
+		posA = instr(1,s,tagStart,1)
 		If posA=0 Then SubStr_ = "源代码中不包括此开始标签" : Exit Function
+		posB = instr(PosA+Len(tagStart),s,tagEnd,1) 
 		If posB=0 Then SubStr_ = "源代码中不包括此结束标签" : Exit Function
 		Select Case tagSelf
 			Case 1

@@ -1,50 +1,67 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 Easp.Use "Http"
 Dim http, tmp
-'=========================
-'最简单的应用：
-'Set http = Easp.Http.New()
+''=========================
+''Demo 1 - 最简单的应用(Get)：
 '直接获取页面源码
-'tmp = http.Get("http://easp.lengshi.com/docs/easp.db._conn.html")
-'Easp.WE tmp
-'=========================
+'tmp = Easp.Http.Get("http://easp.lengshi.com/about/")
+'Easp.WN Easp.HtmlEncode(tmp)
+''=========================
 
-'通过属性配置
+''=========================
+''Demo 2 - 最简单的Post：
+'Easp.Http.Data = Array("SearchClass:0","SearchKey:我吃西红柿")
+'tmp = Easp.Http.Post("http://www.paoshu8.com/Book/Search.aspx")
+'Easp.WN Easp.HtmlEncode(tmp)
+''=========================
+
+''=========================
+''Demo 3 - 通过属性配置：
 'Set http = Easp.Http.New()
-'http.Url = "http://bbs.lengshi.com/index.aspx?login"	'目标URL地址
+''http.ResolveTimeout = 20000	'服务器解析超时时间，毫秒，默认20秒
+''http.ConnectTimeout = 20000	'服务器连接超时时间，毫秒，默认20秒
+''http.SendTimeout = 300000		'发送数据超时时间，毫秒，默认5分钟
+''http.ReceiveTimeout = 60000	'接受数据超时时间，毫秒，默认1分钟
+'http.Url = "http://www.paoshu8.com/Book/Search.aspx"	'目标URL地址
 'http.Method = "POST"  'GET 或者 POST, 默认GET
-'http.Async = False	'异步，默认False
-'http.Charset = "gb2312"	'目标URL的编码
-'http.Data = "username=myname&password=mypass"	'同时要提交的数据，如果是GET则会附在URL后以参数形式提交
-'http.Data = Array("username:coldstone", "password:123321")	'可以用Array参数的方式提交数据
-'http.User = ""	'如果访问目标URL需要用户名
-'http.Password = ""	'如果访问目标URL需要密码
-
-'Set http = Easp.Http.New()
-'http.CharSet = "GB2312"
-'tmp = http.Get("http://www.cnbeta.com/articles/110634.htm")
-'tmp = Easp.GetImg(tmp)
-'Easp.Trace tmp
+''目标文件编码，一般不用设置此属性，Easp会自动判断目标地址的编码
+''http.CharSet = "gb2312"
+'http.Async = False	'异步，默认False，建议不要修改
+''数据提交方式一，如果是GET则会附在URL后以参数形式提交：
+''http.Data = "SearchClass=0&SearchKey=" & Server.URLEncode("我吃西红柿")
+''数据提交方式二，可以用Array参数的方式提交：
+'http.Data = Array("SearchClass:0","SearchKey:我吃西红柿")
+''http.User = ""	'如果访问目标URL需要用户名
+''http.Password = ""	'如果访问目标URL需要密码
+'http.Open
+'Easp.WE Easp.HtmlEncode(http.Html)
 'Set http = Nothing
+''=========================
 
-Dim s,re,ma,i
-Easp.Http.Get "http://code.google.com/p/easyasp/updates/list"
-'s = Easp.Http.Search("<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
-'For i = 0 To Ubound(s)
-'	Easp.WN Easp.HtmlEncode(s(i))
-'	Easp.wn "======================================="
-'Next
-'s = Easp.Http.Find("<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
-'s = Easp.Http.SubStr("<span class=""date below-more"" title=""Fri Aug 13 02:47:39 2010""","r199</a>",0)
-Easp.WN Easp.HtmlEncode(s)
+''=========================
+''Demo 4 - 获取文件头：
+'Easp.Http.Get "http://www.baidu.com"
+'tmp = Easp.Http.Headers
+'Easp.WN Easp.HtmlEncode(tmp)
+''=========================
 
-'s = Easp.Http.Get("http://code.google.com/p/easyasp/updates/list")
-'Set re = Easp.RegMatch(s,"<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>")
-'Easp.WN "Easp's Update Log:"
-'For Each ma In re
-'	If ma.SubMatches(3)<>"[No log message]" Then Easp.WN Easp.Format("<li>{3}, {4} ({5} @ {2})</li>",ma)
-'Next
-'Set re = Nothing
+'=========================
+'Demo 5 - 获取文件指定部分内容：
+Dim bookid,bookname,bookdesc,uptime,readlink
+bookid = 1639199
+Easp.Http.Get("http://www.qidian.com/Book/"&bookid&".aspx")
+'用SubStr按字符截取部分文本
+bookname = Easp.Http.SubStr("<div class=""title"">"&vbCrLf&" <h1>","</h1>",0)
+bookdesc = Easp.Http.SubStr("</div>"&vbCrLf&" <div class=""txt"">","</div>",0)
+'用Find可按正则获取一段文本
+uptime = Easp.Http.Find("更新时间：[\d- :]+")
+'用Select可按正则编组选择匹配的部分文本,$0是获取正则匹配的字符串本身
+readlink = Easp.Http.Select("(<a href="")(/BookReader/\d+.aspx)(.+</a>)","$1http://www.qidian.com$2$3")
+Easp.WN "<b>书名：</b>《" & bookname & "》  " & uptime
+Easp.WN "<b>阅读地址：</b>" & readlink
+Easp.WN "<b>内容简介：</b>"
+Easp.WN bookdesc
+'=========================
 
 Easp.WN ""
 Easp.wn "------------------------------------"
