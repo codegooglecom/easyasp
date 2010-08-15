@@ -91,7 +91,11 @@ Class EasyAsp_Tpl
 	Public Sub TagFile(ByVal tag, ByVal f)
 		Dim s
 		s = LoadInc(s_path & f,"")
-		s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
+		If Easp.Has(tag) Then
+			s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
+		Else
+			s_html = s_html & s
+		End If
 		SetBlocks()
 	End Sub
 	'替换标签(默认方法)
