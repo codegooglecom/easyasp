@@ -148,6 +148,10 @@ Class EasyAsp
 	Sub WC(ByVal s)
 		W(s & VbCrLf)
 	End Sub
+	Sub WF(ByVal s)
+		W s
+		Response.Flush()
+	End Sub
 	Sub WN(ByVal s)
 		W(s & "<br />" & VbCrLf)
 	End Sub
@@ -990,6 +994,12 @@ Class EasyAsp
 	End Sub
 	'获取文本中的图片地址存为一个数组
 	Function GetImg(ByVal s)
+		GetImg = GetImg__(s,0)
+	End Function
+	Function GetImgTag(ByVal s)
+		GetImgTag = GetImg__(s,1)
+	End Function
+	Private Function GetImg__(ByVal s, ByVal t)
 		Dim a(), img, Matches, m, i : i = 0
 		ReDim a(-1)
 		img = "<img([^>]+?)(/?)>"
@@ -997,18 +1007,16 @@ Class EasyAsp
 			'取消所有的换行和缩进
 			s = Replace(s, vbCrLf, " ")
 			s = Replace(s, vbTab, " ")
-			'在img标签结尾添加一个空格方便使用正则取值
-			s = RegReplace(s, img, "<img$1 $2>")
 			'正则匹配所有的img标签
-			Set Matches = RegMatch(s, "<img\s([^>]+)?src\s*=\s*([""|']?)([^""'>]+?)?\2\s([^>]+)?>")
+			Set Matches = RegMatch(s, "(<img\s[^>]*src\s*=\s*([""|']?))([^""'>]+)(\2[^>]*>)")
 			'取出每个img的src存入数组
 			For Each m In Matches
 				ReDim Preserve a(i)
-				a(i) = m.SubMatches(2)
+				a(i) = Easp.IIF(t=0,m.SubMatches(2),m.value)
 				i = i + 1
 			Next
 		End If
-		GetImg = a
+		GetImg__ = a
 	End Function
 	'验证身份证号码
 	Private Function isIDCard(ByVal s)

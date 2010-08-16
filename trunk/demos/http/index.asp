@@ -1,6 +1,6 @@
 <%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%><!--#include virtual="/easp/easp.asp" --><%
 Easp.Use "Http"
-Dim http, tmp
+Dim http, tmp, rule, arr, i
 ''=========================
 ''Demo 1 - 最简单的应用(Get)：
 '直接获取页面源码
@@ -45,22 +45,50 @@ Dim http, tmp
 'Easp.WN Easp.HtmlEncode(tmp)
 ''=========================
 
+''=========================
+''Demo 5 - 获取文件指定部分内容：
+'Dim bookid,bookname,bookdesc,uptime,readlink
+'bookid = 1639199
+'Easp.Http.Get("http://www.qidian.com/Book/"&bookid&".aspx")
+''用SubStr按字符截取部分文本
+'bookname = Easp.Http.SubStr("<div class=""title"">"&vbCrLf&" <h1>","</h1>",0)
+'bookdesc = Easp.Http.SubStr("</div>"&vbCrLf&" <div class=""txt"">","</div>",0)
+''用Find可按正则获取一段文本
+'uptime = Easp.Http.Find("更新时间：[\d- :]+")
+''用Select可按正则编组选择匹配的部分文本,$0是获取正则匹配的字符串本身
+'readlink = Easp.Http.Select("(<a href="")(/BookReader/\d+.aspx)(.+</a>)","$1http://www.qidian.com$2$3")
+'Easp.WN "<b>书名：</b>《" & bookname & "》  " & uptime
+'Easp.WN "<b>阅读地址：</b>" & readlink
+'Easp.WN "<b>内容简介：</b>"
+'Easp.WN bookdesc
+''=========================
+
+''=========================
+''Demo 6 - 获取文件循环部分：
+'Easp.Http.Get "http://code.google.com/p/easyasp/updates/list"
+'rule = "<span class=""date below-more"" title=""(.+?)""[\s\S]+?>(.+?)</span>[\s\S]+?<span class=""title""><a class=""ot-revision-link"" href=""/p/easyasp/source/detail\?r=(?:\d+?)"">(r\d+?)</a>\n \(([\s\S]+?)\).+>(\w+?)</a></span>"
+'arr = Easp.Http.Search(rule)
+'Easp.WN "====前5个匹配===="
+'For i = 0 To 4
+'	Easp.WN "<b>第" & i + 1 & "个匹配项：</b>"
+'	Easp.WN Easp.HtmlEncode(arr(i))
+'Next
+'Easp.WN ""
+''还可以用正则来进行更复杂的应用
+'Dim Matches, Match
+'Set Matches = Easp.RegMatch(Easp.Http.Html,rule)
+'Easp.WN "====EasyASP更新日志摘要===="
+'For Each Match In Matches
+'	If Match.SubMatches(3)<>"[No log message]" Then Easp.WN Easp.Format("<li>{3}, {4} ({5} @ {2})</li>",Match)
+'Next
+'Set Matches = Nothing
+''=========================
+
 '=========================
-'Demo 5 - 获取文件指定部分内容：
-Dim bookid,bookname,bookdesc,uptime,readlink
-bookid = 1639199
-Easp.Http.Get("http://www.qidian.com/Book/"&bookid&".aspx")
-'用SubStr按字符截取部分文本
-bookname = Easp.Http.SubStr("<div class=""title"">"&vbCrLf&" <h1>","</h1>",0)
-bookdesc = Easp.Http.SubStr("</div>"&vbCrLf&" <div class=""txt"">","</div>",0)
-'用Find可按正则获取一段文本
-uptime = Easp.Http.Find("更新时间：[\d- :]+")
-'用Select可按正则编组选择匹配的部分文本,$0是获取正则匹配的字符串本身
-readlink = Easp.Http.Select("(<a href="")(/BookReader/\d+.aspx)(.+</a>)","$1http://www.qidian.com$2$3")
-Easp.WN "<b>书名：</b>《" & bookname & "》  " & uptime
-Easp.WN "<b>阅读地址：</b>" & readlink
-Easp.WN "<b>内容简介：</b>"
-Easp.WN bookdesc
+'Demo 7 - 保存远程图片：
+Easp.Http.Get "http://www.baidu.com"
+tmp = Easp.Http.SaveImgTo_(Easp.Http.Html, "imgatlocal/")
+Easp.WN Easp.HtmlEncode(tmp)
 '=========================
 
 Easp.WN ""
