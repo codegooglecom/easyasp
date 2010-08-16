@@ -10,7 +10,7 @@
 '## http://msdn.microsoft.com/en-us/library/ms535874(VS.85).aspx
 '######################################################################
 Class EasyAsp_Http
-	Public Url, Method, CharSet, Async, User, Password, Html, Headers
+	Public Url, Method, CharSet, Async, User, Password, Html, Headers, Body, SaveRandom
 	Public ResolveTimeout, ConnectTimeout, SendTimeout, ReceiveTimeout
 	Private s_data, s_url, s_ohtml
 	
@@ -25,6 +25,8 @@ Class EasyAsp_Http
 		s_url = ""
 		Html = ""
 		Headers = ""
+		Body = Empty
+		SaveRandom = False
 		'服务器解析超时
 		ResolveTimeout = 20000
 		'服务器连接超时
@@ -36,7 +38,6 @@ Class EasyAsp_Http
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
 		Easp.Error(48) = "要获取的页面地址不能为空"
-
 	End Sub
 	
 	Private Sub Class_Terminate
@@ -53,6 +54,7 @@ Class EasyAsp_Http
 		s_data = s
 	End Property
 	
+	'属性配置模式下的打开连接远程
 	Public Function [Open]
 		[Open] = GetData(Url, Method, Async, s_data, User, Password)
 	End Function
@@ -115,12 +117,14 @@ Class EasyAsp_Http
 			Exit Function
 		ElseIf o.Status = 200 Then
 			Headers = o.getAllResponseHeaders()
+			Body = o.responseBody
 			If Easp.IsN(CharSet) Then
 				If Easp.Test(Headers,"charset=([\w-]+)") Then
 					CharSet = Easp.RegReplace(Headers,"([\s\S]+)charset=([\w-]+)([\s\S]+)","$2")
-				ElseIf Easp.Test(o.responseText,"<meta\s+http-equiv\s*=[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>") Then
-					CharSet = Easp.RegReplace(o.responseText,"([\s\S]+)<meta\s+http-equiv\s*=[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>([\s\S]+)","$2")
+				ElseIf Easp.Test(o.responseText,"<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>") Then
+					CharSet = Easp.RegReplace(o.responseText,"([\s\S]+)<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>([\s\S]+)","$2")
 				Else
+					'如果无法获取远程页的编码则继承Easp的编码设置
 					CharSet = Easp.CharSet
 				End If
 			End If
@@ -201,6 +205,56 @@ Class EasyAsp_Http
 		SubStr_ = Mid(s,first,between)
 	End Function
 	
+	'保存图片到本地
+	Public Function SaveImgTo(ByVal p)
+		SaveImgTo = SaveImgTo_(s_ohtml,p)
+	End Function
+	Public Function SaveImgTo_(ByVal s, ByVal p)
+		Dim a,b, i, img, ht, tmp, src
+		'取得图片地址
+		a = Easp.GetImg(s)
+		b = Easp.GetImgTag(s)
+		If Easp.Has(a) Then
+			Easp.Use "Fso"
+			For i = 0 To Ubound(a)
+				If SaveRandom Then
+					img = Easp.DateTime(Now,"ymmddhhiiss"&Easp.RandStr("5:0123456789")) & Mid(a(i),InstrRev(a(i),"."))
+				Else
+					img = Mid(a(i),InstrRev(a(i),"/")+1)
+				End If
+				Set ht = Easp.Http.New
+				ht.Get TransPath(s_url, a(i))
+				tmp = Easp.Fso.SaveAs(p & img, ht.Body)
+				If tmp Then
+					'Easp.WN "b(i)=> " & Easp.HtmlEncode(b(i))
+					src = Easp.RegReplace(b(i),"(<img\s[^>]*src\s*=\s*([""|']?))("&a(i)&")(\2[^>]*>)","$1"&p&img&"$4")
+					'Easp.WN "src=> " & Easp.HtmlEncode(src)
+					s = Replace(s,b(i),src)
+				End If
+				Set ht = Nothing
+			Next
+		End If
+		SaveImgTo_ = s
+	End Function
+	
+	'转换绝对路径
+	Function TransPath(ByVal u, ByVal p)
+		'如果本来就是绝对路径则直接取出
+		If Left(p,7)="http://" Or Left(p,8)="https://" Then TransPath = p : Exit Function
+		Dim tmp,ser, fol
+		'页面地址
+		tmp = Easp.CLeft(u,"?")
+		'服务器地址
+		If Left(u,7)<>"http://" And Left(u,8)<>"https://" Then
+			ser = ""
+		Else
+			ser = Easp.RegReplace(tmp,"^(https?://[a-zA-Z0-9-.]+)/(.+)$","$1")
+		End If
+		'页面所在路径
+		fol = Mid(tmp,1,InstrRev(tmp,"/"))
+		TransPath = Easp.IIF(Left(p,1) = "/", ser, fol) & p
+	End Function
+	
 	'url参数化
 	Private Function Serialize__(ByVal a)
 		Dim tmp, i, n, v : tmp = ""
@@ -222,17 +276,18 @@ Class EasyAsp_Http
 	Private Function Bytes2Bstr__(ByVal s, ByVal char) 
 		dim oStrm
 		set oStrm = Server.CreateObject("Adodb.Stream")
-		oStrm.Type = 1
-		oStrm.Mode =3
-		oStrm.Open
-		oStrm.Write s
-		oStrm.Position = 0
-		oStrm.Type = 2
-		oStrm.Charset = CharSet
-		Bytes2Bstr__ = oStrm.ReadText
-		oStrm.Close
+		With oStrm
+			.Type = 1
+			.Mode =3
+			.Open
+			.Write s
+			.Position = 0
+			.Type = 2
+			.Charset = CharSet
+			Bytes2Bstr__ = .ReadText
+			.Close
+		End With
 		set oStrm = nothing
 	End Function
-
 End Class
 %>

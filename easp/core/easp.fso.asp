@@ -122,6 +122,30 @@ Class EasyAsp_Fso
 		End If
 		Read = tmpStr
 	End Function
+	'将二进制数据保存为文件
+	Public Function SaveAs(ByVal filePath, ByVal fileContent)
+		On Error Resume Next
+		Dim f,p,t, o_strm
+		p = absPath(filePath)
+		SaveAs = MD(Left(p,InstrRev(p,"\")-1))
+		If SaveAs Then
+			Set o_strm = Server.CreateObject("ADODB.Stream")
+			With o_strm
+				.Type = 1
+				.Open
+				.Write fileContent
+				.SaveToFile p,Easp.IIF(b_overwrite,2,1)
+				.Close
+			End With
+			Set o_strm = Nothing
+		End If
+		If Err.Number<>0 Then
+			SaveAs = False
+			Easp.Error.Msg = "(" & filePath & ")"
+			Easp.Error.Raise 52
+		End If
+		Err.Clear()
+	End Function
 	'创建文件并写入内容
 	Public Function CreateFile(ByVal filePath, ByVal fileContent)
 		On Error Resume Next
