@@ -176,7 +176,7 @@ Class EasyAsp
 			'数组
 			Case 8192,8194,8204,8209
 				For i = 0 To Ubound(v)
-					s = Replace(s,"{"&(i+t)&"}",v(i))
+					s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
 				Next
 			'对象
 			Case 9
@@ -184,25 +184,25 @@ Class EasyAsp
 					'记录集
 					Case "Recordset"
 						For i = 0 To v.Fields.Count - 1
-							s = Replace(s,"{"&(i+t)&"}",v(i))
-							s = Replace(s,"{"&v.Fields.Item(i+t).Name&"}",v(i),1,-1,1)
+							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
+							s = Replace(s,"{"&v.Fields.Item(i+t).Name&"}",IfHas(v(i),""),1,-1,1)
 						Next
 					'字典
 					Case "Dictionary"
 						For Each k In v
-							s = Replace(s,"{"&k&"}",v(k),1,-1,1)
+							s = Replace(s,"{"&k&"}",IfHas(v(k),""),1,-1,1)
 						Next
 					'Easp List
 					Case "EasyAsp_List"
 						For i = 0 To v.End
-							s = Replace(s,"{"&(i+t)&"}",v(i))
-							s = Replace(s,"{"&v.IndexHash(i)&"}",v(i),1,-1,1)
+							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
+							s = Replace(s,"{"&v.IndexHash(i)&"}",IfHas(v(i),""),1,-1,1)
 						Next
 					'正则搜索子集合
 					Case "ISubMatches"
 						For i = 0 To v.Count - 1
-							s = Replace(s,"{"&(i+t)&"}",v(i))
-							s = Replace(s,"{$"&(i+t)&"}",v(i))
+							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
+							s = Replace(s,"{$"&(i+t)&"}",IfHas(v(i),""))
 						Next
 				End Select
 			'字符串
