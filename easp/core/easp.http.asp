@@ -225,17 +225,51 @@ Class EasyAsp_Http
 				Set ht = Easp.Http.New
 				ht.Get TransPath(s_url, a(i))
 				tmp = Easp.Fso.SaveAs(p & img, ht.Body)
+				Set ht = Nothing
 				If tmp Then
 					'Easp.WN "b(i)=> " & Easp.HtmlEncode(b(i))
 					src = Easp.RegReplace(b(i),"(<img\s[^>]*src\s*=\s*([""|']?))("&a(i)&")(\2[^>]*>)","$1"&p&img&"$4")
 					'Easp.WN "src=> " & Easp.HtmlEncode(src)
 					s = Replace(s,b(i),src)
 				End If
-				Set ht = Nothing
 			Next
 		End If
 		SaveImgTo_ = s
 	End Function
+	
+	'Ajax代理
+	Public Sub AjaxAgent()
+		Easp.NoCache()
+		Dim u, qs, qskey, qf, qfkey, m
+		'取得目标地址
+		u = Easp.Get("easpurl")
+		If Easp.IsN(u) Then Easp.WE "error:Invalid URL"
+		If Instr(u,"?")>0 Then
+			qs = "&" & Easp.CRight(u,"?")
+			u = Easp.CLeft(u,"?")
+		End If
+		'传url参数
+		If Request.QueryString()<>"" Then
+			For Each qskey In Request.QueryString
+				If qskey<>"easpurl" Then qs = qs & "&" & qskey & "=" & Request.QueryString(qskey)
+			Next
+		End If
+		u = u & Easp.IfThen(Easp.Has(qs),"?" & Mid(qs,2))
+		'Easp.WC u
+		'如果是Post则同时传Form数据
+		m = Request.ServerVariables("REQUEST_METHOD")
+		If m = "POST" Then
+			If Request.Form()<>"" Then
+				For Each qfkey In Request.Form
+					qf = qf & "&" & qfkey & "=" & Request.Form(qfkey)
+				Next
+				Data = Mid(qf,2)
+			End If
+			Easp.WE Post(u)
+		Else
+			Easp.WE [Get](u)
+		End If
+	End Sub
 	
 	'转换绝对路径
 	Function TransPath(ByVal u, ByVal p)
