@@ -176,7 +176,7 @@ Class EasyAsp
 			'数组
 			Case 8192,8194,8204,8209
 				For i = 0 To Ubound(v)
-					s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
+					s = FormatReplace(s,i+t,v(i))
 				Next
 			'对象
 			Case 9
@@ -184,45 +184,98 @@ Class EasyAsp
 					'记录集
 					Case "Recordset"
 						For i = 0 To v.Fields.Count - 1
-							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
-							s = Replace(s,"{"&v.Fields.Item(i+t).Name&"}",IfHas(v(i),""),1,-1,1)
+							s = FormatReplace(s,i+t,v(i))
+							s = FormatReplace(s,v.Fields.Item(i+t).Name,v(i))
 						Next
 					'字典
 					Case "Dictionary"
 						For Each k In v
-							s = Replace(s,"{"&k&"}",IfHas(v(k),""),1,-1,1)
+							s = FormatReplace(s,k,v(k))
 						Next
 					'Easp List
 					Case "EasyAsp_List"
 						For i = 0 To v.End
-							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
-							s = Replace(s,"{"&v.IndexHash(i)&"}",IfHas(v(i),""),1,-1,1)
+							s = FormatReplace(s,i+t,v(i))
+							s = FormatReplace(s,v.IndexHash(i),v(i))
 						Next
 					'正则搜索子集合
-					Case "ISubMatches"
+					Case "ISubMatches", "SubMatches"
 						For i = 0 To v.Count - 1
-							s = Replace(s,"{"&(i+t)&"}",IfHas(v(i),""))
-							s = Replace(s,"{$"&(i+t)&"}",IfHas(v(i),""))
+							s = FormatReplace(s,i+t,v(i))
 						Next
 				End Select
 			'字符串
 			Case 8
 				Select Case TypeName(v)
 					'正则搜索集合
-					Case "IMatch2"
-						s = Replace(s,"{"&t&"}",v.Value)
-						s = Replace(s,"{$"&t&"}",v.Value)
+					Case "IMatch2", "Match"
+						s = FormatReplace(s,t,v.Value)
 						For i = 0 To v.SubMatches.Count - 1
-							s = Replace(s,"{"&(i+t+1)&"}",v.SubMatches(i))
-							s = Replace(s,"{$"&(i+t+1)&"}",v.SubMatches(i))
+							s = FormatReplace(s,i+t+1,v.SubMatches(i))
 						Next
 					'字符串
 					Case Else
-						s = Replace(s,"{"&t&"}",v)
+						s = FormatReplace(s,t,v)
 				End Select
+			Case Else
+				s = FormatReplace(s,t,v)
 		End Select
 		s = Replace(s,Chr(1),"{")
 		FormatString = Replace(s,Chr(0),"\")
+	End Function
+	'格式化Format内标签参数
+	Private Function FormatReplace(ByVal s, ByVal t, ByVal v)
+		Dim tmp,rule,ru,kind,matches,match
+		v = IfHas(v,"")
+		rule = "\{" & t & "(:((N[,\(%]?(\d+)?)|(D[^\}]+)|(E[^\}]+)|U|L))\}"
+		If Test(s,rule) Then
+			Set matches = RegMatch(s,rule)
+			For Each match In matches
+				kind = RegReplace(match.Value, rule, "$2")
+				ru = "{"&t&":"&kind&"}"
+				Select Case Left(kind,1)
+					'数字
+					Case "N"
+						If isNumeric(v) Then
+							Dim style,group,parens,percent,deci
+							style = RegReplace(kind,"N([,\(%])?(\d+)?","$1")
+							If style = "," Then group = -1
+							If style = "(" Then parens = -1
+							If style = "%" Then percent = -1
+							deci = RegReplace(kind,"N([,\(%])?(\d+)?","$2")
+							If IsN(style) And IsN(deci) Then
+								s = Replace(s, ru, IIF(Instr(Cstr(v),".")>0 And v<1,"0" & v,v),1,-1,1)
+							Else
+								deci = IfHas(deci,-1)
+								If percent Then
+									s = Replace(s, ru, FormatNumber(v*100,deci,-1) & "%",1,-1,1)
+								Else
+									s = Replace(s, ru, FormatNumber(v,deci,-1,parens,group),1,-1,1)
+								End If
+							End If
+						End If
+					'日期
+					Case "D"
+						If isDate(v) Then
+							s = Replace(s, ru, DateTime(v,Mid(kind,2)),1,-1,1)
+						End If
+					'转大写
+					Case "U"
+						s = Replace(s, ru, UCase(v),1,-1,1)
+					'转小写
+					Case "L"
+						s = Replace(s, ru, LCase(v),1,-1,1)
+					'表达式
+					Case "E"
+						tmp = Replace(Mid(kind,2),"%s", "v")
+						tmp = Eval(tmp)
+						s = Replace(s, ru, tmp,1,-1,1)
+				End Select
+			Next
+		Else
+			s = Replace(s,"{" & t & "}",v,1,-1,1)
+		End If
+		FormatReplace = s
 	End Function
 	'服务器端跳转
 	Sub RR(ByVal u)
