@@ -648,7 +648,7 @@ Class EasyAsp_db
 		With ExecuteCmd
 			.ActiveConnection = o_conn
 			.CommandText = sql
-			.Execute
+			DoExecute = .Execute
 		End With
 		Set ExecuteCmd = Nothing
 	End Function
