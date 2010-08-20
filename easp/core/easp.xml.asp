@@ -31,6 +31,7 @@ Class EasyAsp_Xml
 		IsOpen = False
 		Easp.Error(96) = "XML文件操作出错"
 		Easp.Error(97) = "目标不是有效的XML元素"
+		Easp.Error(98) = "目标不是有效的XML元素集合"
 	End Sub
 	
 	'析构函数
@@ -73,16 +74,16 @@ Class EasyAsp_Xml
 		s_filePath = ""
 		IsOpen = False
 	End Sub
-	
-	Public Default Property Get Item(ByVal el)
 		
-		'Set [Select] = 
-	End Property
-	
+	'TagName取对象
+	Public Default Function Find(ByVal p)
+		Set Find = New Easp_Xml_Node
+		Find.Dom = Dom.GetElementsByTagName(p)
+	End Function
 	'XPath取对象
 	Public Function [Select](ByVal p)
 		Set [Select] = New Easp_Xml_Node
-		[Select].Node = Dom.selectSingleNode(p)
+		[Select].Dom = Dom.selectSingleNode(p)
 	End Function
 	
   '检查并打印错误信息
@@ -114,17 +115,29 @@ Class Easp_Xml_Node
 		Set o_node = Nothing
 	End Sub
 	
-	Public Property Let Node(ByVal o)
+	Public Function [New](ByVal o)
+		Set [New] = New Easp_Xml_Node
+		[New].Dom = o
+	End Function
+	
+	'源对象
+	Public Property Let Dom(ByVal o)
 		If Not o Is Nothing Then
 			Set o_node = o
 		Else
 			Easp.Error.Raise 97
 		End If
 	End Property
-	Public Property Get Node
-		Set Node = o_node
+	Public Property Get Dom
+		Set Dom = o_node
 	End Property
 	
+	'取集合中的某一项
+	Public Default Property Get El(ByVal n)
+		Set El = [New](o_node(n))
+	End Property
+	'=======Xml元素属性（自身属性）======
+	'(可读可写)
 	'属性设置
 	Public Property Let Attr(ByVal s, ByVal v)
 		o_node.setAttribute s, v
@@ -141,9 +154,69 @@ Class Easp_Xml_Node
 		Text = o_node.Text
 	End Property
 	
-	'XML获取
+	'文本设置
+	Public Property Let Value(ByVal v)
+		o_node.ChildNodes(0).NodeValue = v
+	End Property
+	Public Property Get Value
+		Value = o_node.ChildNodes(0).NodeValue
+	End Property
+	
+	'(只读)
+	'获取XML
 	Public Property Get Xml
 		Xml = o_node.Xml
+	End Property
+	'元素名
+	Public Property Get Name
+		Name = o_node.BaseName
+	End Property
+	'元素名
+	Public Property Get [Type]
+		[Type] = o_node.NodeType
+	End Property
+	'元素长度
+	Public Property Get Length
+		If TypeName(o_node) = "IXMLDOMSelection" Then
+			Length = o_node.Length
+		Else
+			Length = o_node.ChildNodes.Length
+		End If
+	End Property
+	
+	'=======Xml元素属性（返回新节点元素）======
+	'(只读)
+	'根元素
+	Public Property Get Root
+		Set Root = [New](o_node.OwnerDocument)
+	End property
+	'父元素
+	Public Property Get Parent
+		Set Parent = [New](o_node.parentNode)
+	End property
+	'下一同级元素
+	Public Property Get [Next]
+		Dim o
+		Set o = o_node.NextSibling
+		Do While True
+			If TypeName(o) = "Nothing" Or TypeName(o) = "IXMLDOMElement" Then Exit Do
+			Set o = o.NextSibling
+		Loop
+		If TypeName(o) = "IXMLDOMElement" Then
+			Set [Next] = [New](o)
+			Set o = Nothing
+		Else
+			Easp.Error.Msg = "(没有下一同级元素)"
+			Easp.Error.Raise 96
+		End If
+	End property
+	'第一个元素
+	Public Property Get First
+		Set First = [New](o_node.FirstChild)
+	End Property
+	'最后一个元素
+	Public Property Get Last
+		Set Last = [New](o_node.LastChild)
 	End Property
 End Class
 %>
