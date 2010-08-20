@@ -5,9 +5,10 @@
 '## Feature     :   EasyAsp XML Document Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/08/18 15:24:30
+'## Update Date :   2010/08/20 13:24:30
 '## Description :   Read and write the XML documents
-'## 暂时从网上下载了一个XML类看看有哪些通用方法，Easp的还在构造中
+'## P:http://msdn.microsoft.com/en-us/library/aa924158.aspx
+'## M:http://msdn.microsoft.com/en-us/library/aa926433.aspx
 '######################################################################
 Class EasyAsp_Xml
 	Public Dom, Doc, IsOpen
