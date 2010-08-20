@@ -87,6 +87,11 @@ Class EasyAsp_Http
 		o.SetTimeOuts ResolveTimeout, ConnectTimeout, SendTimeout, ReceiveTimeout
 		'抓取地址
 		If Easp.IsN(uri) Then Easp.Error.Raise 48 : Exit Function
+		'通过URL临时指定编码
+		If Easp.Test(uri,"^[\w\d-]+>https?://") Then
+			CharSet = Easp.CLeft(uri,">")
+			uri = Easp.CRight(uri,">")
+		End If
 		s_url = uri
 		'方法：POST或GET
 		m = Easp.IIF(Easp.Has(m),UCase(m),"GET")
