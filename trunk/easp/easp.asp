@@ -153,6 +153,9 @@ Class EasyAsp
 		W s
 		Response.Flush()
 	End Sub
+	Sub WNH(ByVal s)
+		WN HtmlEncode(s)
+	End Sub
 	Sub WN(ByVal s)
 		W(s & "<br />" & VbCrLf)
 	End Sub
