@@ -441,23 +441,34 @@ Class EasyAsp_List
 		Dim tmp,a,x,y,i
 		If Instr(n, ",")>0 Or Instr(n,"-")>0 Then
 		'如果是删除多个元素
+			'开始符号
 			n = Replace(n,"\s","0")
+			'结束符号
 			n = Replace(n,"\e",[End])
 			a = Split(n, ",")
 			For i = 0 To Ubound(a)
+			'单独处理每项
 				If i>0 Then tmp = tmp & ","
+				'如果有区间
 				If Instr(a(i),"-")>0 Then
+					'取首元素
 					x = Trim(Easp.CLeft(a(i),"-"))
+					'取尾元素
 					y = Trim(Easp.CRight(a(i),"-"))
+					'如果是Hash则取出为数字下标
 					If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
 					If Not Isnumeric(y) And o_map.Exists(y) Then y = o_map(y)
+					'重新组合为数字区间
 					tmp = tmp & x & "-" & y
 				Else
+				'如果是单项
 					x = Trim(a(i))
+					'如果是Hash则取出为数字下标
 					If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
 					tmp = tmp & x
 				End If
 			Next
+			'将要删除的编号组转换为数组并排序
 			a = Split(tmp,",")
 			a = SortArray(a,0,UBound(a))
 			tmp = "0-"
@@ -716,9 +727,10 @@ Class EasyAsp_List
 		a = Split(s, ",")
 		arr = Array() : k = 0
 		For i = 0 To Ubound(a)
-			ReDim Preserve arr(k)
 			'Easp.WN "Big:" & k
+			'如果是区间
 			If Instr(a(i),"-")>0 Then
+				'如果是Hash则取出为数字下标
 				x = Trim(Easp.CLeft(a(i),"-"))
 				y = Trim(Easp.CRight(a(i),"-"))
 				If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
@@ -740,7 +752,9 @@ Class EasyAsp_List
 					k = k + 1
 				Next
 			Else
+				ReDim Preserve arr(k)
 				x = Trim(a(i))
+				'Easp.WN x
 				If Not Isnumeric(x) And o_map.Exists(x) Then x = o_map(x)
 				x = Int(x)
 				If o_map.Exists(x) Then
