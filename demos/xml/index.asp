@@ -15,7 +15,7 @@ Dim str,n,i
 'Easp.WN TypeName(n.Last.Dom.childNodes)
 'Easp.WNH n.Last.Length
 'Set n = Nothing
-'str = 			"<?xml version=""1.0"" encoding=""utf-8""?>" & vbCrLf
+str = 			"<?xml version=""1.0"" encoding=""utf-8""?>" & vbCrLf
 str = str & "<microblog>" & vbCrLf
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Tencent"">腾讯微博</name>" & vbCrLf
@@ -35,8 +35,17 @@ str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> a
 str = str & "</microblog>"
 
 'str = "http://www.wyfwgw.com/baidumap_article_1.xml"
+'Easp.Xml.Load str
+'Set n = Easp.Xml("title")
+'For i = 0 To n.Length-1
+'	Easp.WN n(i).Value
+'Next
+'Set n = Nothing
 
 Easp.Xml.Load str
+
+'Easp.Xml.XSLT = "xsl/microblog.xsl"
+'Easp.WNH Easp.Xml.Dom.Xml
 
 'Easp.WN Easp.Xml.SaveAs("news.xml>gbk")
 'Easp.WN Easp.Xml.SaveAs("microblog.xml>utf-8")
