@@ -11,7 +11,7 @@
 '######################################################################
 Class EasyAsp_Xml
 	Public Dom, Doc, IsOpen
-	Private s_filePath
+	Private s_filePath, s_xsltPath
 	
 	'构造函数
 	Private Sub Class_Initialize()
@@ -28,6 +28,7 @@ Class EasyAsp_Xml
 		Dom.async = False
 		Dom.setProperty "SelectionLanguage", "XPath"
 		s_filePath = ""
+		s_xsltPath = ""
 		IsOpen = False
 		Easp.Error(96) = "XML文件操作出错"
 		Easp.Error(97) = "对象不支持此属性或方法"
@@ -84,6 +85,24 @@ Class EasyAsp_Xml
 		'设置根元素
 		If Not IsErr Then Set Doc = NewNode(Dom.documentElement)
 	End Sub
+	'设置样式文件
+	Public Property Let XSLT(ByVal x)
+		Dim pi
+		Set pi = Dom.CreateProcessingInstruction("xml-stylesheet", "type=""text/xsl"" href=""" & x & """")
+		If Dom.ChildNodes(1).BaseName<>"xml-stylesheet" Then
+			If Dom.FirstChild.BaseName<>"xml" Then
+				Dom.InsertBefore pi, Dom.FirstChild
+			Else
+				Dom.InsertBefore pi, Dom.ChildNodes(1)
+			End If
+		Else
+			Dom.ReplaceChild pi, Dom.ChildNodes(1)
+		End If
+		s_xsltPath = x
+	End Property
+	Public Property Get XSLT
+		XSLT = s_xsltPath
+	End Property
 	
 	'关闭文件
 	Public Sub Close()
@@ -121,11 +140,29 @@ Class EasyAsp_Xml
 		Dom.Save(p)
 		Set pi = Nothing
 	End Sub
+	'用XSLT将XML转换为XHTML文档
+	Public Sub SaveAsXHTML(ByVal p, ByVal xsl)
+		Dim x,f : Set x = [New]
+		If Easp.Test(xsl,"^([\w\d-]+>)?https?://") Then
+			x.Load xsl
+		Else
+			x.Open xsl
+		End If
+		f = Dom.TransformNode(x.Dom)
+		Easp.Use "Fso"
+		Easp.Fso.CreateFile p, f
+		Set x = Nothing
+	End Sub
 	
 	'建立新的Easp Node对象
 	Public Function NewNode(ByVal o)
 		Set NewNode = New Easp_Xml_Node
 		NewNode.Dom = o
+	End Function
+	
+	'建立新的Easp Xml对象
+	Public Function [New]()
+		Set [New] = New EasyAsp_Xml
 	End Function
 		
 	'TagName取对象
