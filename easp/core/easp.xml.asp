@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp XML Document Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/08/20 13:24:30
+'## Update Date :   2010/08/22 00:24:30
 '## Description :   Read and write the XML documents
 '## P:http://msdn.microsoft.com/en-us/library/aa924158.aspx
 '## M:http://msdn.microsoft.com/en-us/library/aa926433.aspx
@@ -27,6 +27,7 @@ Class EasyAsp_Xml
 		Dom.preserveWhiteSpace = True
 		'异步
 		Dom.async = False
+		Dom.setProperty "SelectionLanguage", "XPath"
 		s_filePath = ""
 		IsOpen = False
 		Easp.Error(96) = "XML文件操作出错"
@@ -45,12 +46,15 @@ Class EasyAsp_Xml
 	Public Function Open(byVal f)
 		Open = False
 		If Easp.IsN(f) Then Exit Function
+		'转换为绝对路径
 		f = absPath(f)
 		'读取文件
 		Dom.load f
+		'存路径（用于保存）
 		s_filePath = f
 		If Not IsErr Then
-			Set Doc = Dom.documentElement
+			'设置根元素
+			Set Doc = NewNode(Dom.documentElement)
 			Open = True
 			IsOpen = True
 		End If
@@ -66,14 +70,19 @@ Class EasyAsp_Xml
 	Public Sub Load(ByVal s)
 		If Easp.IsN(s) Then Exit Sub
 		Dim str
+		'如果是外部网址则用Http取回,如要指定编码可加在http前，例：gbk>http://....
 		If Easp.Test(s,"^([\w\d-]+>)?https?://") Then
 			Easp.Use "Http"
-			str = Easp.Http.Get(s)
+			Dim h : Set h = Easp.Http.New
+			str = h.Get(s)
+			Set h = Nothing
 		Else
 			str = s
 		End If
+		'从文本加载
 		Dom.loadXML(str)
-		If Not IsErr Then Set Doc = Dom.documentElement
+		'设置根元素
+		If Not IsErr Then Set Doc = NewNode(Dom.documentElement)
 	End Sub
 	
 	'关闭文件
@@ -82,25 +91,71 @@ Class EasyAsp_Xml
 		s_filePath = ""
 		IsOpen = False
 	End Sub
+	'建立新的Easp Node对象
+	Public Function NewNode(ByVal o)
+		Set NewNode = New Easp_Xml_Node
+		NewNode.Dom = o
+	End Function
 		
 	'TagName取对象
 	Public Default Function Find(ByVal t)
-		Dim o
-		Set Find = New Easp_Xml_Node
-		Set o = Dom.GetElementsByTagName(t)
+		Dim o,s
+		If Easp.Test(t, "[, >\[@:]") Then
+			'按简单表达式取元素
+			Set o = Dom.selectNodes(Easp_Xml_TransToXpath(t))
+		Else
+			'从标签取元素
+			Set o = Dom.GetElementsByTagName(t)
+		End If
+		'如果没有
 		If o.Length = 0 Then
 			Easp.Error.Msg = "("&t&")"
 			Easp.Error.Raise 98
+		'如果只有一个元素
 		ElseIf o.Length = 1 Then
-			Find.Dom = o(0)
+			Set Find = NewNode(o(0))
+		'如果是元素集合
 		Else
-			Find.Dom = o
+			Set Find = NewNode(o)
 		End If
 	End Function
-	'XPath取对象
+	'XPath取对象集合
 	Public Function [Select](ByVal p)
-		Set [Select] = New Easp_Xml_Node
-		[Select].Dom = Dom.selectSingleNode(p)
+		Set [Select] = NewNode(Dom.selectNodes(p))
+	End Function
+	'XPath取单个对象
+	Public Function Sel(ByVal p)
+		Set Sel = NewNode(Dom.selectSingleNode(p))
+	End Function
+	
+	'新建一个节点
+	Public Function Create(ByVal n, ByVal v)
+		Dim o,p,cd
+		'类型可在名称中用空格隔开，例："mytag cdata", " comment"
+		If Instr(n," ")>0 Then
+			cd = LCase(Easp.CRight(n," "))
+			n = Easp.CLeft(n," ")
+		End If
+		'创建注释节点
+		If cd="comment" Then
+			Set o = Dom.createComment(v)
+		Else
+			'创建节点
+			Set o = Dom.CreateElement(n)
+			If cd = "cdata" Then
+				'创建CDATASection节点
+				Set p = Dom.CreateCDATASection(v)
+			Else
+				'创建文本节点
+				Set p = Dom.CreateTextNode(v)
+			End If
+			'追加到节点
+			o.AppendChild(p)
+		End If
+		'返回新建的Node对象
+		Set Create = NewNode(o)
+		Set o = Nothing
+		Set p = Nothing
 	End Function
 	
   '检查并打印错误信息
@@ -131,8 +186,8 @@ Class Easp_Xml_Node
 	Private Sub Class_Terminate()
 		Set o_node = Nothing
 	End Sub
-	
-	Public Function [New](ByVal o)
+	'建立新Node对象
+	Private Function [New](ByVal o)
 		Set [New] = New Easp_Xml_Node
 		[New].Dom = o
 	End Function
@@ -152,8 +207,10 @@ Class Easp_Xml_Node
 	
 	'取集合中的某一项
 	Public Default Property Get El(ByVal n)
+		'如果是集合就取其中下标对应子项
 		If IsNodes Then
 			Set El = [New](o_node(n))
+		'如果是节点且下标为0就取节点本身
 		ElseIf IsNode And n = 0 Then
 			Set El = [New](o_node)
 		Else
@@ -174,73 +231,118 @@ Class Easp_Xml_Node
 	'(可读可写)
 	'属性设置
 	Public Property Let Attr(ByVal s, ByVal v)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
-		o_node.setAttribute s, v
+		'如果值为 Null 相当于删除属性
+		If IsNull(v) Then RemoveAttr s : Exit Property
+		'如果是节点
+		If IsNode Then
+			o_node.setAttribute s, v
+		'如果是集合则设置每个子节点的属性
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).setAttribute s, v
+			Next
+		End If
 	End Property
 	Public Property Get Attr(ByVal s)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Attr = o_node.getAttribute(s)
 	End Property
 	
 	'文本设置
 	Public Property Let Text(ByVal v)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
-		o_node.Text = v
+		If IsNode Then
+			If Easp.Has(v) Then o_node.Text = v
+		'如果是集合则设置每个子节点的文本
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				If Easp.Has(v) Then o_node(i).Text = v
+			Next
+		End If
 	End Property
 	Public Property Get Text
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
-		Text = o_node.Text
+		If IsNode Then
+			Text = o_node.Text
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				Text = Text & o_node(i).Text
+			Next
+		End If
 	End Property
 	
 	'文本设置
 	Public Property Let Value(ByVal v)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
-		o_node.ChildNodes(0).NodeValue = v
+		If IsNode Then
+			o_node.ChildNodes(0).NodeValue = v
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).ChildNodes(0).NodeValue = v
+			Next
+		End If
 	End Property
 	Public Property Get Value
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Value = o_node.ChildNodes(0).NodeValue
 	End Property
 	
 	'(只读)
 	'获取XML
 	Public Property Get Xml
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
-		Xml = o_node.Xml
+		If IsNode Then
+			Xml = o_node.Xml
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				Xml = Xml & o_node(i).Xml
+			Next
+		End If
 	End Property
 	'元素名
 	Public Property Get Name
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Name = o_node.BaseName
 	End Property
-	'元素名
+	'元素类型
 	Public Property Get [Type]
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If IsNodes Then Exit Property
 		[Type] = o_node.NodeType
+	End Property
+	'元素类型名称
+	Public Property Get TypeString
+		If IsNodes Then Exit Property
+		TypeString = o_node.NodeTypeString
 	End Property
 	'元素长度
 	Public Property Get Length
-		If IsNodes Then
-			Length = o_node.Length
-		ElseIf IsNode Then 
+		If IsNode Then 
 			Length = o_node.ChildNodes.Length
+		Else
+			Length = o_node.Length
 		End If
 	End Property
 	
 	'=======Xml元素属性（返回新节点元素）======
 	'根元素
 	Public Property Get Root
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Set Root = [New](o_node.OwnerDocument)
 	End property
 	'父元素
 	Public Property Get Parent
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Set Parent = [New](o_node.parentNode)
+	End property
+	'子元素
+	Public Property Get Child(ByVal n)
+		If Not IsNode Then Exit Property
+		Set Child = [New](o_node.ChildNodes(n))
 	End property
 	'上一同级元素
 	Public Property Get Prev
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Dim o
 		Set o = o_node.PreviousSibling
 		Do While True
@@ -257,7 +359,7 @@ Class Easp_Xml_Node
 	End property
 	'下一同级元素
 	Public Property Get [Next]
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Dim o
 		Set o = o_node.NextSibling
 		Do While True
@@ -274,12 +376,12 @@ Class Easp_Xml_Node
 	End property
 	'第一个元素
 	Public Property Get First
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Set First = [New](o_node.FirstChild)
 	End Property
 	'最后一个元素
 	Public Property Get Last
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Property
+		If Not IsNode Then Exit Property
 		Set Last = [New](o_node.LastChild)
 	End Property
 	
@@ -287,7 +389,7 @@ Class Easp_Xml_Node
 	'(查找)
 	'是否有某属性
 	Public Function HasAttr(ByVal s)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Function
+		If Not IsNode Then Exit Function
 		Dim oattr
 		Set oattr = o_node.Attributes.GetNamedItem(s)
 		HasAttr = Not oattr Is Nothing
@@ -295,14 +397,20 @@ Class Easp_Xml_Node
 	End Function
 	'是否有子节点
 	Public Function HasChild()
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Function
+		If Not IsNode Then Exit Function
 		HasChild = o_node.hasChildNodes()
 	End Function
 	'查找子元素
 	Public Function Find(ByVal t)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Function
+		If Not IsNode Then Exit Function
 		Dim o
-		Set o = o_node.GetElementsByTagName(t)
+		If Easp.Test(t, "[, >\[@:]") Then
+			'按简单表达式取元素
+			Set o = o_node.selectNodes(Easp_Xml_TransToXpath(t))
+		Else
+			'从标签取元素
+			Set o = o_node.GetElementsByTagName(t)
+		End If
 		If o.Length = 0 Then
 			Easp.Error.Msg = "("&t&")"
 			Easp.Error.Raise 98
@@ -312,40 +420,160 @@ Class Easp_Xml_Node
 			Set Find = [New](o)
 		End If
 	End Function
+	'XPath取对象集合
+	Public Function [Select](ByVal p)
+		If Not IsNode Then Exit Function
+		Set [Select] = [New](o_node.selectNodes(p))
+	End Function
+	'XPath取单个对象
+	Public Function Sel(ByVal p)
+		If Not IsNode Then Exit Function
+		Set Sel = [New](o_node.selectSingleNode(p))
+	End Function
 	
 	'(建立)
 	'克隆节点
 	Public Function Clone(ByVal b)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Function
+		If Not IsNode Then Exit Function
 		If Easp.IsN(b) Then b = True
 		Set Clone = [New](o_node.CloneNode(b))
 	End Function
+	'统一对象为Dom节点
+	Private Function GetNodeDom(ByVal o)
+		Select Case TypeName(o)
+			Case "IXMLDOMElement" Set GetNodeDom = o
+			Case "Easp_Xml_Node" Set GetNodeDom = o.Dom
+		End Select
+	End Function
 	'添加子节点
-	Public Sub Append(ByVal o)
-		
+	Public Function Append(ByVal o)
+		If Not IsNode Then Exit Function
+		o_node.AppendChild(GetNodeDom(o))
+		Set Append = [New](o_node)
+	End Function
+	'替换节点
+	Public Function ReplaceWith(ByVal o)
+		If IsNode Then
+			'如果是节点则直接替换（是Dom内节点会直接移动），返回被替换的节点
+			Call o_node.ParentNode.replaceChild(GetNodeDom(o), o_node)
+		ElseIf IsNodes Then
+			'如果是集合则依次替换，是Dom内的节点不会移动而是复制
+			Dim i,n
+			For i = 0 To Length - 1
+				Set n = GetNodeDom(o).CloneNode(True)
+				Call o_node(i).ParentNode.replaceChild(n, o_node(i))
+			Next
+		End If
+		Set ReplaceWith = [New](o_node)
+	End Function
+	'在节点前加入另一个节点
+	Public Function Before(ByVal o)
+		If IsNode Then
+			Call o_node.ParentNode.InsertBefore(GetNodeDom(o), o_node)
+		ElseIf IsNodes Then
+			Dim i,n
+			For i = 0 To Length - 1
+				Set n = GetNodeDom(o).CloneNode(True)
+				Call o_node(i).ParentNode.InsertBefore(n, o_node(i))
+			Next
+		End If
+		Set Before = [New](o_node)
+	End Function
+	'在节点后加入另一个节点
+	Public Function After(ByVal o)
+		If IsNode Then
+			Call InsertAfter(GetNodeDom(o), o_node)
+		ElseIf IsNodes Then
+			Dim i,n
+			For i = 0 To Length - 1
+				Set n = GetNodeDom(o).CloneNode(True)
+				Call InsertAfter(n, o_node(i))
+			Next
+		End If
+		Set After = [New](o_node)
+	End Function
+	Private Sub InsertAfter(ByVal n, Byval o)
+		Dim p
+		Set p = o.ParentNode
+		If p.LastChild Is o Then
+			p.AppendChild(n)
+		Else
+			Call p.InsertBefore(n, o.nextSibling)
+		End If
 	End Sub
 	
 	'(删除)
 	'删除某属性
-	Public Sub RemoveAttr(ByVal s)
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Sub
-		o_node.removeAttribute(s)
-	End Sub
-	'清除所有子节点
-	Public Sub Clear
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Sub
-		o_node.Text = ""
-		o_node.removeChild(o_node.FirstChild)
-	End Sub
+	Public Function RemoveAttr(ByVal s)
+		If IsNode Then
+			o_node.removeAttribute(s)
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).removeAttribute(s)
+			Next
+		End If
+		Set RemoveAttr = [New](o_node)
+	End Function
+	'清空所有子节点
+	Public Function [Empty]
+		If IsNode Then
+			o_node.Text = ""
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).Text = ""
+			Next
+		End If
+		Set [Empty] = [New](o_node)
+	End Function
+	'清除所有子节点，包括空文本节点
+	Public Function Clear
+		If IsNode Then
+			o_node.Text = ""
+			o_node.removeChild(o_node.FirstChild)
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).Text = ""
+				o_node(i).removeChild(o_node(i).FirstChild)
+			Next
+		End If
+		Set Clear = [New](o_node)
+	End Function
 	'合并相邻的Text节点并删除空的Text节点
-	Public Sub Normalize
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Sub
-		o_node.normalize()
-	End Sub
+	Public Function Normalize
+		If IsNode Then
+			o_node.normalize()
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).normalize()
+			Next
+		End If
+		Set Normalize = [New](o_node)
+	End Function
 	'删除自身
 	Public Sub Remove
-		If Not IsNode Then Easp.Error.Raise 97 : Exit Sub
-		o_node.ParentNode.RemoveChild(o_node)
+		If IsNode Then
+			o_node.ParentNode.RemoveChild(o_node)
+		ElseIf IsNodes Then
+			Dim i
+			For i = 0 To Length - 1
+				o_node(i).ParentNode.RemoveChild(o_node(i))
+			Next
+		End If
 	End Sub
 End Class
+Function Easp_Xml_TransToXpath(ByVal s)
+	s = Easp.RegReplace(s, "\s*,\s*", "|//")
+	s = Easp.RegReplace(s, "\s*>\s*", "/")
+	s = Easp.RegReplace(s, "\s+", "//")
+	s = Easp.RegReplace(s, "(\[)([a-zA-Z]+\])", "$1@$2")
+	s = Easp.RegReplace(s, "(\[)([a-zA-Z]+[!]?=[^\]]+\])", "$1@$2")
+'	s = Easp.RegReplace(s, ":([a-z]+)", "[$1()]")
+	s = Easp.RegReplace(s, "(?!\[\d)\]\[", " and ")
+	s = Replace(s, "|", " | ")
+	Easp_Xml_TransToXpath = "//" & s
+End Function
 %>
