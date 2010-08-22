@@ -15,7 +15,7 @@ Dim str,n,i
 'Easp.WN TypeName(n.Last.Dom.childNodes)
 'Easp.WNH n.Last.Length
 'Set n = Nothing
-str = 			"<?xml version=""1.0"" encoding=""utf-8""?>" & vbCrLf
+'str = 			"<?xml version=""1.0"" encoding=""utf-8""?>" & vbCrLf
 str = str & "<microblog>" & vbCrLf
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Tencent"">腾讯微博</name>" & vbCrLf
@@ -30,13 +30,16 @@ str = str & "		<last><![CDATA[是不是<font color=""red"">这样</font>的噢�
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Twitter"">推特</name>" & vbCrLf
 str = str & "		<url>http://twitter.com</url>" & vbCrLf
-str = str & "		<account nick=""user"" for=""motme""><name>@ccav</name><nick>CCAV</nick></account>" & vbCrLf
+str = str & "		<account nick=""user"" for=""notme""><name>@ccav</name><nick>CCAV</nick></account>" & vbCrLf
 str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> any more.]]></last></site>" & vbCrLf
 str = str & "</microblog>"
 
-'str = "gb2312>http://www.wyfwgw.com/baidumap_article_1.xml"
+'str = "http://www.wyfwgw.com/baidumap_article_1.xml"
 
 Easp.Xml.Load str
+
+'Easp.WN Easp.Xml.SaveAs("news.xml>gbk")
+'Easp.WN Easp.Xml.SaveAs("microblog.xml>utf-8")
 
 'Set n = Easp.Xml("title")
 'For i = 0 To n.Length-1
@@ -44,7 +47,6 @@ Easp.Xml.Load str
 'Next
 'Set n = Nothing
 
-'Easp.WN TypeName(Easp.Xml.Dom.GetElementsByTagName("site"))
 'Easp.WN Easp.Xml("last")(2).Value
 'Set n = Easp.Xml("last")
 'For i = 0 To n.Length-1
@@ -102,7 +104,7 @@ Easp.Xml.Load str
 'Easp.WNH Easp.Xml("name[alias='Tencent'],url").Text
 'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Length
 'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Xml
-Easp.WNH Easp.Xml("account[nick='user'][for!='me'],account[nick!='user']").Xml
+'Easp.WNH Easp.Xml("account[nick='user'][for!='me'],account[nick!='user']").Xml
 
 'Set n = Nothing
 Easp.WN ""

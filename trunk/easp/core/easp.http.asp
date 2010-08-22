@@ -10,7 +10,7 @@
 '## http://msdn.microsoft.com/en-us/library/ms535874(VS.85).aspx
 '######################################################################
 Class EasyAsp_Http
-	Public Url, Method, CharSet, Async, User, Password, Html, Headers, Body, SaveRandom
+	Public Url, Method, CharSet, Async, User, Password, Html, Headers, Body, Text, SaveRandom
 	Public ResolveTimeout, ConnectTimeout, SendTimeout, ReceiveTimeout
 	Private s_data, s_url, s_ohtml
 	
@@ -26,6 +26,7 @@ Class EasyAsp_Http
 		Html = ""
 		Headers = ""
 		Body = Empty
+		Text = Empty
 		SaveRandom = False
 		'服务器解析超时
 		ResolveTimeout = 20000
@@ -123,17 +124,23 @@ Class EasyAsp_Http
 		ElseIf o.Status = 200 Then
 			Headers = o.getAllResponseHeaders()
 			Body = o.responseBody
+			Text = o.responseText
 			If Easp.IsN(CharSet) Then
+				'从Header中提取编码信息
 				If Easp.Test(Headers,"charset=([\w-]+)") Then
 					CharSet = Easp.RegReplace(Headers,"([\s\S]+)charset=([\w-]+)([\s\S]+)","$2")
-				ElseIf Easp.Test(o.responseText,"<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>") Then
-					CharSet = Easp.RegReplace(o.responseText,"([\s\S]+)<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>([\s\S]+)","$2")
-				Else
-					'如果无法获取远程页的编码则继承Easp的编码设置
-					CharSet = Easp.CharSet
+				'如果是Xml文档，从文档中提取编码信息
+				ElseIf Easp.Test(Headers,"Content-Type: ?text/xml") Then
+					CharSet = Easp.RegReplace(Text,"^<\?xml\s+[^>]+encoding\s*=\s*""([^""]+)""[^>]*\?>([\s\S]+)","$1")
+				'从文件源码中提取编码
+				ElseIf Easp.Test(Text,"<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>") Then
+					CharSet = Easp.RegReplace(Text,"([\s\S]+)<meta\s+http-equiv\s*=\s*[""']?content-type[""']?\s+content\s*=\s*[""']?[^>]+charset\s*=\s*([\w-]+)[^>]*>([\s\S]+)","$2")
 				End If
+				'Easp.WNH CharSet
+				'如果无法获取远程页的编码则继承Easp的编码设置
+				If Easp.IsN(CharSet) Then CharSet = Easp.CharSet
 			End If
-			GetData = Bytes2Bstr__(o.responseBody, CharSet)
+			GetData = Bytes2Bstr__(Body, CharSet)
 		Else
 			GetData = "error:" & o.Status & " " & o.StatusText
 		End If
