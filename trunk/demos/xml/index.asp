@@ -20,21 +20,18 @@ str = str & "<microblog>" & vbCrLf
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Tencent"">腾讯微博</name>" & vbCrLf
 str = str & "		<url>http://t.qq.com</url>" & vbCrLf
-str = str & "		<account>@lengshi</account>" & vbCrLf
-str = str & "		<last><![CDATA[今天我们这里下<em>大雨</em>啦！]]></last>" & vbCrLf
-str = str & "	</site>" & vbCrLf
+str = str & "		<account nick=""user"" for=""me""><name>@lengshi</name><nick>Ray</nick></account>" & vbCrLf
+str = str & "		<last><![CDATA[今天我们这里下<em>大雨</em>啦！]]></last></site>" & vbCrLf
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Sina"">新浪微博</name>" & vbCrLf
 str = str & "		<url>http://t.sina.com.cn</url>" & vbCrLf
-str = str & "		<account>@tainray</account>" & vbCrLf
-str = str & "		<last><![CDATA[是不是<font color=""red"">这样</font>的噢，我也不知道哈。<img src=""http://bbs.lengshi.com/max-assets/icon-emoticon/12.gif"" />]]></last>" & vbCrLf
-str = str & "	</site>" & vbCrLf
+str = str & "		<account nick=""email"" for=""me""><name>@tainray</name><nick>tainray@sina.com</nick></account>" & vbCrLf
+str = str & "		<last><![CDATA[是不是<font color=""red"">这样</font>的噢，我也不知道哈。<img src=""http://bbs.lengshi.com/max-assets/icon-emoticon/12.gif"" />]]></last></site>" & vbCrLf
 str = str & "	<site>" & vbCrLf
-str = str & "		<name alias=""Twitter"">Twitter</name>" & vbCrLf
+str = str & "		<name alias=""Twitter"">推特</name>" & vbCrLf
 str = str & "		<url>http://twitter.com</url>" & vbCrLf
-str = str & "		<account>@lengshi</account>" & vbCrLf
-str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> any more.]]></last>" & vbCrLf
-str = str & "	</site>" & vbCrLf
+str = str & "		<account nick=""user"" for=""motme""><name>@ccav</name><nick>CCAV</nick></account>" & vbCrLf
+str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> any more.]]></last></site>" & vbCrLf
 str = str & "</microblog>"
 
 'str = "gb2312>http://www.wyfwgw.com/baidumap_article_1.xml"
@@ -45,6 +42,7 @@ Easp.Xml.Load str
 'For i = 0 To n.Length-1
 '	Easp.WN n(i).Value
 'Next
+'Set n = Nothing
 
 'Easp.WN TypeName(Easp.Xml.Dom.GetElementsByTagName("site"))
 'Easp.WN Easp.Xml("last")(2).Value
@@ -64,14 +62,49 @@ Easp.Xml.Load str
 'Easp.WNH Easp.Xml("site")(1).Xml
 
 'Easp.WNH TypeName(Easp.Xml("site")(0).Parent.Parent.Dom)
-'Easp.Xml("site")(0).Remove
-'Easp.Xml("site")(1).Remove
+'Easp.Xml("url").Remove
+'Easp.Xml("name").Attr("alias") = Null
 'Easp.Xml("microblog").Remove
-Easp.WN Easp.Xml.Dom.SelectNodes("//site").Length
-Easp.WN Easp.Xml.Select("//site").Length
-Easp.WN Easp.Xml("site")(0).Length
+'Easp.WN Easp.Xml.Sel("//site").Length
+'Easp.WN Easp.Xml.Select("//site").Length
+'Easp.WN Easp.Xml("site").Length
+'Easp.WN Easp.Xml("site").Type
+'Easp.Xml("url")(2).Value = "http://sss.com"
+'Easp.WN TypeName(n)
+'替换节点
+'Set n = Easp.Xml("name")(1).ReplaceWith(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("name").ReplaceWith(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("name")(1).ReplaceWith(Easp.Xml("url")(2))
+'Easp.WNH n.Xml
+'清空
+'Easp.Xml("url").Empty
+'Easp.Xml("name").Clear
+'从前面加入节点
+'Set n = Easp.Xml("account")(1).Before(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("account")(1).Before(Easp.Xml("url")(2))
+'Set n = Easp.Xml("account").Before(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("account").Before(Easp.Xml("url")(2))
+'从后面加入节点
+'Set n = Easp.Xml("account")(2).After(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("last")(1).After(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("account")(1).After(Easp.Xml("url")(2))
+'Set n = Easp.Xml("account").After(Easp.Xml.Create("abbr cdata","This is a <b>word</b>."))
+'Set n = Easp.Xml("account").After(Easp.Xml("url")(2))
+
+
+'Easp.WNH n.Xml
 'Easp.WNH Easp.Xml.Dom.Xml
 
+'Easp.WNH Easp.Xml("name").Length
+'Easp.WNH Easp.Xml("site name").Length
+'Easp.WNH Easp.Xml("site>name").Length
+'Easp.WNH Easp.Xml("name[alias='Tencent'],url").Length
+'Easp.WNH Easp.Xml("name[alias='Tencent'],url").Text
+'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Length
+'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Xml
+Easp.WNH Easp.Xml("account[nick='user'][for!='me'],account[nick!='user']").Xml
+
+'Set n = Nothing
 Easp.WN ""
 Easp.wn "------------------------------------"
 Easp.w "页面执行时间： " & Easp.ScriptTime & " 秒"
