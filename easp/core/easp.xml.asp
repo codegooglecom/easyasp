@@ -5,10 +5,9 @@
 '## Feature     :   EasyAsp XML Document Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/08/22 00:24:30
+'## Update Date :   2010/08/23 01:18:30
 '## Description :   Read and write the XML documents
-'## P:http://msdn.microsoft.com/en-us/library/aa924158.aspx
-'## M:http://msdn.microsoft.com/en-us/library/aa926433.aspx
+'##
 '######################################################################
 Class EasyAsp_Xml
 	Public Dom, Doc, IsOpen
@@ -33,6 +32,7 @@ Class EasyAsp_Xml
 		Easp.Error(96) = "XML文件操作出错"
 		Easp.Error(97) = "对象不支持此属性或方法"
 		Easp.Error(98) = "未找到目标对象"
+		Easp.Error(99) = "保存XML文档出错"
 	End Sub
 	
 	'析构函数
@@ -91,6 +91,37 @@ Class EasyAsp_Xml
 		s_filePath = ""
 		IsOpen = False
 	End Sub
+	
+	'保存文件
+	Public Sub [Save]()
+		If IsOpen Then
+			Dom.Save(s_filePath)
+		Else
+			Easp.Error.Msg = "（文档未处于打开状态）"
+			Easp.Error.Raise 99
+		End If
+	End Sub
+	'另存为(Load进来的只能用此方法保存)
+	'可以在保存的文件名后加如 >gbk 来指定保存的编码，如果不指定则：有编码申明的不改变，无编码申明的采用Easp.Charset值作编码
+	Public Sub SaveAs(ByVal p)
+		Dim ch,cha,pi
+		If Instr(p,">")>0 Then
+			ch = Easp.CRight(p,">")
+			p = Easp.CLeft(p,">")
+		End If
+		cha = Easp.IfHas(ch,Easp.CharSet)
+		p = absPath(p)
+		'如果没有文档类型申明就加上
+		Set pi = Dom.CreateProcessingInstruction("xml", "version=""1.0"" encoding=""" & cha & """")
+		If Dom.FirstChild.BaseName<>"xml" Then
+			Dom.InsertBefore pi, Dom.FirstChild
+		Else
+			If Easp.Has(ch) Then Dom.ReplaceChild pi, Dom.FirstChild
+		End If
+		Dom.Save(p)
+		Set pi = Nothing
+	End Sub
+	
 	'建立新的Easp Node对象
 	Public Function NewNode(ByVal o)
 		Set NewNode = New Easp_Xml_Node
@@ -162,16 +193,16 @@ Class EasyAsp_Xml
   Private Function IsErr()
 		Dim s
 		IsErr = False
-    If Dom.ParseError.errorcode<>0 Then
+    If Dom.ParseError.Errorcode<>0 Then
 			With Dom.ParseError
 				s = s & "	<ul class=""dev"">" & vbCrLf
 				s = s & "		<li class=""info"">以下信息针对开发者：</li>" & vbCrLf
-				s = s & "		<li>错误代码：0x" & Hex(.errorcode) & "</li>" & vbCrLf
-				If Easp.Has(.reason) Then s = s & "		<li>错误原因：" & .reason & "</li>" & vbCrLf
-				If Easp.Has(.url) Then s = s & "		<li>错误来源：" & .url & "</li>" & vbCrLf
-				If Easp.Has(.line) And .line<>0 Then s = s & "		<li>错误行号：" & .line & "</li>" & vbCrLf
-				If Easp.Has(.filepos) And .filepos<>0 Then s = s & "		<li>错误位置：" & .filepos & "</li>" & vbCrLf
-				If Easp.Has(.srcText) Then s = s & "		<li>源 文 本：" & .srcText & "</li>" & vbCrLf
+				s = s & "		<li>错误代码：0x" & Hex(.Errorcode) & "</li>" & vbCrLf
+				If Easp.Has(.Reason) Then s = s & "		<li>错误原因：" & .Reason & "</li>" & vbCrLf
+				If Easp.Has(.Url) Then s = s & "		<li>错误来源：" & .Url & "</li>" & vbCrLf
+				If Easp.Has(.Line) And .Line<>0 Then s = s & "		<li>错误行号：" & .Line & "</li>" & vbCrLf
+				If Easp.Has(.Filepos) And .Filepos<>0 Then s = s & "		<li>错误位置：" & .Filepos & "</li>" & vbCrLf
+				If Easp.Has(.SrcText) Then s = s & "		<li>源 文 本：" & .SrcText & "</li>" & vbCrLf
 				s = s & "	</ul>" & vbCrLf
 			End With
 			IsErr = True
@@ -296,6 +327,7 @@ Class Easp_Xml_Node
 		ElseIf IsNodes Then
 			Dim i
 			For i = 0 To Length - 1
+				If i>0 Then Xml = Xml & vbCrLf
 				Xml = Xml & o_node(i).Xml
 			Next
 		End If
@@ -571,7 +603,6 @@ Function Easp_Xml_TransToXpath(ByVal s)
 	s = Easp.RegReplace(s, "\s+", "//")
 	s = Easp.RegReplace(s, "(\[)([a-zA-Z]+\])", "$1@$2")
 	s = Easp.RegReplace(s, "(\[)([a-zA-Z]+[!]?=[^\]]+\])", "$1@$2")
-'	s = Easp.RegReplace(s, ":([a-z]+)", "[$1()]")
 	s = Easp.RegReplace(s, "(?!\[\d)\]\[", " and ")
 	s = Replace(s, "|", " | ")
 	Easp_Xml_TransToXpath = "//" & s
