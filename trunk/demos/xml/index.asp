@@ -115,6 +115,8 @@ Easp.Xml.Load str
 'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Xml
 'Easp.WNH Easp.Xml("account[nick='user'][for!='me'],account[nick!='user']").Xml
 
+Easp.WNH Easp.Xml("site")(1).Find("account").Xml
+
 'Set n = Nothing
 Easp.WN ""
 Easp.wn "------------------------------------"
