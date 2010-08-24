@@ -86,23 +86,23 @@ Class EasyAsp_Xml
 		If Not IsErr Then Set Doc = NewNode(Dom.documentElement)
 	End Sub
 	'设置样式文件
-	Public Property Let XSLT(ByVal x)
-		Dim pi
-		Set pi = Dom.CreateProcessingInstruction("xml-stylesheet", "type=""text/xsl"" href=""" & x & """")
-		If Dom.ChildNodes(1).BaseName<>"xml-stylesheet" Then
-			If Dom.FirstChild.BaseName<>"xml" Then
-				Dom.InsertBefore pi, Dom.FirstChild
-			Else
-				Dom.InsertBefore pi, Dom.ChildNodes(1)
-			End If
-		Else
-			Dom.ReplaceChild pi, Dom.ChildNodes(1)
-		End If
-		s_xsltPath = x
-	End Property
-	Public Property Get XSLT
-		XSLT = s_xsltPath
-	End Property
+'	Public Property Let XSLT(ByVal x)
+'		Dim pi
+'		Set pi = Dom.CreateProcessingInstruction("xml-stylesheet", "type=""text/xsl"" href=""" & x & """")
+'		If Dom.ChildNodes(1).BaseName<>"xml-stylesheet" Then
+'			If Dom.FirstChild.BaseName<>"xml" Then
+'				Dom.InsertBefore pi, Dom.FirstChild
+'			Else
+'				Dom.InsertBefore pi, Dom.ChildNodes(1)
+'			End If
+'		Else
+'			Dom.ReplaceChild pi, Dom.ChildNodes(1)
+'		End If
+'		s_xsltPath = x
+'	End Property
+'	Public Property Get XSLT
+'		XSLT = s_xsltPath
+'	End Property
 	
 	'关闭文件
 	Public Sub Close()
@@ -376,13 +376,19 @@ Class Easp_Xml_Node
 	End Property
 	'元素类型
 	Public Property Get [Type]
-		If IsNodes Then Exit Property
-		[Type] = o_node.NodeType
+		If IsNodes Then
+			[Type] = 0
+		Else
+			[Type] = o_node.NodeType
+		End If
 	End Property
 	'元素类型名称
 	Public Property Get TypeString
-		If IsNodes Then Exit Property
-		TypeString = o_node.NodeTypeString
+	If IsNodes Then
+			TypeString = "selection"
+		Else
+			TypeString = o_node.NodeTypeString
+		End If
 	End Property
 	'元素长度
 	Public Property Get Length

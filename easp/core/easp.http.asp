@@ -27,7 +27,7 @@ Class EasyAsp_Http
 		Headers = ""
 		Body = Empty
 		Text = Empty
-		SaveRandom = False
+		SaveRandom = True
 		'服务器解析超时
 		ResolveTimeout = 20000
 		'服务器连接超时
