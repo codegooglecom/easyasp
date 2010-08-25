@@ -15,18 +15,6 @@ Class EasyAsp_Xml
 	
 	'构造函数
 	Private Sub Class_Initialize()
-		If Easp.IsInstall("MSXML2.DOMDocument") Then
-		'msxml ver 3
-			Set Dom = Server.CreateObject("MSXML2.DOMDocument")
-		ElseIf Easp.IsInstall("Microsoft.XMLDOM") Then
-		'msxml ver 2
-			Set Dom = Server.CreateObject("Microsoft.XMLDOM")
-		End If
-		'保留空格
-		Dom.preserveWhiteSpace = True
-		'异步
-		Dom.async = False
-		Dom.setProperty "SelectionLanguage", "XPath"
 		s_filePath = ""
 		s_xsltPath = ""
 		IsOpen = False
@@ -40,13 +28,33 @@ Class EasyAsp_Xml
 	Private Sub Class_Terminate()
 		'释放Document
 		If IsObject(Doc) Then Set Doc = Nothing
-		Set Dom = Nothing
+		If IsObject(Dom) Then Set Dom = Nothing
 	End Sub
+	'创建新的Xml对象
+	Private Function NewDom()
+		Dim o
+		If Easp.IsInstall("MSXML2.DOMDocument") Then
+		'msxml ver 3
+			Set o = Server.CreateObject("MSXML2.DOMDocument")
+		ElseIf Easp.IsInstall("Microsoft.XMLDOM") Then
+		'msxml ver 2
+			Set o = Server.CreateObject("Microsoft.XMLDOM")
+		End If
+		'保留空格
+		o.PreserveWhiteSpace = True
+		'异步
+		o.Async = False
+		'使用Xpath表达式
+		o.SetProperty "SelectionLanguage", "XPath"
+		Set NewDom = o
+		Set o = Nothing
+	End Function
 	
 	'开打一个已经存在的XML文件,返回打开状态
 	Public Function Open(byVal f)
 		Open = False
 		If Easp.IsN(f) Then Exit Function
+		Set Dom = NewDom()
 		'转换为绝对路径
 		f = absPath(f)
 		'读取文件
@@ -58,6 +66,8 @@ Class EasyAsp_Xml
 			Set Doc = NewNode(Dom.documentElement)
 			Open = True
 			IsOpen = True
+		Else
+			Set Dom = Nothing
 		End If
 	End Function
 	'取绝对路径
@@ -80,10 +90,15 @@ Class EasyAsp_Xml
 		Else
 			str = s
 		End If
+		Set Dom = NewDom()
 		'从文本加载
 		Dom.loadXML(str)
 		'设置根元素
-		If Not IsErr Then Set Doc = NewNode(Dom.documentElement)
+		If Not IsErr Then
+			Set Doc = NewNode(Dom.documentElement)
+		Else
+			Set Dom = Nothing
+		End If
 	End Sub
 	'设置样式文件
 '	Public Property Let XSLT(ByVal x)
@@ -107,6 +122,7 @@ Class EasyAsp_Xml
 	'关闭文件
 	Public Sub Close()
 		Set Doc = Nothing
+		Set Dom = Nothing
 		s_filePath = ""
 		IsOpen = False
 	End Sub
@@ -159,6 +175,11 @@ Class EasyAsp_Xml
 		Set NewNode = New Easp_Xml_Node
 		NewNode.Dom = o
 	End Function
+	
+	'根对象
+	Public Property Get Root
+		Set Root = NewNode(Dom)
+	End Property
 	
 	'建立新的Easp Xml对象
 	Public Function [New]()

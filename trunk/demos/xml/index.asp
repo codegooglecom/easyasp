@@ -30,11 +30,12 @@ str = str & "		<last><![CDATA[是不是<font color=""red"">这样</font>的噢�
 str = str & "	<site>" & vbCrLf
 str = str & "		<name alias=""Twitter"">推特</name>" & vbCrLf
 str = str & "		<url>http://twitter.com</url>" & vbCrLf
-str = str & "		<account nick=""user"" for=""notme""><name>@ccav</name><nick>CCAV</nick></account>" & vbCrLf
+str = str & "		<account nick=""user"" for=""notme""><name haha=""1"">@ccav</name><nick>CCAV</nick></account>" & vbCrLf
 str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> any more.]]></last></site>" & vbCrLf
 str = str & "</microblog>"
 
-'str = "http://www.wyfwgw.com/baidumap_article_1.xml"
+
+'str = "http://cf.qq.com/web200905/inc/cf_wallpapers.xml"
 'Easp.Xml.Load str
 'Set n = Easp.Xml("title")
 'For i = 0 To n.Length-1
@@ -42,7 +43,28 @@ str = str & "</microblog>"
 'Next
 'Set n = Nothing
 
+'载入Xml数据
+'Easp.Xml.Load "http://easp.lengshi.cn/data/xml/microblog_catalog.xml"
 Easp.Xml.Load str
+'选择所有标签为name的节点，并输出找到的节点个数
+Easp.WNH Easp.Xml("name").Length
+Easp.WN "--------"
+'选择所有包含属性alias的标签为name的节点
+Easp.WNH Easp.Xml("name[alias]").Length
+Easp.WN "--------"
+'选择所有属性for等于me，nick属性不等于email的标签为account的节点，并输出其Xml代码
+Easp.WNH Easp.Xml("account[for='me'][nick!='email']").Xml
+Easp.WN "--------"
+'选择site节点的子节点中标签为name的节点
+Easp.WNH Easp.Xml("site>name").Xml
+Easp.WN "--------"
+'选择account节点的后代节点中标签为name的节点
+Easp.WNH Easp.Xml("account name").Xml
+Easp.WN "--------"
+'选择所有的url和last节点
+Easp.WNH Easp.Xml("url,last").Xml
+Easp.WN "--------"
+
 
 'Easp.Xml.XSLT = "xsl/microblog.xsl"
 'Easp.WNH Easp.Xml.Dom.Xml
@@ -115,7 +137,8 @@ Easp.Xml.Load str
 'Easp.WNH Easp.Xml.Select("//account[@nick='user' and position()<2]").Xml
 'Easp.WNH Easp.Xml("account[nick='user'][for!='me'],account[nick!='user']").Xml
 
-Easp.WNH Easp.Xml("site")(1).Find("account").Xml
+'Easp.WNH Easp.Xml("site")(1).Find("account").Root.TypeString
+'Easp.WNH Easp.Xml.Root.TypeString
 
 'Set n = Nothing
 Easp.WN ""
