@@ -295,13 +295,13 @@ Class Easp_Xml_Node
 	End Property
 	
 	'取集合中的某一项
-	Public Default Property Get El(ByVal n)
+	Public Default Property Get Item(ByVal n)
 		'如果是集合就取其中下标对应子项
 		If IsNodes Then
-			Set El = [New](o_node(n))
+			Set Item = [New](o_node(n))
 		'如果是节点且下标为0就取节点本身
 		ElseIf IsNode And n = 0 Then
-			Set El = [New](o_node)
+			Set Item = [New](o_node)
 		Else
 			Easp.Error.Msg = "(不是有效的XML元素集合对象&lt;"&TypeName(o_node)&"&gt;)"
 			Easp.Error.Raise 97
