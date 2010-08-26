@@ -84,11 +84,50 @@ Dim http, tmp, rule, arr, i
 'Set Matches = Nothing
 ''=========================
 
+''=========================
+''Demo 7 - 保存远程图片：
+'Easp.Http.Get "http://www.baidu.com"
+'tmp = Easp.Http.SaveImgTo_(Easp.Http.Html, "imgatlocal/")
+'Easp.WN Easp.HtmlEncode(tmp)
+''=========================
+
 '=========================
-'Demo 7 - 保存远程图片：
-Easp.Http.Get "http://www.baidu.com"
-tmp = Easp.Http.SaveImgTo_(Easp.Http.Html, "imgatlocal/")
-Easp.WN Easp.HtmlEncode(tmp)
+'Demo 8 - WebService(SOAP1.1)示例：
+'获得腾讯QQ在线状态
+Dim QQ,xml : QQ = 800010000
+tmp = "<?xml version=""1.0"" encoding=""utf-8""?>"
+tmp = tmp & "<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">"
+tmp = tmp & "  <soap:Body>"
+tmp = tmp & "    <qqCheckOnline xmlns=""http://WebXml.com.cn/"">"
+tmp = tmp & "      <qqCode>" & QQ & "</qqCode>"
+tmp = tmp & "    </qqCheckOnline>"
+tmp = tmp & "  </soap:Body>"
+tmp = tmp & "</soap:Envelope>"
+Set http = Easp.Http.New
+'设置请求头信息的三种方式，其一：
+http.RequestHeader("Host") = "www.webxml.com.cn"
+'其二：
+http.SetHeader "Content-Type:text/xml; charset=utf-8"
+'其三：
+http.SetHeader Array("Content-Length:" & Len(tmp), "SOAPAction:http://WebXml.com.cn/qqCheckOnline")
+http.Data = tmp
+tmp = http.Post("http://www.webxml.com.cn/webservices/qqOnlineWebService.asmx?WSDL")
+Set http = Nothing
+'解析返回数据
+Easp.Use "Xml"
+Set xml = Easp.Xml.New
+xml.Load tmp
+tmp = xml("qqCheckOnlineResult").Value
+Set xml = Nothing
+Select Case tmp
+	Case "Y" tmp = "在线"
+	Case "N" tmp = "离线"
+	Case "E" tmp = "号码错误"
+	Case "A" tmp = "商业用户验证失败"
+	CAse "V" tmp = "免费用户超过数量"
+End Select
+Easp.WN "QQ:" & QQ & " (" & tmp & ")"
+
 '=========================
 
 Easp.WN ""
