@@ -55,7 +55,6 @@ Class EasyAsp_Upload
 		Set Form = Server.CreateObject("Scripting.Dictionary")
 		Set File = Server.CreateObject("Scripting.Dictionary")
 		Count = 0
-		'初始化数据库连接
 		Set o_db = Easp.db.New
 		GetConn Easp.db.Conn
 	End Sub
@@ -72,7 +71,7 @@ Class EasyAsp_Upload
 		If TypeName(o_db.Conn) = "Connection" Then
 			Set Conn = o_db.Conn
 		Else
-			Set Conn = Nothing
+			If IsObject(Conn) Then Set Conn = Nothing
 			Easp.Error.Raise 13
 		End If
 	End Property
@@ -207,7 +206,9 @@ Class EasyAsp_Upload
 	End Function
 	'初始化，开始上传：
 	Public Sub StartUpload
-		If TypeName(o_db.Conn) <> "Connection" Then GetConn Easp.db.Conn
+		If TypeName(o_db.Conn) <> "Connection" Then
+				GetConn Easp.db.Conn
+		End If
 		'检测表单是否multipart/form-data类型
 		Dim FormType : FormType = Split(Request.ServerVariables("HTTP_CONTENT_TYPE"), ";")
 		If LCase(FormType(0)) <> "multipart/form-data" Then
@@ -521,10 +522,13 @@ Class Easp_Upload_Progress
 		Dim s : s = "00"
 		If isNumeric(sec) Then
 			h = Right("0" & Round(sec/3600), 2)
-			m = Right("0" & Round((sec mod 3600) / 60), 2)
-			s = Right("0" & Round(sec mod 60), 2)
+			m = Right("0" & Round(mod_(sec,3600) / 60), 2)
+			s = Right("0" & Round(mod_(sec,60)), 2)
 		End If
 		SecToTime = (h & ":" & m & ":" & s)
+	End Function
+	Private Function mod_(ByVal a, ByVal b)
+		mod_ = (a - int(a/b)*b)
 	End Function
 End Class
 %>
