@@ -2,19 +2,6 @@
 Easp.Debug = True
 Easp.Use "Xml"
 Dim str,n,i
-'Easp.Xml.Open "bainian.xml"
-'Easp.WN Easp.Xml("TransType").Value
-
-'Easp.WN Easp.Xml.Select("//Author").Attr("Sex")
-'Set n = Easp.Xml.Select("//TransType")
-'n.Attr("year") = 2009
-'Easp.WN "n.Name => " & n.Name
-'Easp.WNH "n.Xml => " & n.Xml
-'Easp.WNH "n.Text => " & n.Text
-'Easp.WN "n.Length => " & n.Length
-'Easp.WN TypeName(n.Last.Dom.childNodes)
-'Easp.WNH n.Last.Length
-'Set n = Nothing
 str = 			"<?xml version=""1.0"" encoding=""utf-8""?>" & vbCrLf
 str = str & "<microblog>" & vbCrLf
 str = str & "	<site>" & vbCrLf
@@ -33,15 +20,6 @@ str = str & "		<url>http://twitter.com</url>" & vbCrLf
 str = str & "		<account nick=""user"" for=""notme""><name haha=""1"">@ccav</name><nick>CCAV</nick></account>" & vbCrLf
 str = str & "		<last><![CDATA[I don't need this feature <strong>(>_<)</strong> any more.]]></last></site>" & vbCrLf
 str = str & "</microblog>"
-
-
-'str = "http://cf.qq.com/web200905/inc/cf_wallpapers.xml"
-'Easp.Xml.Load str
-'Set n = Easp.Xml("title")
-'For i = 0 To n.Length-1
-'	Easp.WN n(i).Value
-'Next
-'Set n = Nothing
 
 '载入Xml数据
 'Easp.Xml.Load "http://easp.lengshi.cn/data/xml/microblog_catalog.xml"
