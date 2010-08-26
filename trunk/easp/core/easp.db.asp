@@ -64,8 +64,6 @@ Class EasyAsp_db
 	Public Property Get Conn()
 		If TypeName(o_conn) = "Connection" Then
 			Set Conn = o_conn
-		Else
-			Easp.Error.Raise 13
 		End If
 	End Property
 	'属性：当前数据库类型
