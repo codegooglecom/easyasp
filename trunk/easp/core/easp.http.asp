@@ -12,7 +12,7 @@
 Class EasyAsp_Http
 	Public Url, Method, CharSet, Async, User, Password, Html, Headers, Body, Text, SaveRandom
 	Public ResolveTimeout, ConnectTimeout, SendTimeout, ReceiveTimeout
-	Private s_data, s_url, s_ohtml
+	Private s_data, s_url, s_ohtml, o_rh', a_rh()
 	
 	Private Sub Class_Initialize
 		'编码默认为空，将自动获取编码
@@ -39,10 +39,13 @@ Class EasyAsp_Http
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
 		Easp.Error(48) = "要获取的页面地址不能为空"
+		Easp.Use "List"
+		Set o_rh = Easp.List.New
+'		ReDim a_rh(-1)
 	End Sub
 	
 	Private Sub Class_Terminate
-		
+		Set o_rh = Nothing
 	End Sub
 
 	'建新实例
@@ -54,6 +57,45 @@ Class EasyAsp_Http
 	Public Property Let Data(ByVal s)
 		s_data = s
 	End Property
+	
+	'设置请求头信息，两种方式
+	Public Sub SetHeader(ByVal a)
+		Dim i,n,v
+		If isArray(a) Then
+			For i = 0 To Ubound(a)
+				n = Replace(Easp.Cleft(a(i),":"),"-","_")
+				v = Easp.CRight(a(i),":")
+				o_rh(n) = v
+			Next
+		Else
+			n = Replace(Easp.Cleft(a,":"),"-","_")
+			v = Easp.CRight(a,":")
+			o_rh(n) = v
+		End If
+	End Sub
+	'方式二
+	Public Property Let RequestHeader(ByVal n, ByVal v)
+		n = Replace(n,"-","_")
+		o_rh(n) = v
+	End Property
+	Public Property Get RequestHeader(ByVal n)
+		If Easp.Has(n) Then
+			RequestHeader = o_rh(n)
+		Else
+			RequestHeader = Join(o_rh.Hash,vbCrLf)
+		End If
+	End Property
+'	'传入RequestHeader
+	Private Sub SetHeaderTo(ByRef o)
+		Dim maps,key
+		Set maps = o_rh.Maps
+		For Each key In maps
+			If Not isNumeric(key) Then
+				o.setRequestHeader Replace(key,"_","-"), o_rh(key)
+			End If
+		Next
+		Set maps = Nothing
+	End Sub
 	
 	'属性配置模式下的打开连接远程
 	Public Function [Open]
@@ -109,10 +151,14 @@ Class EasyAsp_Http
 			o.open m, uri, async
 		End If
 		If m = "POST" Then
-			o.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+			If Not o_rh.HasIndex("Content_Type") Then
+				o_rh("Content_Type") = "application/x-www-form-urlencoded"
+			End If
+			SetHeaderTo o
 			'有发送的数据
 			o.send Serialize__(data)
 		Else
+			SetHeaderTo o
 			o.send
 		End If
 		'检测返回数据
@@ -148,7 +194,7 @@ Class EasyAsp_Http
 		s_ohtml = GetData
 		Html = s_ohtml
 	End Function
-	
+		
 	'按正则查找符合的第一个字符串
 	Public Function Find(ByVal rule)
 		Find = Find_(s_ohtml, rule)
