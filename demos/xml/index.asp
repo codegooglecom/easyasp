@@ -24,25 +24,27 @@ str = str & "</microblog>"
 '载入Xml数据
 'Easp.Xml.Load "http://easp.lengshi.cn/data/xml/microblog_catalog.xml"
 Easp.Xml.Load str
-'选择所有标签为name的节点，并输出找到的节点个数
-Easp.WNH Easp.Xml("name").Length
+''选择所有标签为name的节点，并输出找到的节点个数
+'Easp.WNH Easp.Xml("name").Length
+'Easp.WN "--------"
+''选择所有包含属性alias的标签为name的节点
+'Easp.WNH Easp.Xml("name[alias]").Length
+'Easp.WN "--------"
+''选择所有属性for等于me，nick属性不等于email的标签为account的节点，并输出其Xml代码
+'Easp.WNH Easp.Xml("account[for='me'][nick!='email']").Xml
+'Easp.WN "--------"
+''选择site节点的子节点中标签为name的节点
+'Easp.WNH Easp.Xml("site>name").Xml
+'Easp.WN "--------"
+''选择account节点的后代节点中标签为name的节点
+'Easp.WNH Easp.Xml("account name").Xml
+'Easp.WN "--------"
+''选择所有的url和last节点
+'Easp.WNH Easp.Xml("url,last").Xml
 Easp.WN "--------"
-'选择所有包含属性alias的标签为name的节点
-Easp.WNH Easp.Xml("name[alias]").Length
-Easp.WN "--------"
-'选择所有属性for等于me，nick属性不等于email的标签为account的节点，并输出其Xml代码
-Easp.WNH Easp.Xml("account[for='me'][nick!='email']").Xml
-Easp.WN "--------"
-'选择site节点的子节点中标签为name的节点
-Easp.WNH Easp.Xml("site>name").Xml
-Easp.WN "--------"
-'选择account节点的后代节点中标签为name的节点
-Easp.WNH Easp.Xml("account name").Xml
-Easp.WN "--------"
-'选择所有的url和last节点
-Easp.WNH Easp.Xml("url,last").Xml
-Easp.WN "--------"
-
+Easp.WNH Easp.Xml("url")(2).Xml
+Easp.Xml("url")(2).Text = "<test>sss</test>"
+Easp.WNH Easp.Xml("url")(2).Xml
 
 'Easp.Xml.XSLT = "xsl/microblog.xsl"
 'Easp.WNH Easp.Xml.Dom.Xml

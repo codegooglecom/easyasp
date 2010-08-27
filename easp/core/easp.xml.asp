@@ -189,12 +189,21 @@ Class EasyAsp_Xml
 	'TagName取对象
 	Public Default Function Find(ByVal t)
 		Dim o,s
-		If Easp.Test(t, "[, >\[@:]") Then
-			'按简单表达式取元素
-			Set o = Dom.selectNodes(Easp_Xml_TransToXpath(t))
+		'如果是Html代码片断
+		If Easp.Test(t,"^<[\s\S]+>$") Then
+			Dim n,a,v,r
+			r = "^<([^\s>]+)\s([^>]+)>([\s\S]+)</\1>$"
+			n = Easp.RegReplace(t,r,"$1")
+			a = Easp.RegReplace(t,r,"$2")
+			v = Easp.RegReplace(t,r,"$3")
 		Else
-			'从标签取元素
-			Set o = Dom.GetElementsByTagName(t)
+			If Easp.Test(t, "[, >\[@:]") Then
+				'按简单表达式取元素
+				Set o = Dom.selectNodes(Easp_Xml_TransToXpath(t))
+			Else
+				'从标签取元素
+				Set o = Dom.GetElementsByTagName(t)
+			End If
 		End If
 		'如果没有
 		If o.Length = 0 Then
@@ -207,6 +216,16 @@ Class EasyAsp_Xml
 		Else
 			Set Find = NewNode(o)
 		End If
+	End Function
+	Function RenderToNode(ByVal s, ByRef node)
+		Dim n,a,v,r
+		r = "^<([^\s>]+)\s([^>]+)>([\s\S]+)</\1>$"
+		n = Easp.RegReplace(t,r,"$1")
+		a = Easp.RegReplace(t,r,"$2")
+		v = Easp.RegReplace(t,r,"$3")
+		Easp.WNH n
+		Easp.WNH a
+		Easp.WNH v
 	End Function
 	'XPath取对象集合
 	Public Function [Select](ByVal p)
