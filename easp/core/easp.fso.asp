@@ -461,7 +461,12 @@ Class EasyAsp_Fso
 			Easp.Error.Raise 62
 			Exit Function
 		End If
-		Copy p,n : Del p
+		If isFolder(p) Then
+			Fso.MoveFolder p,n
+		ElseIf isFile(p) Then
+			Copy p, n
+			Del p
+		End If
 	End Function
 	Public Function Ren(ByVal path, ByVal newname)
 		Ren = Rename(path,newname)
