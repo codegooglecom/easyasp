@@ -33,7 +33,7 @@ Class EasyAsp
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
-		b_cooen		= True
+		b_cooen		= False
 		b_debug		= False
 		Set o_rwt 	= Server.CreateObject(s_dicName)
 		Set o_ext 	= Server.CreateObject(s_dicName)
