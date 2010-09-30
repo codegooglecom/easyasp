@@ -1,4 +1,4 @@
-<%
+﻿<%
 Option Explicit
 '######################################################################
 '## easp.asp
@@ -6,7 +6,7 @@ Option Explicit
 '## Feature     :   EasyAsp Class
 '## Version     :   v2.2 alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/4/16 16:20
+'## Update Date :   2010/09/30 00:03:09
 '## Description :   EasyAsp Class
 '##
 '######################################################################
@@ -29,7 +29,6 @@ Class EasyAsp
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "UTF-8"
-		'Response.Charset = s_charset
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
@@ -56,17 +55,6 @@ Class EasyAsp
 		[error](2) = "读取文件错误，文件未找到！"
 		[error](3) = "EasyASP系统路径错误，请检查'easp.config.asp'文件中的 Easp.BasePath 设置！"
 		Set db = New EasyAsp_db
-'{init}
-		Set List = New EasyAsp_List
-		Set Fso = New EasyAsp_Fso
-		Set Upload = New EasyAsp_Upload
-		Set Tpl = New EasyAsp_Tpl
-		Set Aes = New EasyAsp_AES
-		Set Json = New EasyAsp_JSON
-		Set Cache = New EasyAsp_Cache
-		Set Http = New EasyAsp_Http
-		Set Xml = New EasyAsp_Xml
-'{/init}
 	End Sub
 	Private Sub Core_Do(ByVal t, ByVal s)
 		Dim a_core, i : a_core = Split(s,",")
@@ -102,7 +90,6 @@ Class EasyAsp
 	End Property
 	Public Property Let [CharSet](ByVal s)
 		s_charset = Ucase(s)
-		'Response.Charset = s_charset
 	End Property
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
@@ -141,8 +128,6 @@ Class EasyAsp
 	Private Function rqsv(ByVal s)
 		rqsv = Request.ServerVariables(s)
 	End Function
-	
-	'输出字符串(简易断点调试)
 	Sub W(ByVal s)
 		Response.Write(s)
 	End Sub
@@ -164,11 +149,9 @@ Class EasyAsp
 		Set Easp = Nothing
 		Response.End()
 	End Sub
-	'生成动态字符串
 	Function Str(ByVal s, ByVal v)
 		Str = FormatString(s, v, 1)
 	End Function
-	'格式化字符串
 	Function Format(ByVal s, ByVal v)
 		Format = FormatString(s, v, 0)
 	End Function
@@ -177,47 +160,38 @@ Class EasyAsp
 		s = Replace(s,"\\",Chr(0))
 		s = Replace(s,"\{",Chr(1))
 		Select Case VarType(v)
-			'数组
 			Case 8192,8194,8204,8209
 				For i = 0 To Ubound(v)
 					s = FormatReplace(s,i+t,v(i))
 				Next
-			'对象
 			Case 9
 				Select Case TypeName(v)
-					'记录集
 					Case "Recordset"
 						For i = 0 To v.Fields.Count - 1
 							s = FormatReplace(s,i+t,v(i))
 							s = FormatReplace(s,v.Fields.Item(i+t).Name,v(i))
 						Next
-					'字典
 					Case "Dictionary"
 						For Each k In v
 							s = FormatReplace(s,k,v(k))
 						Next
-					'Easp List
 					Case "EasyAsp_List"
 						For i = 0 To v.End
 							s = FormatReplace(s,i+t,v(i))
 							s = FormatReplace(s,v.IndexHash(i),v(i))
 						Next
-					'正则搜索子集合
 					Case "ISubMatches", "SubMatches"
 						For i = 0 To v.Count - 1
 							s = FormatReplace(s,i+t,v(i))
 						Next
 				End Select
-			'字符串
 			Case 8
 				Select Case TypeName(v)
-					'正则搜索集合
 					Case "IMatch2", "Match"
 						s = FormatReplace(s,t,v.Value)
 						For i = 0 To v.SubMatches.Count - 1
 							s = FormatReplace(s,i+t+1,v.SubMatches(i))
 						Next
-					'字符串
 					Case Else
 						s = FormatReplace(s,t,v)
 				End Select
@@ -227,7 +201,6 @@ Class EasyAsp
 		s = Replace(s,Chr(1),"{")
 		FormatString = Replace(s,Chr(0),"\")
 	End Function
-	'格式化Format内标签参数
 	Private Function FormatReplace(ByVal s, ByVal t, ByVal v)
 		Dim tmp,rule,ru,kind,matches,match
 		v = IfHas(v,"")
@@ -238,7 +211,6 @@ Class EasyAsp
 				kind = RegReplace(match.Value, rule, "$2")
 				ru = "{"&t&":"&kind&"}"
 				Select Case Left(kind,1)
-					'数字
 					Case "N"
 						If isNumeric(v) Then
 							Dim style,group,parens,percent,deci
@@ -258,18 +230,14 @@ Class EasyAsp
 								End If
 							End If
 						End If
-					'日期
 					Case "D"
 						If isDate(v) Then
 							s = Replace(s, ru, DateTime(v,Mid(kind,2)),1,-1,1)
 						End If
-					'转大写
 					Case "U"
 						s = Replace(s, ru, UCase(v),1,-1,1)
-					'转小写
 					Case "L"
 						s = Replace(s, ru, LCase(v),1,-1,1)
-					'表达式
 					Case "E"
 						tmp = Replace(Mid(kind,2),"%s", "v")
 						tmp = Eval(tmp)
@@ -281,11 +249,9 @@ Class EasyAsp
 		End If
 		FormatReplace = s
 	End Function
-	'服务器端跳转
 	Sub RR(ByVal u)
 		Response.Redirect(u)
 	End Sub
-	'判断是否为空值
 	Function isN(ByVal s)
 		isN = False
 		Select Case VarType(s)
@@ -310,7 +276,6 @@ Class EasyAsp
 	Function Has(ByVal s)
 		Has = Not isN(s)
 	End Function
-	'判断三元表达式
 	Function IIF(ByVal Cn, ByVal T, ByVal F)
 		If Cn Then
 			IIF = T
@@ -321,11 +286,9 @@ Class EasyAsp
 	Function IfThen(ByVal Cn, ByVal T)
 		IfThen = IIF(Cn,T,"")
 	End Function
-	'如果第1项不为空则返回第1项，否则返回第2项
 	Function IfHas(ByVal v1, ByVal v2)
 		IfHas = IIF(Has(v1), v1, v2)
 	End Function
-	'不够长度的字符串填充内容
 	Function Fill(ByVal s, ByVal l, ByVal f)
 		Dim le,i,tmp
 		le = len(s)
@@ -337,26 +300,21 @@ Class EasyAsp
 		End If
 		Fill = s & tmp
 	End Function
-	'服务器端输出javascript
 	Sub Js(ByVal s)
 		W JsCode(s)
 	End Sub
 	Function JsCode(ByVal s)
 		JsCode = Str("<{1} type=""text/java{1}"">{2}{3}{4}{2}</{1}>{2}", Array("sc"&"ript",vbCrLf,vbTab,s))
 	End Function
-	'服务器端输出javascript弹出消息框并返回前页
 	Sub Alert(ByVal s)
 		WE JsCode(Str("alert('{1}');history.go(-1);",JsEncode(s)))
 	End Sub
-	'服务器端输出javascript弹出消息框并转到URL
 	Sub AlertUrl(ByVal s, ByVal u)
 		WE JsCode(Str("alert('{1}');location.href='{2}';",Array(JsEncode(s),u)))
 	End Sub
-	'服务器端输出javascript确认消息框并根据选择转到URL
 	Sub ConfirmUrl(ByVal s, ByVal t, ByVal f)
 		WE JsCode(Str("location.href=confirm('{1}')?'{2}':'{3}';",Array(JsEncode(s),t,f)))
 	End Sub
-	'处理字符串中的Javascript特殊字符
 	Function JsEncode(ByVal s)
 		If isN(s) Then JsEncode = "" : Exit Function
 		Dim arr1, arr2, i, j, c, p, t
@@ -384,7 +342,6 @@ Class EasyAsp
 		Next
 		JsEncode = t
 	End Function
-	'转换字符为HTML实体
 	Function ASCII(s)
 		If IsN(s) Then ASCII = "" : Exit Function
 		Dim tmp,i,t
@@ -395,7 +352,6 @@ Class EasyAsp
 		Next
 		ASCII = tmp
 	End Function
-	'特殊字符编码
 	Function Escape(ByVal ss)
 		If isN(ss) Then Escape = "" : Exit Function
 		Dim i,c,a,s : s = ""
@@ -416,7 +372,6 @@ Class EasyAsp
 		Next
 		Escape = s
 	End Function
-	'特殊字符解码
 	Function UnEscape(ByVal ss)
 		If isN(ss) Then UnEscape = "" : Exit Function
 		Dim x, s
@@ -435,7 +390,6 @@ Class EasyAsp
 		Loop
 		UnEscape = s & ss
 	End Function
-	'格式化日期时间
 	Function DateTime(ByVal iTime, ByVal iFormat)
 		If IsN(iTime) Then DateTime = "" : Exit Function
 		If Not IsDate(iTime) Then DateTime = "Date Error" : Exit Function
@@ -511,13 +465,11 @@ Class EasyAsp
 		For i = 0 To 6 : t = Replace(t, SpecialTextRe(i),SpecialText(i)) : Next
 		DateTime = t
 	End Function
-	'伪Rewrite规则设置（传统方法）
 	Sub RewriteRule(ByVal s, ByVal u)
 		If (Left(s,3)<>"^\/" And Left(s,2)<>"\/" And Left(s,2)<>"^/" And Left(s,1)<>"/") Or Left(u,1)<>"/" Then Exit Sub
 		o_rwt.Add ("rule" & i_rule), Array(s,u)
 		i_rule = i_rule + 1
 	End Sub
-	'伪Rewrite规则设置（推荐方法）
 	Sub Rewrite(ByVal p, ByVal s, Byval u)
 		Dim rp,arr,i,rs,ru
 		If Left(s,1) = "^" Then s = Mid(s,2)
@@ -532,7 +484,6 @@ Class EasyAsp
 			rp = ""
 		Next
 	End Sub
-	'检测本页是否是Rewrite
 	Function isRewrite()
 		Dim rule,i
 		isRewrite = False
@@ -550,7 +501,6 @@ Class EasyAsp
 			Next
 		End If
 	End Function
-	'替换Url参数
 	Function ReplaceUrl(ByVal p, ByVal s)
 		Dim arrQs,tmp
 		If isRewrite Then
@@ -568,15 +518,12 @@ Class EasyAsp
 			ReplaceUrl = GetUrlWith("-" & p, p & "=" & s)
 		End If
 	End Function
-	'获取QueryString值，支持取Rewrite值
 	Function [Get](Byval s)
 		Dim tmp, i, arrQs, t
 		If Instr(s,":")>0 Then
-		'如果有类型参数，则取出为t
 			t = CRight(s,":") : s = CLeft(s,":")
 		End If
 		If isRewrite Then
-		'如果是Rewrite的页面地址
 			arrQs = Split(s_rwtU,"&")
 			For i = 0 To Ubound(arrQs)
 				If s = CLeft(arrQs(i),"=") Then
@@ -585,12 +532,10 @@ Class EasyAsp
 				End If
 			Next
 		Else
-		'否则直接取QueryString
 			tmp = Request.QueryString(s)
 		End If
 		[Get] = Safe(tmp,t)
 	End Function
-	'取Form值，包括上传文件时的普通Form值
 	Function Post(ByVal s)
 		Dim t,tmp : tmp = ""
 		If Instr(s,":")>0 Then
@@ -611,25 +556,20 @@ Class EasyAsp
 		End If
 		Post = Safe(tmp,t)
 	End Function
-	'安全获取值新版
 	Function Safe(ByVal s, ByVal t)
 		Dim spl,d,l,li,i,tmp,arr() : l = False
-		'如果类型中有默认值
 		If Instr(t,":")>0 Then
 			d = CRight(t,":") : t = CLeft(t,":")
 		End If
 		If Instr(",sa,da,na,se,de,ne,", "," & Left(LCase(t),2) & ",")>0 Then
-			'如果有分隔符且要警告
 			If Len(t)>2 Then
 				spl = Mid(t,3) : t = LCase(Left(t,2)) : l = True
 			End If
 		ElseIf Instr("sdn", Left(LCase(t),1))>0 Then
-			'如果有分隔符且不警告
 			If Len(t)>1 Then
 				spl = Mid(t,2) : t = LCase(Left(t,1)) : l = True
 			End If
 		ElseIf Has(t) Then
-			'仅有分隔符无类型
 			spl = t : t = "" : l = True
 		End If
 		li = Split(s,spl)
@@ -638,12 +578,10 @@ Class EasyAsp
 			If i<>0 Then tmp = tmp & spl
 			Select Case t
 				Case "s","sa","se"
-				'字符串类型
 					If isN(li(i)) Then li(i) = d
 					tmp = tmp & Replace(li(i),"'","''")
 					If l Then arr(i) = Replace(li(i),"'","''")
 				Case "d","da","de"
-				'日期类型
 					If t = "da" Then
 						If Not isDate(li(i)) And Has(li(i)) Then Alert("不正确的日期值！")
 					ElseIf t = "de" Then
@@ -652,7 +590,6 @@ Class EasyAsp
 					tmp = IIF(isDate(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isDate(li(i)), li(i), d)
 				Case "n","na","ne"
-				'数字类型
 					If t = "na" Then
 						If Not isNumeric(li(i)) And Has(li(i)) Then Alert("不正确的数值！")
 					ElseIf t = "ne" Then
@@ -661,7 +598,6 @@ Class EasyAsp
 					tmp = IIF(isNumeric(li(i)), tmp & li(i), tmp & d)
 					If l Then arr(i) = IIF(isNumeric(li(i)), li(i), d)
 				Case Else
-				'未指定类型则不处理
 					tmp = IIF(isN(li(i)), tmp & d, tmp & li(i))
 					If l Then arr(i) = IIF(isN(li(i)), d, li(i))
 			End Select
@@ -672,7 +608,6 @@ Class EasyAsp
 		If IsN(tmp) Then tmp = Empty
 		Safe = IIF(l,arr,tmp)
 	End Function
-	'检查提交数据来源
 	Function CheckDataFrom()
 		Dim v1, v2
 		CheckDataFrom = False
@@ -686,7 +621,6 @@ Class EasyAsp
 	Sub CheckDataFromA()
 		If Not CheckDataFrom Then Alert "禁止从站点外部提交数据！"
 	end Sub
-	'截取长字符串左边部分并以特殊符号代替
 	Function CutStr(ByVal s, ByVal strlen)
 		If IsN(s) Then CutStr = "" : Exit Function
 		If IsN(strlen) or strlen = "0" Then CutStr = s : Exit Function
@@ -713,15 +647,12 @@ Class EasyAsp
 		Next
 		CutStr = f
 	End Function
-	'取字符隔开的左段
 	Function CLeft(ByVal s, ByVal m)
 		CLeft = Easp_LR(s,m,0)
 	End Function
-	'取字符隔开的右段
 	Function CRight(ByVal s, ByVal m)
 		CRight = Easp_LR(s,m,1)
 	End Function
-	'获取当前文件的地址
 	Function GetUrl(param)
 		Dim script_name,url,dir
 		Dim out,qitem,qtemp,i,hasQS,qstring
@@ -773,7 +704,6 @@ Class EasyAsp
 		End If
 		GetUrl = url
 	End Function
-	'获取本页URL参数并带上新的URL参数
 	Function GetUrlWith(ByVal p, ByVal v)
 		Dim u,s,n
 		s = IIF(p=-1,GetUrl(-1)&"/","")
@@ -795,7 +725,6 @@ Class EasyAsp
 		End If
 		GetUrlWith = u
 	End Function
-	'获取用户IP地址
 	Function GetIP()
 		Dim addr, x, y
 		x = rqsv("HTTP_X_FORWARDED_FOR")
@@ -804,7 +733,6 @@ Class EasyAsp
 		If InStr(addr,".")=0 Then addr = "0.0.0.0"
 		GetIP = addr
 	End Function
-	'仅格式化HTML文本（可带HTML标签）
 	Function HtmlFormat(ByVal s)
 		If Has(s) Then
 			Dim m,Match : Set m = RegMatch(s, "<([^>]+)>")
@@ -820,7 +748,6 @@ Class EasyAsp
 		End If
 		HtmlFormat = s
 	End Function
-	'HTML加码函数
 	Function HtmlEncode(ByVal s)
 		If Has(s) Then
 			s = Replace(s, Chr(38), "&#38;")
@@ -834,7 +761,6 @@ Class EasyAsp
 		End If
 		HtmlEncode = s
 	End Function
-	'HTML解码函数
 	Function HtmlDecode(ByVal s)
 		If Has(s) Then
 			s = regReplace(s, "<br\s*/?\s*>", vbCrLf)
@@ -850,7 +776,6 @@ Class EasyAsp
 		End If
 		HtmlDecode = s
 	End Function
-	'过滤HTML标签
 	Function HtmlFilter(ByVal s)
 		If Has(s) Then
 			If IsN(s) Then HtmlFilter = "" : Exit Function
@@ -860,12 +785,10 @@ Class EasyAsp
 		End If
 		HtmlFilter = s
 	End Function
-	'精确到毫秒的脚本执行时间
 	Function GetScriptTime(t)
 		If t = "" Or t = "0" Then t = Easp_Timer
 		GetScriptTime = FormatNumber((Timer()-t)*1000, 2, -1)
 	End Function
-	'取指定长度的随机字符串
 	Function RandStr(ByVal cfg)
 		Dim a, p, l, t, reg, m, mi, ma
 		cfg = Replace(Replace(Replace(cfg,"\<",Chr(0)),"\>",Chr(1)),"\:",Chr(2))
@@ -911,29 +834,23 @@ Class EasyAsp
 			Randomize(Timer) : Easp_RandString = Easp_RandString & Mid(allowStr, Int(Len(allowStr) * Rnd + 1), 1)
 		Next
 	End Function
-	'取一个随机数
 	Function Rand(ByVal min, ByVal max)
 		Randomize(Timer) : Rand = Int((max - min + 1) * Rnd + min)
 	End Function
-	'格式化数字
 	Function toNumber(ByVal n, ByVal d)
 		toNumber = FormatNumber(n,d,-1)
 	End Function
-	'将数字转换为货币格式
 	Function toPrice(ByVal n)
 		toPrice = FormatCurrency(n,2,-1,0,-1)
 	End Function
-	'将数字转换为百分比格式
 	Function toPercent(ByVal n)
 		toPercent = FormatPercent(n,2,-1)
 	End Function
-	'关闭对象并释放资源
 	Sub C(ByRef o)
 		On Error Resume Next
 		o.Close() : Set o = Nothing
 		Err.Clear()
 	End Sub
-	'不缓存页面信息
 	Sub noCache()
 		Response.Buffer = True
 		Response.Expires = 0
@@ -943,7 +860,6 @@ Class EasyAsp
 		Response.AddHeader "Pragma","no-cache"
 		Response.AddHeader "Cache-Control","private, no-cache, must-revalidate"
 	End Sub
-	'设置一个Cookies值
 	Sub SetCookie(ByVal cooName, ByVal cooValue, ByVal cooCfg)
 		Dim n,i,cExp,cDomain,cPath,cSecure
 		If isArray(cooCfg) Then
@@ -990,7 +906,6 @@ Class EasyAsp
 		If Has(cPath) Then Response.Cookies(cooName).Path = cPath
 		If Has(cSecure) Then Response.Cookies(cooName).Secure = cSecure
 	End Sub
-	'获取一个Cookies值
 	Function Cookie(ByVal s)
 		Dim p,t,coo
 		If Instr(s,">") > 0 Then
@@ -1016,7 +931,6 @@ Class EasyAsp
 		End If
 		Cookie = Safe(coo,t)
 	End Function
-	'删除一个Cookies值
 	Sub RemoveCookie(ByVal s)
 		Dim p,t
 		If Instr(s,">") > 0 Then
@@ -1032,24 +946,20 @@ Class EasyAsp
 			Response.Cookies(s).Expires = Now()
 		End If
 	End Sub
-	'设置缓存记录
 	Sub SetApp(ByVal AppName,ByRef AppData)
 		Application.Lock
 		Application(AppName) = AppData
 		Application.UnLock
 	End Sub
-	'获取一个缓存记录
 	Function GetApp(ByVal AppName)
 		If IsN(AppName) Then GetApp = Empty : Exit Function
 		GetApp = Application(AppName)
 	End Function
-	'删除一个缓存记录
 	Sub RemoveApp(ByVal AppName)
 		Application.Lock
 		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
-	'获取文本中的图片地址存为一个数组
 	Function GetImg(ByVal s)
 		GetImg = GetImg__(s,0)
 	End Function
@@ -1061,12 +971,9 @@ Class EasyAsp
 		ReDim a(-1)
 		img = "<img([^>]+?)(/?)>"
 		If Has(s) And Easp_Test(s, img) Then
-			'取消所有的换行和缩进
 			s = Replace(s, vbCrLf, " ")
 			s = Replace(s, vbTab, " ")
-			'正则匹配所有的img标签
 			Set Matches = RegMatch(s, "(<img\s[^>]*src\s*=\s*([""|']?))([^""'>]+)(\2[^>]*>)")
-			'取出每个img的src存入数组
 			For Each m In Matches
 				ReDim Preserve a(i)
 				a(i) = Easp.IIF(t=0,m.SubMatches(2),m.value)
@@ -1075,7 +982,6 @@ Class EasyAsp
 		End If
 		GetImg__ = a
 	End Function
-	'验证身份证号码
 	Private Function isIDCard(ByVal s)
 		Dim Ai, BirthDay, arrVerifyCode, Wi, i, AiPlusWi, modValue, strVerifyCode
 		isIDCard = False
@@ -1100,7 +1006,6 @@ Class EasyAsp
 		If Len(s) = 18 And LCase(s) <> Ai Then Exit Function
 		isIDCard = True
 	End Function
-	'简易的服务端检查表单
 	Function CheckForm(ByVal s, ByVal Rule, ByVal Require, ByVal ErrMsg)
 		Dim tmpMsg, Msg, i
 		tmpMsg = Replace(ErrMsg,"\:",chr(0))
@@ -1126,7 +1031,6 @@ Class EasyAsp
 		End If
 		CheckForm = s
 	End Function
-	'返回正则验证结果
 	Function [Test](ByVal s, ByVal p)
 		Dim Pa
 		Select Case Lcase(p)
@@ -1151,21 +1055,17 @@ Class EasyAsp
 		End Select
 		[Test] = Easp_Test(CStr(s),Pa)
 	End Function
-	'正则替换
 	Function regReplace(ByVal s, ByVal rule, Byval Result)
 		regReplace = Easp_Replace(s,rule,Result,0)
 	End Function
-	'正则替换多行模式
 	Function regReplaceM(ByVal s, ByVal rule, Byval Result)
 		regReplaceM = Easp_Replace(s,rule,Result,1)
 	End Function
-	'正则匹配捕获
 	Function regMatch(ByVal s, ByVal rule)
 		o_regex.Pattern = rule
 		Set regMatch = o_regex.Execute(s)
 		o_regex.Pattern = ""
 	End Function
-	'正则表达式特殊字符转义
 	Function RegEncode(ByVal s)
 		Dim re,i
 		re = Split("\,$,(,),*,+,.,[,?,^,{,|",",")
@@ -1174,7 +1074,6 @@ Class EasyAsp
 		Next
 		RegEncode = s
 	End Function
-	'替换正则编组
 	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
 		If Not Easp_Test(txt, rule) Then
 			replacePart = "[not match]"
@@ -1199,7 +1098,6 @@ Class EasyAsp
 		Next
 		Set Match = Nothing
 	End Function
-	'检测组件是否安装
 	Function isInstall(Byval s)
 		On Error Resume Next : Err.Clear()
 		isInstall = False
@@ -1207,9 +1105,8 @@ Class EasyAsp
 		If Err.Number = 0 Then isInstall = True
 		Set obj = Nothing : Err.Clear()
 	End Function
-	'动态载入文件
 	Sub Include(ByVal filePath)
-		'On Error Resume Next
+		On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),0)
 		If Err.Number<>0 Then
 			[error].Msg = " ( " & filePath & " )"
@@ -1218,7 +1115,7 @@ Class EasyAsp
 		Err.Clear()
 	End Sub
 	Function getInclude(ByVal filePath)
-		'On Error Resume Next
+		On Error Resume Next
 		ExecuteGlobal GetIncCode(IncRead(filePath),1)
 		getInclude = EasyAsp_s_html
 		If Err.Number<>0 Then
@@ -1227,7 +1124,6 @@ Class EasyAsp
 		End If
 		Err.Clear()
 	End Function
-	'读取文件内容
 	Function Read(ByVal filePath)
 		Dim p, f, o_strm, tmpStr, s_char, t
 		s_char = s_charset
@@ -1279,7 +1175,6 @@ Class EasyAsp
 		End If
 		Read = tmpStr
 	End Function
-	'读取包含文件内容（无限级）
 	Private Function IncRead(ByVal filePath)
 		Dim content, rule, inc, incFile, incStr
 		content = Read(filePath)
@@ -1302,7 +1197,6 @@ Class EasyAsp
 		End If
 		IncRead = content
 	End Function
-	'将文本内容转换为ASP代码
 	Function GetIncCode(ByVal content, ByVal getHtml)
 		Dim tmpStr,code,tmpCode,s_code,st,en
 		code = "" : st = 1 : en = Instr(content,"<%") + 2
@@ -1339,7 +1233,6 @@ Class EasyAsp
 		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
 		If o_fso.FileExists(p) Then isFile = True
 	End Function
-	'加载引用EasyAsp库类
 	Sub Use(ByVal f)
 		Dim p, o, t : o = f
 		p = "easp." & Lcase(o) & ".asp"
@@ -1356,7 +1249,6 @@ Class EasyAsp
 			End If
 		End If
 	End Sub
-	'加载插件
 	Function Ext(ByVal f)
 		Dim loaded, p
 		f = Lcase(f) : loaded = True
@@ -1377,7 +1269,6 @@ Class EasyAsp
 		End If
 		Set Ext = o_ext(f)
 	End Function
-	'清除加载插件
 	Private Sub ClearExt()
 		Dim i
 		If Has(o_ext) Then
@@ -1387,14 +1278,12 @@ Class EasyAsp
 			o_ext.RemoveAll
 		End If
 	End Sub
-	'Md5加密字符串
 	Function MD5(ByVal s)
 		Use("Md5") : MD5 = o_md5(s)
 	End Function
 	Function MD5_16(ByVal s)
 		Use("Md5") : MD5_16 = o_md5.To16(s)
 	End Function
-	'调试函数
 	Sub Trace(ByVal o)
 		Dim s,i,j
 		Select Case VarType(o)
@@ -1463,7 +1352,6 @@ Class EasyAsp
 		End If
 		Easp_Replace = tmpStr
 	End Function
-	'取字符串的两头
 	Private Function Easp_LR(ByVal s, ByVal m, ByVal t)
 		Dim n : n = Instr(s,m)
 		If n>0 Then
@@ -1478,7 +1366,6 @@ Class EasyAsp
 	End Function
 End Class
 Class EasyAsp_obj : End Class
-'Easp内部多参数处理
 Private Function Easp_Param(ByVal s)
 	Dim arr(1),t : t = Instr(s,":")
 	If t > 0 Then
@@ -1491,12 +1378,3 @@ End Function
 %>
 <!--#include file="core/easp.error.asp"-->
 <!--#include file="core/easp.db.asp"-->
-<!--#include file="core/easp.list.asp"-->
-<!--#include file="core/easp.fso.asp"-->
-<!--#include file="core/easp.upload.asp"-->
-<!--#include file="core/easp.tpl.asp"-->
-<!--#include file="core/easp.json.asp"-->
-<!--#include file="core/easp.aes.asp"-->
-<!--#include file="core/easp.cache.asp"-->
-<!--#include file="core/easp.http.asp"-->
-<!--#include file="core/easp.xml.asp"-->
