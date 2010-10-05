@@ -25,7 +25,7 @@ Easp.Debug = False
 
 ''配置数据库连接：
 ''Access:
-'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","")
+'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","test")
 ''MS SQL Server:
-'Easp.db.Conn = Easp.db.OpenConn(0,"Data","sa:admin@127.0.0.1")
+Easp.db.Conn = Easp.db.OpenConn(0,"ambox","ambox_f:123321@61.152.239.186")
 %>
