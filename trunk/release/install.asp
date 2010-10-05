@@ -2,7 +2,13 @@
 '下面两行是本配置文件才会用到的特殊代码，不用模仿
 If TypeName(Easp.Fso) <> "EasyAsp_Fso" Then Easp.Include "core/easp.fso.asp" : Set Easp.Fso = New EasyAsp_Fso
 If TypeName(Easp.List) <> "EasyAsp_List" Then Easp.Include "core/easp.list.asp" : Set Easp.List = New EasyAsp_List
+'保存配置
+If Easp.Get("act")="save" Then
+	
+End If
 
+'通用配置
+Dim vPass : vPass = ""
 
 Dim EaspCfg, EC, CoreFile,ma,m
 '开始读取配置文件
@@ -29,6 +35,36 @@ For Each m In ma
 Next
 EaspCfg("coreon") = Mid(EaspCfg("coreon"),2)
 Set ma = Nothing
+Dim Dbrule,MSSQL,Access
+Dbrule = "^(?:[\s\S]+)\r\nEasp\.db\.Conn\s*=\s*Easp\.db\.OpenConn\((\w+?),""([^""]+)"",""([^""]*)""\)\r\n(?:[\s\S]+)"
+EaspCfg("dbtype") = Easp.RegReplace(EC,Dbrule,"$1")
+EaspCfg("db") = Easp.RegReplace(EC,Dbrule,"$2")
+EaspCfg("dbs") = Easp.RegReplace(EC,Dbrule,"$3")
+EaspCfg("db_server") = ""
+EaspCfg("db_port") = ""
+EaspCfg("db_user") = ""
+EaspCfg("db_pass") = ""
+EaspCfg("db_name") = ""
+EaspCfg("db_file") = ""
+EaspCfg("db_filepass") = ""
+
+Select Case LCase(EaspCfg("dbtype"))
+	Case "0","mssql"
+		EaspCfg("dbtype") = 0
+		EaspCfg("db_server") = Mid(EaspCfg("dbs"),InstrRev(EaspCfg("dbs"),"@")+1)
+		If Instr(EaspCfg("db_server"),":")>0 Then
+			EaspCfg("db_port") = Easp.CRight(EaspCfg("db_server"),":")
+			EaspCfg("db_server") = Easp.CLeft(EaspCfg("db_server"),":")
+		End If
+		EaspCfg("db_user") = Left(EaspCfg("dbs"),InstrRev(EaspCfg("dbs"),"@")-1)
+		EaspCfg("db_pass") = Easp.CRight(EaspCfg("db_user"),":")
+		EaspCfg("db_user") = Easp.CLeft(EaspCfg("db_user"),":")
+		EaspCfg("db_name") = EaspCfg("db")
+	Case "1","access"
+		EaspCfg("dbtype") = 1
+		EaspCfg("db_file") = EaspCfg("db")
+		EaspCfg("db_filepass") = EaspCfg("dbs")
+End Select
 
 '正则查找字符串
 Function FindStr(ByVal str, ByVal rule)
@@ -60,7 +96,7 @@ End Function
 
 
 Dim VV
-VV = Easp.HtmlEncode(EaspCfg("coreon"))
+VV = Easp.HtmlEncode(EaspCfg("dbserver"))
 
 Sub Install()
 	Dim str,i,char,a,b
@@ -99,9 +135,17 @@ Sub Install()
 	str = str & ReadCoreList
 	str = str & "</td></tr><tr><th scope=""row""></th><td class=""desc"">自动载入的核心类不再需要用 Easp.Use 载入，可直接使用</td></tr>"
 	str = str & "<tr><th scope=""row"">数据库连接</th><td>"
-	str = str & "<select name=""database"" id=""database"" class=""long""><option value=""no"">没有数据库连接</option><option value=""0"">Microsoft SQL Server</option><option value=""1"">Microsoft Access</option></select>"
-	str = str & "<div id=""mssql""><input type=""text"" name=""sql_addr"" id=""sql_addr"" />&nbsp;<span class=""desc"">MSSQL数据库服务器地址</span><br /><input type=""text"" name=""sql_port"" id=""sql_port"" />&nbsp;<span class=""desc"">MSSQL数据库服务器端口号，如未修改过请留空</span><br /><input type=""text"" name=""sql_user"" id=""sql_user"" />&nbsp;<span class=""desc"">MSSQL数据库用户名</span><br /><input type=""text"" name=""sql_pass"" id=""sql_pass"" />&nbsp;<span class=""desc"">MSSQL数据库密码</span><br /><input type=""text"" name=""sql_db"" id=""sql_db"" />&nbsp;<span class=""desc"">MSSQL数据库名称</span><br /><button type=""button"" id=""testmssql"">测试数据库连接</button> <span class=""desc"" id=""testmssqlmsg"">数据库连接正常！</span></div>"
-	str = str & "<div id=""access""><input type=""text"" name=""ac_addr"" id=""ac_addr"" />&nbsp;<span class=""desc"">Access数据库(*.mdb)文件地址</span><br /><input type=""text"" name=""sql_pass"" id=""sql_pass"" />&nbsp;<span class=""desc"">Access数据库密码，如未设置请留空</span><br /><button type=""button"" id=""testaccess"">测试数据库连接</button> <span class=""desc"" id=""testaccessmsg"">连接中，请稍候…</span></div>"
+	str = str & "<select name=""database"" id=""database"" class=""long""><option value=""no"">没有数据库连接</option><option value=""0"""
+	If EaspCfg("dbtype") = 0 Then str = str & " selected=""selected"""
+	str = str & ">Microsoft SQL Server</option><option value=""1"""
+	If EaspCfg("dbtype") = 1 Then str = str & " selected=""selected"""
+	str = str & ">Microsoft Access</option></select>"
+	str = str & "<div id=""mssql"""
+	If EaspCfg("dbtype")<>0 Then str = str & " style=""display:none;"""
+	str = str & "><input type=""text"" name=""sql_addr"" id=""sql_addr"" value=""{db_server}"" />&nbsp;<span class=""desc"">MSSQL数据库服务器地址</span><br /><input type=""text"" name=""sql_port"" id=""sql_port"" value=""{db_port}"" />&nbsp;<span class=""desc"">MSSQL数据库服务器端口号，如未修改过请留空</span><br /><input type=""text"" name=""sql_user"" id=""sql_user"" value=""{db_user}"" />&nbsp;<span class=""desc"">MSSQL数据库用户名</span><br /><input type=""text"" name=""sql_pass"" id=""sql_pass"" value=""{db_pass}"" />&nbsp;<span class=""desc"">MSSQL数据库密码</span><br /><input type=""text"" name=""sql_db"" id=""sql_db"" value=""{db_name}"" />&nbsp;<span class=""desc"">MSSQL数据库名称</span><!--<br /><input type=""button"" id=""testmssql"" value=""测试数据库连接"" /> <span class=""desc"" id=""testmssqlmsg""></span> --></div>"
+	str = str & "<div id=""access"""
+	If EaspCfg("dbtype")<>1 Then str = str & " style=""display:none;"""
+	str = str & "><input type=""text"" name=""ac_addr"" id=""ac_addr"" value=""{db_file}"" />&nbsp;<span class=""desc"">Access数据库(*.mdb)文件地址</span><br /><input type=""text"" name=""sql_pass"" id=""sql_pass"" value=""{db_filepass}"" />&nbsp;<span class=""desc"">Access数据库密码，如未设置请留空</span><!--<br /><input type=""button"" id=""testmssql"" value=""测试数据库连接"" /> <span class=""desc"" id=""testaccessmsg""></span> --></div>"
 	str = str & "</td></tr><tr><th scope=""row"">下次访问本文件的密码</th><td><input type=""text"" name=""password"" id=""password"" class=""long"" /><br /><span class=""r"">如果不设置此密码，则为了安全此次配置保存后会自动删除本文件</span></td></tr></table>"
 	str = str & "<div class=""btn""><button type=""submit"" id=""saveconfig"">保存配置</button></div></form>"
 	str = str & "<script type=""text/javascript"">$(function(){$('#database').change(function(){var v = $(this).val();var sq = $('#mssql'),ac=$('#access');if(v=='no'){sq.hide();ac.hide();}else if(v==0){sq.show();ac.hide();}else if(v==1){sq.hide();ac.show();}});});</script></div>"
@@ -135,7 +179,8 @@ form {padding:0;margin:0;}
 .r { color:#C33;}
 .b { display:block;float:left;width:150px;}
 .btn{border-top:1px dashed #CCC;padding:20px; text-align:right;}
-#mssql,#access{ margin-top:5px; display:none;} #testmssql,#testaccess{ margin-top:5px; font-size:12px;}
+.btn button{padding:3px 10px;}
+#mssql,#access{ margin-top:5px;} #testmssql,#testaccess{ margin-top:5px; font-size:12px;}
 -->
 </style>
 <% Call JQ %>
