@@ -27,5 +27,5 @@ Easp.Debug = False
 ''Access:
 'Easp.db.Conn = Easp.db.OpenConn(1,"/data/data.mdb","test")
 ''MS SQL Server:
-Easp.db.Conn = Easp.db.OpenConn(0,"ambox","ambox_f:123321@61.152.239.186")
+Easp.db.Conn = Easp.db.OpenConn(0,"EasyASP","sa:jpzx_1860@192.168.133.2")
 %>
