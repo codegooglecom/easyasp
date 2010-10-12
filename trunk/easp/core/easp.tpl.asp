@@ -87,10 +87,27 @@ Class EasyAsp_Tpl
 		s_html = LoadInc(s_path & f,"")
 		SetBlocks()
 	End Sub
+	'从文本加载模板
+	Public Sub LoadStr(ByVal s)
+		s_html = s
+		SetBlocks()
+	End Sub
 	'加载附加模板
 	Public Sub TagFile(ByVal tag, ByVal f)
+		LoadToTag tag,0,f
+	End Sub
+	'从文本加载附加模板
+	Public Sub TagStr(ByVal tag, ByVal s)
+		LoadToTag tag,1,s
+	End Sub
+	'加载附加模板原型
+	Private Sub LoadToTag(ByVal tag, ByVal t, ByVal f)
 		Dim s
-		s = LoadInc(s_path & f,"")
+		If t = 0 Then
+			s = LoadInc(s_path & f,"")
+		Else
+			s = f
+		End If
 		If Easp.Has(tag) Then
 			s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
 		Else
