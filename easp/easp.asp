@@ -590,6 +590,14 @@ Class EasyAsp
 		End If
 		[Get] = Safe(tmp,t)
 	End Function
+	'UTF-8编码下取中文参数（仅utf-8下有效，感谢Easp.智者提供此方法）
+	Function GetCn(ByVal s)
+		Dim tmp
+		Session.CodePage = 936
+		tmp = [Get](s)
+		Session.CodePage = 65001
+		GetCn = tmp
+	End Function
 	'取Form值，包括上传文件时的普通Form值
 	Function Post(ByVal s)
 		Dim t,tmp : tmp = ""
