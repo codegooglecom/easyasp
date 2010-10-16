@@ -150,7 +150,8 @@ Class EasyAsp_Tpl
 		For Each Match In Matches
 			data = Match.SubMatches(0)
 			If o_blocktag.Exists(data) Then
-				s = Easp.regReplace(s, rule, o_blocktag.Item(data))
+				's = Easp.regReplace(s, rule, o_blocktag.Item(data))
+				s = Replace(s, Match.Value, o_blocktag.Item(data))
 				o_blocktag.Remove(data)
 			End If
 		Next
@@ -165,13 +166,14 @@ Class EasyAsp_Tpl
 		Set Match = Matches
 		For Each Match In Matches
 			s = BlockTag(b)
-			s_html = Easp.regReplace(s_html, Chr(0) & b & Chr(0), s & Chr(0) & b & Chr(0))
+			s_html = Replace(s_html, Match.Value, s & Match.Value)
 		Next
+		If o_block.Exists(b) Then o_block.Remove b
 	End Sub
 	'获取最终html
 	Public Function GetHtml()
-		Dim Matches, Match, n
-		'取出所有标签
+		Dim Matches, Match, n, b
+		'替换标签
 		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
 		'Easp.WN "rule:" & s_ms & "(.+?)" & s_me
 		For Each Match In Matches
@@ -183,13 +185,18 @@ Class EasyAsp_Tpl
 				'Easp.WN "match_dic:" & o_tag.Item(n)
 			End If
 		Next
-		Set Matches = Easp.regMatch(s_html, Chr(0) & "\w+?" & Chr(0))
+		'替换未处理循环块
+		Set Matches = Easp.regMatch(s_html, Chr(0) & "(\w+?)" & Chr(0))
 		For Each Match In Matches
+			b = Match.SubMatches(0)
+			If o_block.Exists(b) Then [Update](b)
 			s_html = Replace(s_html, Match.Value, "")
 		Next
+		'替换未处理标签
 		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
 		select case s_unknown
 			case "keep"
+				'Do Nothing
 			case "remove"
 				For Each Match In Matches
 					s_html = Replace(s_html, Match.Value, "")
