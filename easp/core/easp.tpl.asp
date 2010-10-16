@@ -9,10 +9,9 @@
 '## Description :   Use Templates with EasyAsp
 '##
 '######################################################################
-Class EasyAsp_Tpl	
-	Public Attr
+Class EasyAsp_Tpl
 	Private s_html, s_unknown, s_dict, s_path, s_m, s_ms, s_me
-	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks
+	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks, o_attr
 	Private b_asp
 
 	Private Sub class_Initialize
@@ -24,7 +23,7 @@ Class EasyAsp_Tpl
 		Set o_block = Server.CreateObject(s_dict)
 		Set o_blocktag = Server.CreateObject(s_dict)
 		Set o_blocks = Server.CreateObject(s_dict)
-		Set Attr = Server.CreateObject(s_dict)
+		Set o_attr = Server.CreateObject(s_dict)
 		s_m = "{*}"
 		getMaskSE s_m
 		b_asp = False
@@ -36,7 +35,7 @@ Class EasyAsp_Tpl
 		Set o_block = Nothing
 		Set o_blockTag = Nothing
 		Set o_blocks = Nothing
-		Set Attr = Nothing
+		Set o_attr = Nothing
 	End Sub
 
 	'模板路径
@@ -87,6 +86,11 @@ Class EasyAsp_Tpl
 	'建新实例
 	Public Function [New]()
 		Set [New] = New EasyASP_Tpl
+	End Function
+	'取循环块的属性
+	Public Function Attr(ByVal s)
+		If Not o_attr.Exists(s) Then Exit Function
+		Attr = o_attr.Item(s)
 	End Function
 
 	'加载模板方法二
@@ -288,7 +292,7 @@ Class EasyAsp_Tpl
 	End Sub
 	'初始化循环块
 	Private Sub Begin(ByVal b)
-		Dim Matches, Match, rule, data, attrs, attr, att, aname, avalue
+		Dim Matches, Match, rule, data, attrs, attr, att, aname, avalue, atag
 		rule = "(<!--[\s]*)?(" & s_ms & ")#:(" & b & ")(" & s_me & ")([\s]*-->)?([\s\S]+?)(<!--[\s]*)?\2/#:\3\4([\s]*-->)?"
 		'如果循环块有属性则取出属性
 		If Instr(b," ")>0 Then
@@ -316,11 +320,11 @@ Class EasyAsp_Tpl
 				For Each att In attr
 					aname = Easp.CLeft(att.Value, "=")
 					avalue = Easp.RegReplace(att.Value, "\w+=(['""]?)(.+?)\1", "$2")
+					atag = b & "." & aname
 					'Easp.WN "attr '" & aname & "' = ["&avalue&"]"
+					If o_attr.Exists(atag) Then o_attr.Remove(atag)
+					o_attr.Add atag, avalue
 				Next
-				'If Attr.Exists() Then
-					
-				'End If
 			End If
 			'把原始内容中的循环块作临时替换
 			s_html = Easp.regReplace(s_html, rule, Chr(0) & b & Chr(0))
@@ -331,6 +335,7 @@ Class EasyAsp_Tpl
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
 			tmp = o_blockdata.Item(b)
+			'替换已定义标签
 			s = UpdateBlockTag(tmp)
 			BlockData = s
 		Else
@@ -342,8 +347,10 @@ Class EasyAsp_Tpl
 		Dim tmp, s
 		If o_blockdata.Exists(b) Then
 			tmp = o_blocktag.Item(b)
+			'替换已定义标签
 			s = UpdateBlockTag(tmp)
 			BlockTag = s
+			'删除循环块临时数据
 			o_blocktag.Remove(b)
 		Else
 			BlockTag = "<!--" & Chr(0) & b & Chr(0) & "-->"
@@ -354,9 +361,12 @@ Class EasyAsp_Tpl
 		Dim Matches, Match, data, rule
 		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)
 		For Each Match In Matches
+			'取标签名
 			data = Match.SubMatches(0)
+			'如果此标签有替换值
 			If o_tag.Exists(data) Then
 				rule = Match.Value
+				'替换标签为相应的值
 				If Easp.isN(o_tag.Item(data)) Then
 					s = Easp.regReplace(s, rule, "")
 				Else
