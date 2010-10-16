@@ -18,12 +18,12 @@ Class EasyAsp_Tpl
 		s_path = ""
 		s_unknown = "keep"
 		s_dict = "Scripting.Dictionary"
-		Set o_tag = Server.CreateObject(s_dict)
-		Set o_blockdata = Server.CreateObject(s_dict)
-		Set o_block = Server.CreateObject(s_dict)
-		Set o_blocktag = Server.CreateObject(s_dict)
-		Set o_blocks = Server.CreateObject(s_dict)
-		Set o_attr = Server.CreateObject(s_dict)
+		Set o_tag = Server.CreateObject(s_dict) : o_tag.CompareMode = 1
+		Set o_blockdata = Server.CreateObject(s_dict) : o_blockdata.CompareMode = 1
+		Set o_block = Server.CreateObject(s_dict) : o_block.CompareMode = 1
+		Set o_blocktag = Server.CreateObject(s_dict) : o_blocktag.CompareMode = 1
+		Set o_blocks = Server.CreateObject(s_dict) : o_blocks.CompareMode = 1
+		Set o_attr = Server.CreateObject(s_dict) : o_attr.CompareMode = 1
 		s_m = "{*}"
 		getMaskSE s_m
 		b_asp = False
@@ -124,9 +124,18 @@ Class EasyAsp_Tpl
 	End Sub
 	'替换标签(默认方法)
 	Public Default Sub Tag(ByVal s, ByVal v)
-		If Easp.IsN(v) Then v = ""
-		If o_tag.Exists(s) Then o_tag.Remove s
-		o_tag.Add s, Cstr(v)
+		Dim i,f
+		If TypeName(v) = "Recordset" Then
+			If Easp.Has(v) Then
+				For i = 0 To v.Fields.Count - 1
+					Tag s & "(" & v.Fields(i).Name & ")", v.Fields(i).Value
+				Next
+			End If
+		Else
+			If Easp.IsN(v) Then v = ""
+			If o_tag.Exists(s) Then o_tag.Remove s
+			o_tag.Add s, Cstr(v)
+		End If
 	End Sub
 	'在已替换标签后添加新内容
 	Public Sub Append(ByVal s, ByVal v)
