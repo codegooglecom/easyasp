@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Templates Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/01/26 16:08:30
+'## Update Date :   2010/10/17 00:42:30
 '## Description :   Use Templates with EasyAsp
 '##
 '######################################################################
@@ -150,7 +150,6 @@ Class EasyAsp_Tpl
 		For Each Match In Matches
 			data = Match.SubMatches(0)
 			If o_blocktag.Exists(data) Then
-				's = Easp.regReplace(s, rule, o_blocktag.Item(data))
 				s = Replace(s, Match.Value, o_blocktag.Item(data))
 				o_blocktag.Remove(data)
 			End If
@@ -375,9 +374,9 @@ Class EasyAsp_Tpl
 				rule = Match.Value
 				'替换标签为相应的值
 				If Easp.isN(o_tag.Item(data)) Then
-					s = Easp.regReplace(s, rule, "")
+					s = Replace(s, rule, "")
 				Else
-					s = Easp.regReplace(s, rule, o_tag.Item(data))
+					s = Replace(s, rule, o_tag.Item(data))
 				End If
 			End If
 		Next
