@@ -11,7 +11,7 @@
 '######################################################################
 Class EasyAsp_Tpl
 	Private s_html, s_unknown, s_dict, s_path, s_m, s_ms, s_me
-	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks, o_attr
+	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks, o_attr, o_if
 	Private b_asp
 
 	Private Sub class_Initialize
@@ -24,6 +24,7 @@ Class EasyAsp_Tpl
 		Set o_blocktag = Server.CreateObject(s_dict) : o_blocktag.CompareMode = 1
 		Set o_blocks = Server.CreateObject(s_dict) : o_blocks.CompareMode = 1
 		Set o_attr = Server.CreateObject(s_dict) : o_attr.CompareMode = 1
+		Set o_if = Server.CreateObject(s_dict) : o_if.CompareMode = 1
 		s_m = "{*}"
 		getMaskSE s_m
 		b_asp = False
@@ -36,6 +37,7 @@ Class EasyAsp_Tpl
 		Set o_blockTag = Nothing
 		Set o_blocks = Nothing
 		Set o_attr = Nothing
+		Set o_if = Nothing
 	End Sub
 
 	'模板路径
@@ -189,8 +191,73 @@ Class EasyAsp_Tpl
 		Next
 		If o_block.Exists(b) Then o_block.Remove b
 	End Sub
+	'处理逻辑控制块(if..else)
+	Private Function LogicReplace(ByVal s)
+		Dim Matches, Match, result, condi, conds, cond, n, yes, no, x, e, f, cname, ckey, copera, cvalue
+		Set Matches = Easp.RegMatch(s, s_ms & "#if\s+(.+?)"&s_me&"([\s\S]+?)(?:"&s_ms&"#else"&s_me&"([\s\S]+?))?"&s_ms&"/#if"&s_me)
+		For Each Match In Matches
+			condi = Match.SubMatches(0)
+			yes = Match.SubMatches(1)
+			no = Match.SubMatches(2)
+			'选择条件表达式组
+			Set conds = Easp.RegMatch(condi,"(?:([^&)(\s}|}=<>!]+)([=<>!]{1,2})(['""])(.+?)\3)|(?:([^&()\s|}=<>!]+)([=<>!]{1,2})([^&)\s|}]+))")
+			For Each cond In conds
+				'选择到的表达式
+				cname = cond.Value
+				'找其中的变量标签
+				Set e = Easp.RegMatch(cname,"@(\w+)")
+				For Each f In e
+					n = f.SubMatches(0)
+					'把标签替换为值
+					cname = Replace(cname, f.Value, Easp.IIF(o_tag.Exists(n),o_tag.Item(n),""))
+				Next
+				Set e = Nothing
+				'解析表达式
+				Set x = Easp.RegMatch(cname,"^([^=<>!]*)([=<>!]{1,2})(['""]?)(.*)\3$")
+				ckey = x(0).SubMatches(0)
+				copera = x(0).SubMatches(1)
+				cvalue = x(0).SubMatches(3)
+				'Easp.WNH "exp:" & ckey & copera & cvalue
+				'比较表达式的结果
+				condi = Replace(condi, cond.Value, Comp(ckey,copera,cvalue))
+				condi = Replace(condi, "&&", " And ")
+				condi = Replace(condi, "||", " Or ")
+				Set x = Nothing
+			Next
+			'Easp.WNH condi
+			'Easp.WN yes
+			'Easp.WN no
+			s = Replace(s, Match.Value, Easp.IIF(Eval(condi), yes, no))
+			Set conds = Nothing
+		Next
+		Set Matches = Nothing
+		LogicReplace = s
+	End Function
+	'比较表达式(感谢Taihom)
+	Private Function Comp(ByVal k, ByVal o, ByVal v)
+		On Error Resume Next
+		Dim tmp,m,ma,mb : tmp = False
+		Select Case o
+			Case "=","=="
+				m = Replace(k,"\%","")
+				If Instr(m,"%")>0 Then
+					ma = Easp.CLeft(m,"%")
+					mb = Easp.CRight(m,"%")
+					tmp = (CLng(ma) Mod CLng(mb) = v)
+				Else
+					tmp = (CStr(k) = CStr(v))
+				End If
+			Case "<>","!=" tmp = (CStr(k) <> CStr(v))
+			Case ">=" tmp = (CDbl(k) >= CDbl(v))
+			Case "<=" tmp = (CDbl(k) <= CDbl(v))
+			Case ">" tmp = (CDbl(k) > CDbl(v))
+			Case "<" tmp = (CDbl(k) < CDbl(v))
+		End Select
+		Comp = Easp.IIF(Err.Number=0,tmp,False)
+	End Function
 	'获取最终html
 	Public Function GetHtml()
+		s_html = LogicReplace(s_html)
 		Dim Matches, Match, n, b
 		'替换标签
 		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
@@ -225,6 +292,7 @@ Class EasyAsp_Tpl
 					s_html = Replace(s_html, Match.Value, "<!-- Unknown Tag '" & Match.Submatches(0) & "' -->")
 				Next
 		End select
+		Set Matches = Nothing
 		GetHtml = s_html
 	End Function
 	'输出模板内容
@@ -384,6 +452,7 @@ Class EasyAsp_Tpl
 	End Function
 	'更新循环块标签
 	Private Function UpdateBlockTag(ByVal s)
+		s = LogicReplace(s)
 		Dim Matches, Match, data, rule
 		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)
 		For Each Match In Matches
