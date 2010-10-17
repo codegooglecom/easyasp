@@ -125,17 +125,28 @@ Class EasyAsp_Tpl
 	'替换标签(默认方法)
 	Public Default Sub Tag(ByVal s, ByVal v)
 		Dim i,f
-		If TypeName(v) = "Recordset" Then
-			If Easp.Has(v) Then
-				For i = 0 To v.Fields.Count - 1
-					Tag s & "(" & v.Fields(i).Name & ")", v.Fields(i).Value
-				Next
-			End If
-		Else
-			If Easp.IsN(v) Then v = ""
-			If o_tag.Exists(s) Then o_tag.Remove s
-			o_tag.Add s, Cstr(v)
-		End If
+		Select Case TypeName(v)
+			'替换记录集标签
+			Case "Recordset"
+				If Easp.Has(v) Then
+					For i = 0 To v.Fields.Count - 1
+						Tag s & "(" & v.Fields(i).Name & ")", v.Fields(i).Value
+						Tag s & "(" & i & ")", v.Fields(i).Value
+					Next
+				End If
+			'替换Easp超级数组标签
+			Case "EasyAsp_List"
+				If v.Size > 0 Then
+					For i = 0 To v.End
+						Tag s & "(" & i & ")", v(i)
+						Tag s & "(" & v.IndexHash(i) & ")", v(i)
+					Next
+				End If
+			Case Else
+				If Easp.IsN(v) Then v = ""
+				If o_tag.Exists(s) Then o_tag.Remove s
+				o_tag.Add s, Cstr(v)
+		End Select
 	End Sub
 	'在已替换标签后添加新内容
 	Public Sub Append(ByVal s, ByVal v)
