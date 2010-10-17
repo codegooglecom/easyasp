@@ -5,13 +5,13 @@
 '## Feature     :   EasyAsp Templates Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/10/17 00:42:30
+'## Update Date :   2010/10/17 21:46:30
 '## Description :   Use Templates with EasyAsp
 '##
 '######################################################################
 Class EasyAsp_Tpl
-	Private s_html, s_unknown, s_dict, s_path, s_m, s_ms, s_me
-	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks, o_attr, o_if
+	Private s_html, s_ohtml, s_unknown, s_dict, s_path, s_m, s_ms, s_me
+	Private o_tag, o_blockdata, o_block, o_blocktag, o_blocks, o_attr
 	Private b_asp
 
 	Private Sub class_Initialize
@@ -24,11 +24,11 @@ Class EasyAsp_Tpl
 		Set o_blocktag = Server.CreateObject(s_dict) : o_blocktag.CompareMode = 1
 		Set o_blocks = Server.CreateObject(s_dict) : o_blocks.CompareMode = 1
 		Set o_attr = Server.CreateObject(s_dict) : o_attr.CompareMode = 1
-		Set o_if = Server.CreateObject(s_dict) : o_if.CompareMode = 1
 		s_m = "{*}"
 		getMaskSE s_m
 		b_asp = False
 		s_html = ""
+		s_ohtml = ""
 	End Sub
 	Private Sub Class_Terminate
 		Set o_tag = Nothing
@@ -37,7 +37,6 @@ Class EasyAsp_Tpl
 		Set o_blockTag = Nothing
 		Set o_blocks = Nothing
 		Set o_attr = Nothing
-		Set o_if = Nothing
 	End Sub
 
 	'模板路径
@@ -87,7 +86,7 @@ Class EasyAsp_Tpl
 	End Property
 	'建新实例
 	Public Function [New]()
-		Set [New] = New EasyASP_Tpl
+		Set [New] = New EasyAsp_Tpl
 	End Function
 	'取循环块的属性
 	Public Function Attr(ByVal s)
@@ -98,11 +97,24 @@ Class EasyAsp_Tpl
 	'加载模板方法二
 	Public Sub Load(ByVal f)
 		s_html = LoadInc(s_path & f,"")
+		s_ohtml = s_html
 		SetBlocks()
 	End Sub
 	'从文本加载模板
 	Public Sub LoadStr(ByVal s)
 		s_html = s
+		s_ohtml = s
+		SetBlocks()
+	End Sub
+	'重新载入
+	Public Sub Reload()
+		o_tag.RemoveAll
+		o_blockdata.RemoveAll
+		o_block.RemoveAll
+		o_blockTag.RemoveAll
+		o_blocks.RemoveAll
+		o_attr.RemoveAll
+		s_html = s_ohtml
 		SetBlocks()
 	End Sub
 	'加载附加模板
@@ -132,16 +144,16 @@ Class EasyAsp_Tpl
 			Case "Recordset"
 				If Easp.Has(v) Then
 					For i = 0 To v.Fields.Count - 1
-						Tag s & "(" & v.Fields(i).Name & ")", v.Fields(i).Value
-						Tag s & "(" & i & ")", v.Fields(i).Value
+						Tag s & "." & v.Fields(i).Name, v.Fields(i).Value
+						Tag s & "." & i, v.Fields(i).Value
 					Next
 				End If
 			'替换Easp超级数组标签
 			Case "EasyAsp_List"
 				If v.Size > 0 Then
 					For i = 0 To v.End
-						Tag s & "(" & i & ")", v(i)
-						Tag s & "(" & v.IndexHash(i) & ")", v(i)
+						Tag s & "." & i, v(i)
+						Tag s & "." & v.IndexHash(i), v(i)
 					Next
 				End If
 			Case Else
@@ -205,7 +217,7 @@ Class EasyAsp_Tpl
 				'选择到的表达式
 				cname = cond.Value
 				'找其中的变量标签
-				Set e = Easp.RegMatch(cname,"@(\w+)")
+				Set e = Easp.RegMatch(cname,"@([\w\.]+)")
 				For Each f In e
 					n = f.SubMatches(0)
 					'把标签替换为值
