@@ -308,7 +308,7 @@ Class EasyAsp_Tpl
 				Case "remove"
 					'Do Nothing
 				Case "comment"
-					s_html = Replace(s_html, Match.Value, "<!-- Unknown Block '"&b&"' --><!-- " & Match.Value & " -->")
+					s_html = Replace(s_html, Match.Value, "<!-- Unknown Block '"&b&"' -->")
 			End Select
 			s_html = Replace(s_html, Match.Value, "")
 		Next
