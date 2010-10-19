@@ -63,6 +63,17 @@ Class EasyAsp_Tpl
 		s_m = m
 		getMaskSE s_m
 	End Property
+	'标签替换（属性模式）
+	Public Property Let Tag(ByVal s, ByVal v)
+		Assign s, v
+	End Property
+	Public Property Get Tag(ByVal s)
+		If o_tag.Exists(s) Then
+			Tag = o_tag.Item(s)
+		Else
+			Tag = ""
+		End If
+	End Property
 	'模板中是否可以执行ASP代码
 	Public Property Get AspEnable
 		AspEnable = b_asp
@@ -128,7 +139,11 @@ Class EasyAsp_Tpl
 	'加载附加模板原型
 	Private Sub LoadToTag(ByVal tag, ByVal t, ByVal f)
 		Dim s
-		s = Easp.IIF(t = 0, LoadInc(s_path & f,""), f)
+		If t = 0 Then
+			s = LoadInc(s_path & f,"")
+		Else
+			s = f
+		End If
 		If Easp.Has(tag) Then
 			s_html = Easp.regReplace(s_html, s_ms & tag & s_me, s)
 		Else
@@ -137,23 +152,23 @@ Class EasyAsp_Tpl
 		SetBlocks()
 	End Sub
 	'替换标签(默认方法)
-	Public Default Sub Tag(ByVal s, ByVal v)
+	Public Default Sub Assign(ByVal s, ByVal v)
 		Dim i,f
 		Select Case TypeName(v)
 			'替换记录集标签
 			Case "Recordset"
 				If Easp.Has(v) Then
 					For i = 0 To v.Fields.Count - 1
-						Tag s & "." & v.Fields(i).Name, v.Fields(i).Value
-						Tag s & "." & i, v.Fields(i).Value
+						Assign s & "." & v.Fields(i).Name, v.Fields(i).Value
+						Assign s & "." & i, v.Fields(i).Value
 					Next
 				End If
 			'替换Easp超级数组标签
 			Case "EasyAsp_List"
 				If v.Size > 0 Then
 					For i = 0 To v.End
-						Tag s & "." & i, v(i)
-						Tag s & "." & v.IndexHash(i), v(i)
+						Assign s & "." & i, v(i)
+						Assign s & "." & v.IndexHash(i), v(i)
 					Next
 				End If
 			Case Else
@@ -287,7 +302,14 @@ Class EasyAsp_Tpl
 		Set Matches = Easp.regMatch(s_html, Chr(0) & "(\w+?)" & Chr(0))
 		For Each Match In Matches
 			b = Match.SubMatches(0)
-			If o_block.Exists(b) Then [Update](b)
+			Select Case s_unkown
+				Case "keep"
+					If o_block.Exists(b) Then [Update](b)
+				Case "remove"
+					'Do Nothing
+				Case "comment"
+					s_html = Replace(s_html, Match.Value, "<!-- Unknown Block '"&b&"' --><!-- " & Match.Value & " -->")
+			End Select
 			s_html = Replace(s_html, Match.Value, "")
 		Next
 		'替换未处理标签
