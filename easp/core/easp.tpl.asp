@@ -302,7 +302,7 @@ Class EasyAsp_Tpl
 		Set Matches = Easp.regMatch(s_html, Chr(0) & "(\w+?)" & Chr(0))
 		For Each Match In Matches
 			b = Match.SubMatches(0)
-			Select Case s_unkown
+			Select Case s_unknown
 				Case "keep"
 					If o_block.Exists(b) Then [Update](b)
 				Case "remove"
