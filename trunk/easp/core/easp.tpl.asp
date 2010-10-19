@@ -333,6 +333,11 @@ Class EasyAsp_Tpl
 	Public Sub Show()
 		Easp.W GetHtml
 	End Sub
+	'保存为静态文件
+	Public Sub SaveAs(ByVal p)
+		Easp.Use "Fso"
+		Call Easp.Fso.CreateFile(p,GetHtml)
+	End Sub
 	'生成html标签
 	Public Function MakeTag(ByVal t, ByVal f)
 		Dim s,e,a,i,m
