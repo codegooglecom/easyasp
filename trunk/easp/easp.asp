@@ -1043,13 +1043,21 @@ Class EasyAsp
 	'设置缓存记录
 	Sub SetApp(ByVal AppName,ByRef AppData)
 		Application.Lock
-		Application(AppName) = AppData
+		If IsObject(AppData) Then
+			Set Application(AppName) = AppData
+		Else
+			Application(AppName) = AppData
+		End If
 		Application.UnLock
 	End Sub
 	'获取一个缓存记录
 	Function GetApp(ByVal AppName)
 		If IsN(AppName) Then GetApp = Empty : Exit Function
-		GetApp = Application(AppName)
+		If IsObject(Application(AppName)) Then
+			Set GetApp = Application(AppName)
+		Else
+			GetApp = Application(AppName)
+		End If
 	End Function
 	'删除一个缓存记录
 	Sub RemoveApp(ByVal AppName)
@@ -1248,6 +1256,7 @@ Class EasyAsp
 			filePath = Trim(CLeft(filePath,">"))
 		End If
 		p = filePath
+		'Easp.WN p
 		If Mid(p,2,1)<>":" Then p = Server.MapPath(p)
 		If isFile(p) Then
 			Set o_strm = Server.CreateObject("ADODB.Stream")
@@ -1402,58 +1411,7 @@ Class EasyAsp
 	Function MD5_16(ByVal s)
 		Use("Md5") : MD5_16 = o_md5.To16(s)
 	End Function
-	'调试函数
-	Sub Trace(ByVal o)
-		Dim s,i,j
-		Select Case VarType(o)
-			Case vbEmpty, vbNull
-				s = "[Empty]"
-			Case vbString
-				s = IIF(o="","[Empty String]",htmlEncode(o))
-			Case vbObject
-				Select Case TypeName(o)
-					Case "Nothing","Empty"
-						s = "[Empty Object]"
-					Case "Recordset"
-						If o.State = 0 Then
-							s = "[Closed Recordset]"
-						Else
-							If o.Bof And o.Eof Then
-								s = "[Empty Recordset]"
-							Else
-								Set o = o.Clone
-								s = "<h3>[RecordSet]</h3>"
-								o.MoveFirst
-								While i<10 And Not o.Eof
-									For j = 0 To o.Fields.Count-1
-										s = s & "<b>" &  o.Fields(j).Name & "</b>" & ": " & htmlEncode(o.Fields(j).Value) & "<br />"
-									Next
-									s = s & "<br />--------------------<br /><br />"
-									i = i + 1
-									o.MoveNext
-								Wend
-							End If
-						End If
-					Case "Dictionary"
-						If o.Count = 0 Then
-							s = "[Empty Dictionary]"
-						Else
-							s = "<h3>[Dictionary]</h3>"
-							For Each i In o
-								s = s & "<b>" & i & "</b>" & ": " & htmlEncode(Cstr(o.item(i))) & "<br />"
-							Next
-						End If
-				End Select
-			Case vbArray,8194,8204,8209
-				If Ubound(o) = -1 Then
-					s = "[Empty Array]"
-				Else
-					s = "<h3>[Array]</h3>"
-					s = s & htmlEncode(Join(o,vbCrLf))
-				End If
-		End Select
-		W s
-	End Sub
+	
 	Private Function Easp_Test(ByVal s, ByVal p)
 		If IsN(s) Then Easp_Test = False : Exit Function
 		o_regex.Pattern = p

@@ -22,7 +22,9 @@ Class EasyAsp_Test
 	Private Sub Class_Initialize()
 		s_author	= "coldstone"
 		s_version	= "0.1"
-		'Set Exception Info, please custom your ErrorCode such as '10001'
+		'Set Exception Info, please custom your ErrorCode such as 10001 or "test001".
+		'Please try to keep your ErrorCode is not the same with other people.
+		'Attention! You can use any character, not just numbers!
 		Easp.Error(10001) = "Error! Accept number only."
 	End Sub
 	Private Sub Class_Terminate()
