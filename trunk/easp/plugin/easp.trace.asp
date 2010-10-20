@@ -8,7 +8,7 @@
 '##	Author		:	Coldstone(coldstone[at]qq.com)
 '##	Update Date	:	2010/10/18 11:19
 '##	Description	:	此插件用于测试ASP的各类变量，变量可以是字符串、数组、记录集、Dictionary、
-'                 EasyASP List对象等，使用方法如下：
+'                 EasyASP List对象、Connection对象等，使用方法如下：
 '                   Easp.Ext("Trace")(variable)
 '                 同时也可以用此方法输出当前的环境变量信息，使用方法如下：
 '                   Easp.Ext("Trace")(":get")    - 输出Request.QueryString变量
@@ -17,6 +17,9 @@
 '                   Easp.Ext("Trace")(":server") - 输出Request.ServerVariables变量
 '                   Easp.Ext("Trace")(":session")- 输出当前Session
 '                   Easp.Ext("Trace")(":app")    - 输出已缓存的Application
+'                 使用本插件还可以查看数据库结构信息，使用方法如下：
+'                   Easp.Ext("Trace")(":db")     - 查看当前数据库的数据表和视图信息
+'                   Easp.Ext("Trace")(":db.表名") - 查看某一数据表的详细信息
 '#################################################################################
 Class EasyAsp_Trace
 
@@ -68,7 +71,7 @@ Class EasyAsp_Trace
 			Case 3 : GetTable = "<table><thead><tr><th width=""20%"">{{cname}}</th><th width=""80%"">{{cvalue}}</th></tr></thead></table>{{#:rs}}<h4>第<strong> {{i}} </strong>条数据：</h4><table>{{#:loop}}<tr><th width=""20%"">{{name}}</th><td width=""80%"">{{value}}</td></tr>{{/#:loop}}</table>{{/#:rs}}"
 			Case 4 : GetTable = "<table><tr><td>{{value}}</td></tr></table>"
 			Case 5 : GetTable = "<h4>{{info}}</h4>"
-			Case 6 : GetTable = "{{#:table}}<h4>表名：{{name}}</h4><table><thead><tr><th width=""20%"">字段名</th><th width=""20%"">字段类型/大小</th><th width=""10%"">允许空</th><th width=""10%"">默认值</th><th width=""40%"">说明</th></tr></thead>{{#:loop}}<tr><th>{{field}}</th><td style=""text-align:center;"">{{datatype}}</td><td style=""text-align:center;"">{{nullable}}</td><td style=""text-align:center;"">{{default}}</td><td>{{desc}}</td></tr>{{/#:loop}}</table>{{/#:table}}"
+			Case 6 : GetTable = "{{#:table}}<h4><strong>{{tableorview}}：{{name}}</strong></h4><table><thead><tr><th width=""20%"">字段名</th><th width=""20%"">字段类型/大小</th><th width=""10%"">允许空</th><th width=""10%"">默认值</th><th width=""40%"">说明</th></tr></thead>{{#:loop}}<tr><th>{{field}}</th><td style=""text-align:center;"">{{datatype}}</td><td style=""text-align:center;"">{{nullable}}</td><td style=""text-align:center;"">{{default}}</td><td>{{desc}}</td></tr>{{/#:loop}}</table>{{/#:table}}"
 		End Select
 	End Function
 
@@ -197,7 +200,7 @@ Class EasyAsp_Trace
 								tpl.Update "loop"
 							Next
 						Case ":db"
-							TraceDb Easp.db.Conn
+							TraceDb Easp.db.Conn, t
 							If Easp.db.Conn.State = 0 Then Easp.db.Conn.Open
 						Case Else
 							If Easp.Test(o,"^:db\.(.+)$") Then
@@ -324,6 +327,9 @@ Class EasyAsp_Trace
 								j = j + 1
 							Next
 						End If
+					Case "Connection"
+						TraceDb o, t
+						If o.State = 0 Then o.Open
 				End Select
 			Case vbArray,8194,8204,8209
 				Dim arrType, size1, size2
@@ -406,24 +412,32 @@ Class EasyAsp_Trace
 		tpl "value", "<span class=""info"">"&Eval(s)&"</span>"
 		tpl.Update "loop"
 	End Sub
-	Private Sub TraceDb(ByVal con)
+	Private Sub TraceDb(ByVal con, ByVal isall)
 		If TypeName(con)<>"Connection" Then Exit Sub
-		Dim t,i,j,db,f,s : i = 1 : j = 0
-		Set t = con.OpenSchema(20)
-		tpl.TagStr "table", GetTable(5) & GetTable(1)
+		Dim t,i,j,k,db,f,s,arr1,arr2,dbtype : j = 0 : k = 0
+		Set t = con.OpenSchema(20,Array(Empty,Empty,Empty,"TABLE"))
+		arr1 = t.GetRows(-1)
+		Set t = con.OpenSchema(20,Array(Empty,Empty,Empty,"VIEW"))
+		arr2 = t.GetRows(-1)
+		Easp.C(t)
 		tpl "type", "数据库"
-		tpl "cno", "类型"
-		tpl "cname", "名称"
-		tpl "cvalue", "字段名"
-		tpl "info", "要查看每个表的详细信息，请用 Easp.Ext(""Trace"")("":db.表名"") 查看单表详细信息 或 Easp.Ext(""Trace"").TraceAll("":db"") 查看所有表详细信息。"
+		If isall = 0 Then
+			tpl.TagStr "table", GetTable(5) & GetTable(1)
+			tpl "cno", "类型"
+			tpl "cname", "名称"
+			tpl "cvalue", "字段名"
+			tpl "info", "您可以用 Easp.Ext(""Trace"")("":db.表名或视图名"") 查看单表或单视图的详细信息。"
+		ElseIf isall = 1 Then
+			tpl.TagStr "table", GetTable(6)
+		End If
 		Set db = Easp.db.New
 		db.Conn = con
-		While Not t.Eof
-			If t("TABLE_TYPE") = "TABLE" Or t("TABLE_TYPE") = "VIEW" Then
-				tpl.Tag("no") = Easp.IIF(t("TABLE_TYPE")="TABLE","表","视图")
-				'tpl "name", Easp.IfThen(Easp.Has(t("TABLE_CATALOG")),t("TABLE_CATALOG")&".") & Easp.IfThen(Easp.Has(t("TABLE_SCHEMA")),t("TABLE_SCHEMA")&".") & t("TABLE_NAME")
-				tpl "name", t("TABLE_NAME")
-				Set f = db.GR(t("TABLE_NAME")&":1","","")
+		dbtype = db.DatabaseType
+		For i = 0 To Ubound(arr1,2)
+			If isall = 0 Then
+				tpl.Tag("no") = "表"
+				tpl "name", arr1(2,i)
+				Set f = db.GR(arr1(2,i)&":1","1=-1","")
 				s = ""
 				For j = 0 To f.Fields.Count-1
 					s = s & ", " & f.Fields(j).Name
@@ -431,29 +445,85 @@ Class EasyAsp_Trace
 				tpl "value", Mid(s,2)
 				db.C(f)
 				tpl.Update "loop"
-				i = i + 1
+			ElseIf isall = 1 Then
+				'此处如写成函数调用会出错，只能重复TraceTable函数
+				Set t = con.OpenSchema(4,Array(Empty,Empty,arr1(2,i),Empty))
+				tpl "tableorview", "数据表"
+				tpl "name", Easp.IfThen(Easp.Has(t("TABLE_CATALOG")),"["&t("TABLE_CATALOG")&"].") & Easp.IfThen(Easp.Has(t("TABLE_SCHEMA")),"["&t("TABLE_SCHEMA")&"].") & "["&t("TABLE_NAME")&"]"
+				While Not t.Eof
+					tpl "field", t("COLUMN_NAME")
+					If dbtype = "MSSQL" Then
+						tpl "datatype", GetSQLDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"),t("CHARACTER_OCTET_LENGTH"),t("NUMERIC_PRECISION"),t("NUMERIC_SCALE"),t("DATETIME_PRECISION"))
+					ElseIf dbtype = "ACCESS" Then
+						tpl "datatype", GetACCDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"))
+					End If
+					tpl "nullable", Easp.IfThen(t("IS_NULLABLE"),"√")
+					tpl "default", t("COLUMN_DEFAULT")
+					tpl "desc", t("DESCRIPTION")
+					tpl.Update "loop"
+					t.MoveNext
+				Wend
+				tpl.Update "table"
+				Easp.C(t)
 			End If
-			t.MoveNext
-		Wend
+			k = k + 1
+		Next
+		For i = 0 To Ubound(arr2,2)
+			If isall = 0 Then
+				tpl.Tag("no") = "视图"
+				tpl "name", arr2(2,i)
+				Set f = db.GR(arr2(2,i)&":1","1=-1","")
+				s = ""
+				For j = 0 To f.Fields.Count-1
+					s = s & ", " & f.Fields(j).Name
+				Next
+				tpl "value", Mid(s,2)
+				db.C(f)
+				tpl.Update "loop"
+			ElseIf isall = 1 Then
+				'此处如写成函数调用会出错，只能再次重复TraceTable函数
+				Set t = con.OpenSchema(4,Array(Empty,Empty,arr2(2,i),Empty))
+				tpl "tableorview", "视图"
+				tpl "name", Easp.IfThen(Easp.Has(t("TABLE_CATALOG")),"["&t("TABLE_CATALOG")&"].") & Easp.IfThen(Easp.Has(t("TABLE_SCHEMA")),"["&t("TABLE_SCHEMA")&"].") & "["&t("TABLE_NAME")&"]"
+				While Not t.Eof
+					tpl "field", t("COLUMN_NAME")
+					If dbtype = "MSSQL" Then
+						tpl "datatype", GetSQLDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"),t("CHARACTER_OCTET_LENGTH"),t("NUMERIC_PRECISION"),t("NUMERIC_SCALE"),t("DATETIME_PRECISION"))
+					ElseIf dbtype = "ACCESS" Then
+						tpl "datatype", GetACCDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"))
+					End If
+					tpl "nullable", Easp.IfThen(t("IS_NULLABLE"),"√")
+					tpl "default", t("COLUMN_DEFAULT")
+					tpl "desc", t("DESCRIPTION")
+					tpl.Update "loop"
+					t.MoveNext
+				Wend
+				tpl.Update "table"
+				Easp.C(t)
+			End If
+			k = k + 1
+		Next
 		Easp.C(db)
-		tpl "count", i-1
+		tpl "count", k
 		Set t = Nothing
 	End Sub
 	'读取数据表信息(转载请保留版权) - Author:coldstone - 2010/10/19
-	Private Sub TraceTable(ByVal tab, ByVal con)
+	Private Sub TraceTable(ByVal tab, ByRef con)
 		If TypeName(con)<>"Connection" Then Exit Sub
-		Dim t,db,dbtype
+		Dim t,db,dbtype,dov
+		Set t = con.OpenSchema(4,Array(Empty,Empty,tab,Empty))
+		dov = con.OpenSchema(20,Array(Empty,Empty,tab,Empty))("TABLE_TYPE")
+		tpl "tableorview", Easp.IIF(dov = "VIEW","视图","数据表")
+		tpl "name", Easp.IfThen(Easp.Has(t("TABLE_CATALOG")),t("TABLE_CATALOG")&".") & Easp.IfThen(Easp.Has(t("TABLE_SCHEMA")),t("TABLE_SCHEMA")&".") & t("TABLE_NAME")
 		Set db = Easp.db.New
 		db.Conn = con
 		dbtype = db.DatabaseType
-		Set t = con.OpenSchema(4,Array(Empty,Empty,tab,Empty))
-		tpl "name", Easp.IfThen(Easp.Has(t("TABLE_CATALOG")),t("TABLE_CATALOG")&".") & Easp.IfThen(Easp.Has(t("TABLE_SCHEMA")),t("TABLE_SCHEMA")&".") & t("TABLE_NAME")
 		While Not t.Eof
 			tpl "field", t("COLUMN_NAME")
 			If dbtype = "MSSQL" Then
 				tpl "datatype", GetSQLDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"),t("CHARACTER_OCTET_LENGTH"),t("NUMERIC_PRECISION"),t("NUMERIC_SCALE"),t("DATETIME_PRECISION"))
 			ElseIf dbtype = "ACCESS" Then
-				tpl "datatype", GetACCDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"),t("CHARACTER_OCTET_LENGTH"),t("NUMERIC_PRECISION"),t("NUMERIC_SCALE"),t("DATETIME_PRECISION"))
+				tpl "datatype", GetACCDataType(t("DATA_TYPE"),t("COLUMN_FLAGS"),t("CHARACTER_MAXIMUM_LENGTH"))
 			End If
 			tpl "nullable", Easp.IfThen(t("IS_NULLABLE"),"√")
 			tpl "default", t("COLUMN_DEFAULT")
@@ -506,44 +576,28 @@ Class EasyAsp_Trace
 		End Select
 		GetSQLDataType = tmp
 	End Function
-	'判断MSSQL数据类型及大小(转载请保留版权) - Author:coldstone - 2010/10/19
-	Private Function GetACCDataType(ByVal typeid, ByVal flag, ByVal maxlen, ByVal octlen, ByVal numpre, ByVal numscl, ByVal datepre)
+	'判断ACCESS数据类型及大小(coldstone呕心原创，转载请保留版权,@2010/10/19)
+	Private Function GetACCDataType(ByVal typeid, ByVal flag, ByVal maxlen)
 		Dim tmp
 		Select Case typeid
-			Case 2 tmp = "smallint" & Easp.IfThen(flag=16,",自增")
-			Case 3 tmp = "int" & Easp.IfThen(flag=20,",自增")
-			Case 4 tmp = "real"
-			Case 5 tmp = "float"
-			Case 6 tmp = Easp.IIF(numpre=10,"smallmoney","money")
-			Case 11 tmp = "bit"
-			Case 12 tmp = "sql_variant"
-			Case 17 tmp = "tinyint" & Easp.IfThen(flag=16,",自增")
+			Case 2 tmp = "数字(整型)"
+			Case 3 tmp = Easp.IIF(flag=90,"自动编号/数字(非空长整型)","数字(长整型)")
+			Case 4 tmp = "数字(单精度型)"
+			Case 5 tmp = "数字(双精度型)"
+			Case 6 tmp = "货币"
+			Case 7 tmp = "日期/时间"
+			Case 11 tmp = "是/否"
+			Case 17 tmp = "数字(字节)"
 			Case 20 tmp = "bigint" & Easp.IfThen(flag=16,",自增")
-			Case 72 tmp = "uniqueidentifier"
-			Case 128
-				Select Case flag
-					Case 116,20 tmp = "binaray(" & maxlen & ")"
-					Case 230,134 tmp = "image"
-					Case 624,528 tmp = "timestamp"
-					Case 100,4 tmp = "varbinary(" & maxlen & ")"
-					Case Else tmp = "未知binaray类型"
-				End Select
-			Case 129
-				Select Case flag
-					Case 116,20 tmp = "char(" & maxlen & ")"
-					Case 230,134 tmp = "text"
-					Case 100,4 tmp = "varchar(" & maxlen & ")"
-					Case Else tmp = "未知char类型"
-				End Select
+			Case 72 tmp = "数字(同步复制ID)"
+			Case 128 tmp = "OLE对象"
 			Case 130
 				Select Case flag
-					Case 116,20 tmp = "nchar(" & maxlen & ")"
-					Case 230,134 tmp = "ntext"
-					Case 100,4 tmp = "nvarchar(" & maxlen & ")"
-					Case Else tmp = "未知nchar类型"
+					Case 106,74 tmp = "文本(" & maxlen & ")"
+					Case 234,202 tmp = "备注"
+					Case Else tmp = "未知文本类型"
 				End Select
-			Case 131 tmp = "decimal/numeric(" & numpre & "," & numscl & ")"
-			Case 135 tmp = Easp.IIF(datepre=0,"smalldatetime","datetime")
+			Case 131 tmp = "数字(小数)"
 			Case Else tmp = "未知类型"
 		End Select
 		GetACCDataType = tmp
