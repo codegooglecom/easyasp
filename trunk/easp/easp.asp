@@ -1065,6 +1065,12 @@ Class EasyAsp
 		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
+	Sub Trace(ByVal o)
+		Easp.Ext("Trace")(o)
+	End Sub
+	Sub TraceAll(ByVal o)
+		Easp.Ext("Trace").TraceAll(o)
+	End Sub
 	'获取文本中的图片地址存为一个数组
 	Function GetImg(ByVal s)
 		GetImg = GetImg__(s,0)
