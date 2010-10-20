@@ -1,25 +1,31 @@
 <%
 '#################################################################################
-'##	easp.trace.asp
-'##	------------------------------------------------------------------------------
-'##	Feature		:	EasyAsp Variable Tracing Plugin
-'##	Version		:	v1.0
-'## Easp Version : v2.2
-'##	Author		:	Coldstone(coldstone[at]qq.com)
-'##	Update Date	:	2010/10/18 11:19
-'##	Description	:	此插件用于测试ASP的各类变量，变量可以是字符串、数组、记录集、Dictionary、
-'                 EasyASP List对象、Connection对象等，使用方法如下：
-'                   Easp.Ext("Trace")(variable)
-'                 同时也可以用此方法输出当前的环境变量信息，使用方法如下：
-'                   Easp.Ext("Trace")(":get")    - 输出Request.QueryString变量
-'                   Easp.Ext("Trace")(":post")   - 输出Request.Form变量
-'                   Easp.Ext("Trace")(":cookie") - 输出Request.Cookies变量
-'                   Easp.Ext("Trace")(":server") - 输出Request.ServerVariables变量
-'                   Easp.Ext("Trace")(":session")- 输出当前Session
-'                   Easp.Ext("Trace")(":app")    - 输出已缓存的Application
-'                 使用本插件还可以查看数据库结构信息，使用方法如下：
-'                   Easp.Ext("Trace")(":db")     - 查看当前数据库的数据表和视图信息
-'                   Easp.Ext("Trace")(":db.表名") - 查看某一数据表的详细信息
+'## easp.trace.asp
+'## ------------------------------------------------------------------------------
+'## Feature     : EasyAsp Variable Tracing Plugin
+'## Version     : v1.2
+'## For EasyASP : v2.2.Biuld1020 +
+'## Author      : Coldstone(coldstone[at]qq.com)
+'## Update Date : 2010/10/20 23:12
+'## Description : 
+' 此插件用于测试ASP的各类变量，变量可以是字符串、数组、二维数组、记录集、Dictionary对象、
+' EasyASP List对象、Connection对象等，使用方法如下：
+'   Easp.Ext("Trace")(variable)
+' 同时也可以用此方法输出当前的环境变量信息，使用方法如下：
+'   Easp.Ext("Trace")(":get")    - 输出Request.QueryString变量
+'   Easp.Ext("Trace")(":post")   - 输出Request.Form变量
+'   Easp.Ext("Trace")(":cookie") - 输出Request.Cookies变量
+'   Easp.Ext("Trace")(":server") - 输出Request.ServerVariables变量
+'   Easp.Ext("Trace")(":session")- 输出当前Session
+'   Easp.Ext("Trace")(":app")    - 输出已缓存的Application
+' 使用本插件还可以查看数据库结构信息，使用方法如下：
+'   Easp.Ext("Trace")(":db")     - 查看当前数据库的数据表和视图信息
+'   Easp.Ext("Trace")(":db.表名") - 查看某一数据表的详细信息
+' 部分项目如要查看详细数据信息，还可使用：
+'   Easp.Ext("Trace").TraceAll(variable)
+' 另外，在Easp的环境中，您也可以直接使用 Easp.Trace 和 Easp.TraceAll 方法来调用此插件
+' 的这两个方法。
+' 特别感谢：Jorkin提供Trace函数原型。
 '#################################################################################
 Class EasyAsp_Trace
 
@@ -76,8 +82,9 @@ Class EasyAsp_Trace
 	End Function
 
 	'调试函数
-	Sub Tracing(ByVal o, ByVal t)
+	Public Sub Tracing(ByVal o, ByVal t)
 		Dim s,i,j : i = 0 : j = 0
+		'Easp.WN VarType(o)
 		Select Case VarType(o)
 			Case vbEmpty
 				tpl.TagStr "table", GetTable(4)
@@ -88,7 +95,12 @@ Class EasyAsp_Trace
 				tpl "type", "Null值"
 				tpl "value", "[Null]"
 			Case vbString
-				If o="" Then
+				If TypeName(o) = "Connection" Then
+						TraceDb o, t
+						tpl "type", "Connection对象 "
+						tpl "info", "您可以用 Easp.Ext(""Trace"").TraceAll 方法查看该连接对象全部表和视图的详细信息。"
+						If o.State = 0 Then o.Open
+				ElseIf o="" Then
 					tpl.TagStr "table", GetTable(4)
 					tpl "type", "空字符串"
 					tpl "value", "[Empty String]"
@@ -210,6 +222,7 @@ Class EasyAsp_Trace
 								TraceTable s, Easp.db.Conn
 								If Easp.db.Conn.State = 0 Then Easp.db.Conn.Open
 							Else
+								tpl.TagStr "table", GetTable(4)
 								tpl "type", "字符串"
 								tpl "Value", Easp.HtmlEncode(o)
 							End If
@@ -327,9 +340,6 @@ Class EasyAsp_Trace
 								j = j + 1
 							Next
 						End If
-					Case "Connection"
-						TraceDb o, t
-						If o.State = 0 Then o.Open
 				End Select
 			Case vbArray,8194,8204,8209
 				Dim arrType, size1, size2
@@ -426,7 +436,7 @@ Class EasyAsp_Trace
 			tpl "cno", "类型"
 			tpl "cname", "名称"
 			tpl "cvalue", "字段名"
-			tpl "info", "您可以用 Easp.Ext(""Trace"")("":db.表名或视图名"") 查看单表或单视图的详细信息。"
+			tpl "info", "您可以用 Easp.Ext(""Trace"")("":db.表名或视图名"") 查看单表或单视图的详细信息；用 Easp.Ext(""Trace"").TraceAll("":db"") 查看全部表和视图的详细信息。"
 		ElseIf isall = 1 Then
 			tpl.TagStr "table", GetTable(6)
 		End If
