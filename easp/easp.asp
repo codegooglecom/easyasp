@@ -1304,7 +1304,7 @@ Class EasyAsp
 	End Function
 	'读取包含文件内容（无限级）
 	Private Function IncRead(ByVal filePath)
-		Dim content, rule, inc, incFile, incStr
+		Dim content, rule, inc, incFile, incStr,Match
 		content = Read(filePath)
 		If isN(content) Then Exit Function
 		content = regReplace(content,"<% *?@.*?%"&">","")
