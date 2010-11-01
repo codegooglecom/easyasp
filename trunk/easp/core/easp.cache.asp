@@ -37,7 +37,7 @@ Class EasyAsp_Cache
 		End If
 		Set Items = Nothing
 	End Sub
-	'建新实例
+	'建新Easp缓存类实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_Cache
 	End Function
@@ -115,7 +115,7 @@ Class EasyAsp_Cache
 	End Sub
 End Class
 '统计缓存数量
-Function Easp_Cache_Count()
+Private Function Easp_Cache_Count()
 	Easp_Cache_Count = 0
 	Dim n : n = Easp.GetApp("Easp_Cache_Count")
 	If IsArray(n) Then
@@ -123,7 +123,7 @@ Function Easp_Cache_Count()
 	End If
 End Function
 '缓存计数更改
-Function Easp_CacheCount_Change(ByVal a, ByVal t)
+Private Function Easp_CacheCount_Change(ByVal a, ByVal t)
 	Dim n : n = Easp.GetApp("Easp_Cache_Count")
 	If isArray(n) Then
 		If Ubound(n) = 1 Then
@@ -271,7 +271,7 @@ class Easp_Cache_Info
 		If Easp.Has(Me.Name) Then Easp.RemoveApp Me.Name
 		If CountEnabled Then Easp_CacheCount_Change Me.Name, -1
 	End Sub
-	'取文件缓存的缓存地址
+	'取文件缓存的缓存路径
 	Public Property Get FilePath()
 		FilePath = TransPath("[\\:""*?<>|\f\n\r\t\v\s]")
 	End Property

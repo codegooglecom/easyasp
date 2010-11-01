@@ -28,13 +28,13 @@ Class EasyAsp_Http
 		Body = Empty
 		Text = Empty
 		SaveRandom = True
-		'服务器解析超时
+		'服务器解析超时（毫秒）
 		ResolveTimeout = 20000
-		'服务器连接超时
+		'服务器连接超时（毫秒）
 		ConnectTimeout = 20000
-		'发送数据超时
+		'发送数据超时（毫秒）
 		SendTimeout = 300000
-		'接受数据超时
+		'接受数据超时（毫秒）
 		ReceiveTimeout = 60000
 		Easp.Error(46) = "远程服务器没有响应"
 		Easp.Error(47) = "服务器不支持XMLHTTP组件"
@@ -48,17 +48,17 @@ Class EasyAsp_Http
 		Set o_rh = Nothing
 	End Sub
 
-	'建新实例
+	'建新Easp远程文件操作类实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_Http
 	End Function
 	
-	'提交的数据
+	'设置要提交的数据
 	Public Property Let Data(ByVal s)
 		s_data = s
 	End Property
 	
-	'设置请求头信息，两种方式
+	'设置请求头信息
 	Public Sub SetHeader(ByVal a)
 		Dim i,n,v
 		If isArray(a) Then
@@ -73,7 +73,7 @@ Class EasyAsp_Http
 			o_rh(n) = v
 		End If
 	End Sub
-	'方式二
+	'设置或获取单项请求头信息
 	Public Property Let RequestHeader(ByVal n, ByVal v)
 		n = Replace(n,"-","_")
 		o_rh(n) = v
@@ -97,22 +97,22 @@ Class EasyAsp_Http
 		Set maps = Nothing
 	End Sub
 	
-	'属性配置模式下的打开连接远程
+	'属性配置模式下打开连接远程
 	Public Function [Open]
 		[Open] = GetData(Url, Method, Async, s_data, User, Password)
 	End Function
 	
-	'Get取远程页
+	'Get模式取远程页
 	Public Function [Get](ByVal uri)
 		[Get] = GetData(uri, "GET", Async, s_data, User, Password)
 	End Function
 	
-	'Get取远程页
+	'Post模式取远程页
 	Public Function Post(ByVal uri)
 		Post = GetData(uri, "POST", Async, s_data, User, Password)
 	End Function
 	
-	'XMLHTTP原始方法
+	'获取远程页完整参数模式
 	Public Function GetData(ByVal uri, ByVal m, ByVal async, ByVal data, ByVal u, ByVal p)
 		Dim o,chru
 		'建立XMLHttp对象
@@ -232,12 +232,12 @@ Class EasyAsp_Http
 		Search_ = arr
 	End Function
 	
-	'按标签查找字符串(SubStr)
+	'按标签查找字符串
+	Public Function SubStr(ByVal tagStart, ByVal tagEnd, ByVal tagSelf)
 	'tagStart - 要截取的部分的开头
 	'tagEnd   - 要截取的部分的结尾
 	'tagSelf  - 结果是否包括tagStart和tagEnd
 	'           (0或空:不包括,1:包括,2:只包括tagStart,3:只包括tagEnd)
-	Public Function SubStr(ByVal tagStart, ByVal tagEnd, ByVal tagSelf)
 		SubStr = SubStr_(s_ohtml,tagStart,tagEnd,tagSelf)
 	End Function
 	Public Function SubStr_(ByVal s, ByVal tagStart, ByVal tagEnd, ByVal tagSelf)
@@ -263,7 +263,7 @@ Class EasyAsp_Http
 		SubStr_ = Mid(s,first,between)
 	End Function
 	
-	'保存图片到本地
+	'保存远程图片到本地
 	Public Function SaveImgTo(ByVal p)
 		SaveImgTo = SaveImgTo_(s_ohtml,p)
 	End Function
@@ -295,7 +295,7 @@ Class EasyAsp_Http
 		SaveImgTo_ = s
 	End Function
 	
-	'Ajax代理
+	'启用Ajax代理
 	Public Sub AjaxAgent()
 		Easp.NoCache()
 		Dim u, qs, qskey, qf, qfkey, m

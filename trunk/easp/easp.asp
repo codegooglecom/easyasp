@@ -29,7 +29,11 @@ Class EasyAsp
 		s_fsoName	= "Scripting.FileSystemObject"
 		s_dicName	= "Scripting.Dictionary"
 		s_charset	= "UTF-8"
-		'Response.Charset = s_charset
+		On Error Resume Next
+		Session.CodePage = CharCode(s_charset)
+		Response.Charset = s_charset
+		Err.Clear
+		On Error Goto 0
 		s_bom		= "remove"
 		s_rq		= Request.QueryString()
 		i_rule		= 1
@@ -81,6 +85,7 @@ Class EasyAsp
 				Next
 		End Select
 	End Sub
+	'设置和读取Easp路径配置
 	Public Property Let basePath(ByVal p)
 		s_path = FixAbsPath(p)
 		s_plugin = s_path & "plugin/"
@@ -88,37 +93,47 @@ Class EasyAsp
 	Public Property Get basePath()
 		basePath = s_path
 	End Property
+	'设置和读取Easp插件文件夹路径配置
 	Public Property Let pluginPath(ByVal p)
 		s_plugin = FixAbsPath(p)
 	End Property
 	Public Property Get pluginPath()
 		pluginPath = s_plugin
 	End Property
+	'设置和读取FSO组件名称
 	Public Property Let fsoName(ByVal s)
 		s_fsoName = s
 	End Property
 	Public Property Get fsoName()
 		fsoName = s_fsoName
 	End Property
+	'设置和读取
 	Public Property Let [CharSet](ByVal s)
 		s_charset = Ucase(s)
-		'Response.Charset = s_charset
+		On Error Resume Next
+		Session.CodePage = CharCode(s_charset)
+		Response.Charset = s_charset
+		Err.Clear
+		On Error Goto 0
 	End Property
 	Public Property Get [CharSet]()
 		[CharSet] = s_charset
 	End Property
+	'设置和读取如何处理UTF-8文件的BOM信息
 	Public Property Let FileBOM(ByVal s)
 		s_bom = Lcase(s)
 	End Property
 	Public Property Get FileBOM()
 		FileBOM = s_bom
 	End Property
+	'设置和读取是否加密Cookies信息
 	Public Property Let CookieEncode(ByVal b)
 		b_cooen = b
 	End Property
 	Public Property Get CookieEncode()
 		CookieEncode = b_cooen
 	End Property
+	'设置和读取是否开启调试模式
 	Public Property Let [Debug](ByVal b)
 		b_debug = b
 		[error].debug = b
@@ -126,9 +141,11 @@ Class EasyAsp
 	Public Property Get [Debug]
 		[Debug] = b_debug
 	End Property
+	'读取本页查询数据库次数
 	Public Property Get DbQueryTimes
 		DbQueryTimes = Easp_DbQueryTimes
 	End Property
+	'读取服务器端执行时间（秒）
 	Public Property Get ScriptTime
 		ScriptTime = toNumber(GetScriptTime(0)/1000,3)
 	End Property
@@ -164,11 +181,11 @@ Class EasyAsp
 		Set Easp = Nothing
 		Response.End()
 	End Sub
-	'生成动态字符串
+	'格式化字符串（首下标为1）
 	Function Str(ByVal s, ByVal v)
 		Str = FormatString(s, v, 1)
 	End Function
-	'格式化字符串
+	'格式化字符串（首下标为0）
 	Function Format(ByVal s, ByVal v)
 		Format = FormatString(s, v, 0)
 	End Function
@@ -307,6 +324,7 @@ Class EasyAsp
 				If Ubound(s)=-1 Then isN = True : Exit Function
 		End Select
 	End Function
+	'判断是否不为空值
 	Function Has(ByVal s)
 		Has = Not isN(s)
 	End Function
@@ -318,6 +336,7 @@ Class EasyAsp
 			IIF = F
 		End If
 	End Function
+	'如果条件成立则返回某值
 	Function IfThen(ByVal Cn, ByVal T)
 		IfThen = IIF(Cn,T,"")
 	End Function
@@ -341,6 +360,7 @@ Class EasyAsp
 	Sub Js(ByVal s)
 		W JsCode(s)
 	End Sub
+	'生成javascript代码
 	Function JsCode(ByVal s)
 		JsCode = Str("<{1} type=""text/java{1}"">{2}{3}{4}{2}</{1}>{2}", Array("sc"&"ript",vbCrLf,vbTab,s))
 	End Function
@@ -619,6 +639,24 @@ Class EasyAsp
 		End If
 		Post = Safe(tmp,t)
 	End Function
+	'获取Request值
+	Function R(ByVal s)
+		If Has([Get](s)) Then
+			R = [Get](s)
+		ElseIf Has(Post(s)) Then
+			R = Post(s)
+		ElseIf Has(Cookie(s)) Then
+			R = Cookie(s)
+		ElseIf Has(Request.ServerVariables(s)) Then
+			R = Request.ServerVariables(s)
+		ElseIf Has(Request.ClientCertificate(s)) Then
+			R = Request.ClientCertificate(s)
+		ElseIf Has(Request.BinaryRead(s)) Then
+			R = Request.BinaryRead(s)
+		Else
+			R = Empty
+		End If
+	End Function
 	'安全获取值新版
 	Function Safe(ByVal s, ByVal t)
 		Dim spl,d,l,li,i,tmp,arr() : l = False
@@ -691,6 +729,7 @@ Class EasyAsp
 			CheckDataFrom = True
 		End If
 	end Function
+	'检查提交数据来源，不是本站则弹出警告框
 	Sub CheckDataFromA()
 		If Not CheckDataFrom Then Alert "禁止从站点外部提交数据！"
 	end Sub
@@ -812,7 +851,7 @@ Class EasyAsp
 		If InStr(addr,".")=0 Then addr = "0.0.0.0"
 		GetIP = addr
 	End Function
-	'仅格式化HTML文本（可带HTML标签）
+	'仅格式化HTML文本中的空格和换行
 	Function HtmlFormat(ByVal s)
 		If Has(s) Then
 			Dim m,Match : Set m = RegMatch(s, "<([^>]+)>")
@@ -828,7 +867,7 @@ Class EasyAsp
 		End If
 		HtmlFormat = s
 	End Function
-	'HTML加码函数
+	'将HTML代码转换为文本实体
 	Function HtmlEncode(ByVal s)
 		If Has(s) Then
 			s = Replace(s, Chr(38), "&#38;")
@@ -842,7 +881,7 @@ Class EasyAsp
 		End If
 		HtmlEncode = s
 	End Function
-	'HTML解码函数
+	'将HTML文本转换为HTML代码
 	Function HtmlDecode(ByVal s)
 		If Has(s) Then
 			s = regReplace(s, "<br\s*/?\s*>", vbCrLf)
@@ -1065,9 +1104,11 @@ Class EasyAsp
 		Application(AppName) = Empty
 		Application.UnLock
 	End Sub
+	'调试ASP变量
 	Sub Trace(ByVal o)
 		Easp.Ext("Trace")(o)
 	End Sub
+	'调试ASP变量并显示详细信息
 	Sub TraceAll(ByVal o)
 		Easp.Ext("Trace").TraceAll(o)
 	End Sub
@@ -1075,6 +1116,7 @@ Class EasyAsp
 	Function GetImg(ByVal s)
 		GetImg = GetImg__(s,0)
 	End Function
+	'获取文本中的图像标签存为一个数组
 	Function GetImgTag(ByVal s)
 		GetImgTag = GetImg__(s,1)
 	End Function
@@ -1196,7 +1238,7 @@ Class EasyAsp
 		Next
 		RegEncode = s
 	End Function
-	'替换正则编组
+	'替换正则表达式编组
 	Function replacePart(ByVal txt, ByVal rule, ByVal part, ByVal replacement)
 		If Not Easp_Test(txt, rule) Then
 			replacePart = "[not match]"
@@ -1249,7 +1291,7 @@ Class EasyAsp
 		End If
 		Err.Clear()
 	End Function
-	'读取文件内容
+	'读取文件文本内容
 	Function Read(ByVal filePath)
 		Dim p, f, o_strm, tmpStr, s_char, t
 		s_char = s_charset
@@ -1410,12 +1452,42 @@ Class EasyAsp
 			o_ext.RemoveAll
 		End If
 	End Sub
-	'Md5加密字符串
+	'Md5加密字符串（32位）
 	Function MD5(ByVal s)
 		Use("Md5") : MD5 = o_md5(s)
 	End Function
+	'Md5加密字符串（16位）
 	Function MD5_16(ByVal s)
 		Use("Md5") : MD5_16 = o_md5.To16(s)
+	End Function
+	
+	'查询CodePage和Charset对照
+	Function CharCode(ByVal s)
+		Dim co, ch, cn, cnf, i
+		co = Array(708,720,28596,1256,1257,852,28592,1250,936,936,950,862,66,874,932,949,1251,1252,1253,1254,1255,1258,20866,21866,28595,28597,28598,38598,50932,51932,52936,65001)
+		ch = Array("ASMO-708","DOS-720","iso-8859-6","windows-1256","windows-1257","ibm852","iso-8859-2","windows-1250","gb2312","gbk","big5","DOS-862","cp866","windows-874","shift_jis","ks_c_5601-1987","windows-1251","iso-8859-1","windows-1253","iso-8859-9","windows-1255","windows-1258","koi8-r","koi8-ru","iso-8859-5","iso-8859-7","iso-8859-8","iso-8859-8-i","_autodetect","euc-jp","hz-gb-2312","utf-8")
+		cn = Array("阿拉伯字符 (ASMO 708)","阿拉伯字符 (DOS)","阿拉伯字符 (ISO)","阿拉伯字符 (Windows)","波罗的海字符 (Windows)","中欧字符 (DOS)","中欧字符 (ISO)","中欧字符 (Windows)","简体中文 (GB2312)","简体中文 (GBK)","繁体中文 (Big5)","希伯来字符 (DOS)8","西里尔字符 (DOS)","泰语 (Windows)","日语 (Shift-JIS)","朝鲜语","西里尔字符 (Windows)","西欧字符","希腊字符 (Windows)","土耳其字符 (Windows)","希伯来字符 (Windows)","越南字符 (Windows)","西里尔字符 (KOI8-R)","西里尔字符 (KOI8-U)","西里尔字符 (ISO)","希腊字符 (ISO)","希伯来字符 (ISO-Visual)","希伯来字符 (ISO-Logical)","日语 (自动选择)","日语 (EUC)","简体中文 (HZ)","Unicode (UTF-8)")
+		If Instr(s,":") Then
+			s = CLeft(s,":")
+			cnf = True
+		End If
+		If isNumeric(s) Then
+			For i = 0 To Ubound(co)
+				If co(i) = s Then
+					CharCode = IIF(cnf,cn(i),ch(i))
+					Exit Function
+				End If
+			Next
+			CharCode = "utf-8"
+		Else
+			For i = 0 To Ubound(ch)
+				If ch(i) = LCase(s) Then
+					CharCode = IIF(cnf,cn(i),co(i))
+					Exit Function
+				End If
+			Next
+			CharCode = 65001
+		End If
 	End Function
 	
 	Private Function Easp_Test(ByVal s, ByVal p)

@@ -129,7 +129,7 @@ Class EasyAsp_AES
 	Private Sub Class_Terminate()
 		
 	End Sub
-
+	'设置和读取AES密钥
 	Public Property Let Password(ByVal p)
 		s_pass = p
 	End Property
@@ -718,7 +718,7 @@ Class EasyAsp_AES
 		
 		DecryptData = bytMessage
 	End Function
-
+	'用临时密码加密字符串
 	Function AESEncrypt(sPlain,sPassword)
 		Dim bytIn()
 		Dim bytOut
@@ -747,7 +747,7 @@ Class EasyAsp_AES
 
 		AESEncrypt = sTemp
 	End Function
-
+	'用临时密码解密字符串
 	Function AESDecrypt(sCypher, sPassword)
 		Dim bytIn()
 		Dim bytOut
@@ -777,14 +777,14 @@ Class EasyAsp_AES
 
 		AESDecrypt = sTemp
 	End Function
-	'Easp AES Encode
+	'AES加密字符串
 	Public Function Encode(ByVal s)
 		Dim p
 		s = Easp.Escape(s)
 		p = Easp.Escape(s_pass)
 		Encode = AESEncrypt(s,p)
 	End Function
-	'Easp AES Decode
+	'AES解密字符串
 	Public Function Decode(ByVal s)
 		Dim p
 		p = Easp.Escape(s_pass)

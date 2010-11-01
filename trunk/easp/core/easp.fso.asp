@@ -42,44 +42,40 @@ Class EasyAsp_Fso
 		Set Fso 	= Nothing
 		Set oFso 	= Nothing
 	End Sub
-	'属性：FSO组件名称
+	'设置FSO组件名称
 	Public Property Let fsoName(Byval str)
 		s_fsoName = str
 		Set Fso = Server.CreateObject(s_fsoName)
 		Set oFso = Fso
 	End Property
-	'属性：文件编码
+	'设置待操作文件编码
 	Public Property Let CharSet(Byval str)
 		s_charset = Ucase(str)
 	End Property
-	'属性：是否删除只读文件
+	'设置是否删除只读文件
 	Public Property Let Force(Byval bool)
 		b_force = bool
 	End Property
-	'属性：是否覆盖原有文件
+	'设置是否覆盖原有文件
 	Public Property Let OverWrite(Byval bool)
 		b_overwrite = bool
 	End Property
-	'属性：文件大小显示格式(G,M,K,b,auto)
+	'设置文件大小显示格式(G,M,K,b,auto)
 	Public Property Let SizeFormat(Byval str)
 		s_sizeformat = str
 	End Property
-	'属性：显示错误信息
-	Public Property Get ShowErr()
-		ShowErr = s_err
-	End Property
 
-	'文件或文件夹是否存在
+	'检测文件或文件夹是否存在
 	Public Function isExists(ByVal path)
 		isExists = False
 		If isFile(path) or isFolder(path) Then isExists = True
 	End Function
-	'文件是否存在
+	'检测文件是否存在
 	Public Function isFile(ByVal filePath)
 		filePath = absPath(filePath) : isFile = False
 		If Fso.FileExists(filePath) Then isFile = True
 	End Function
-	'读取文件内容
+	'读取文件文本内容
 	Public Function Read(ByVal filePath)
 		Dim p, f, o_strm, tmpStr, s_char
 		s_char = s_charset
@@ -183,18 +179,18 @@ Class EasyAsp_Fso
 		tmpStr = Easp.regReplace(Read(filePath),rule,result)
 		UpdateFile = CreateFile(filePath,tmpStr)
 	End Function
-	'追加文件内容
+	'向文本文件追加内容
 	Public Function AppendFile(ByVal filePath, ByVal fileContent)
 		Dim tmpStr : filePath = absPath(filePath)
 		tmpStr = Read(filePath) & fileContent
 		AppendFile = CreateFile(filePath,tmpStr)
 	End Function
-	'文件夹是否存在
+	'检测文件夹是否存在
 	Public Function isFolder(ByVal folderPath)
 		folderPath = absPath(folderPath) : isFolder = False
 		If Fso.FolderExists(folderPath) Then isFolder = True
 	End Function
-	'创建文件夹 MD
+	'创建文件夹
 	Public Function CreateFolder(ByVal folderPath)
 		On Error Resume Next
 		Dim p,arrP,i : CreateFolder = True
@@ -217,6 +213,7 @@ Class EasyAsp_Fso
 		End If
 		Err.Clear()
 	End Function
+	'创建文件夹
 	Public Function MD(ByVal folderPath)
 		MD = CreateFolder(folderPath)
 	End Function
@@ -352,7 +349,7 @@ Class EasyAsp_Fso
 		End If
 		Err.Clear()
 	End Function
-	'获取文件或文件夹属性
+	'获取文件或文件夹信息
 	Public Function getAttr(ByVal path, ByVal attrType)
 		Dim f,s,p : p = absPath(path)
 		If isFile(p) Then
@@ -378,11 +375,11 @@ Class EasyAsp_Fso
 		Set f = Nothing
 		getAttr = s
 	End Function
-	'复制文件(支持通配符*和?)
+	'复制文件（支持通配符*和?）
 	Public Function CopyFile(ByVal fromPath, ByVal toPath)
 		CopyFile = FOFO(fromPath,toPath,0,0)
 	End Function
-	'复制文件夹(支持通配符*和?)
+	'复制文件夹（支持通配符*和?）
 	Public Function CopyFolder(ByVal fromPath, ByVal toPath)
 		CopyFolder = FOFO(fromPath,toPath,1,0)
 	End Function
@@ -399,11 +396,11 @@ Class EasyAsp_Fso
 			Easp.Error.Raise 58
 		End If
 	End Function
-	'移动文件(支持通配符*和?)
+	'移动文件（支持通配符*和?）
 	Public Function MoveFile(ByVal fromPath, ByVal toPath)
 		MoveFile = FOFO(fromPath,toPath,0,1)
 	End Function
-	'移动文件夹(支持通配符*和?)
+	'移动文件夹（支持通配符*和?）
 	Public Function MoveFolder(ByVal fromPath, ByVal toPath)
 		MoveFolder = FOFO(fromPath,toPath,1,1)
 	End Function
@@ -420,14 +417,15 @@ Class EasyAsp_Fso
 			Easp.Error.Raise 59
 		End If
 	End Function
-	'删除文件(支持通配符*和?)
+	'删除文件（支持通配符*和?）
 	Public Function DelFile(ByVal path)
 		DelFile = FOFO(path,"",0,2)
 	End Function
-	'删除文件夹(支持通配符*和?)
+	'删除文件夹（支持通配符*和?）
 	Public Function DelFolder(ByVal path)
 		DelFolder = FOFO(path,"",1,2)
 	End Function
+	'删除文件夹（支持通配符*和?）
 	Public Function RD(ByVal path)
 		RD = DelFolder(path)
 	End Function
@@ -445,7 +443,7 @@ Class EasyAsp_Fso
 		End If
 		Err.Clear()
 	End Function
-	'文件或文件夹更名
+	'重命名文件或文件夹
 	Public Function Rename(ByVal path, ByVal newname)
 		Dim p,n : p = absPath(path) : Rename = True
 		n = Left(p,InstrRev(p,"\")) & newname
@@ -468,10 +466,11 @@ Class EasyAsp_Fso
 			Del p
 		End If
 	End Function
+	'重命名文件或文件夹
 	Public Function Ren(ByVal path, ByVal newname)
 		Ren = Rename(path,newname)
 	End Function
-	'===私有方法===
+
 	'取文件夹绝对路径
 	Private Function absPath(ByVal p)
 		Dim pt
@@ -490,6 +489,7 @@ Class EasyAsp_Fso
 		If Right(p,1) = "\" Then p = Left(p,Len(p)-1)
 		absPath = p
 	End Function
+	'显示文件或文件夹在服务器上的存放位置（支持通配符*和?）
 	Public Function MapPath(p)
 		MapPath = absPath(p)
 	End Function
