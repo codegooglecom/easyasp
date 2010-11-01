@@ -52,7 +52,7 @@ Class EasyAsp_db
 		End If
 		Set o_pageDic = Nothing
 	End Sub
-	'属性：定义数据库连接
+	'定义或获取当前数据库连接对象
 	Public Property Let Conn(ByVal pdbConn)
 		If TypeName(pdbConn) = "Connection" Then
 			Set o_conn = pdbConn
@@ -66,11 +66,11 @@ Class EasyAsp_db
 			Set Conn = o_conn
 		End If
 	End Property
-	'属性：当前数据库类型
+	'获取当前数据库类型
 	Public Property Get DatabaseType()
 		DatabaseType = s_dbType
 	End Property
-	'属性：设置获取记录集的方式
+	'设置获取记录集的方式
 	Public Property Let QueryType(ByVal str)
 		str = Lcase(str)
 		If str = "1" or str = "command" Then
@@ -79,35 +79,34 @@ Class EasyAsp_db
 			i_queryType = 0
 		End If
 	End Property
-	'属性：设置分页数量
+	'设置和读取分页每页数量
 	Public Property Let PageSize(ByVal num)
 		i_pageSize = num
 	End Property
-	'属性：返回分页数量
 	Public Property Get PageSize()
 		PageSize = i_pageSize
 	End Property
-	'属性：返回总页数
+	'读取分页总页数
 	Public Property Get PageCount()
 		PageCount = i_pageCount
 	End Property
-	'属性：返回当前页码
+	'读取分页当前页码
 	Public Property Get PageIndex()
 		PageIndex = Easp.IIF(Easp.isN(i_pageIndex),GetCurrentPage,i_pageIndex)
 	End Property
-	'属性：返回总记录数
+	'读取分页总记录数
 	Public Property Get PageRecordCount()
 		PageRecordCount = i_recordCount
 	End Property
-	'属性：设置获取分页参数
+	'设置分页标识URL参数
 	Public Property Let PageParam(ByVal str)
 		s_pageParam = str
 	End Property
-	'属性：设置分页存储过程名
+	'设置分页存储过程名
 	Public Property Let PageSpName(ByVal str)
 		s_pageSpName = str
 	End Property
-	'建新实例
+	'建新Easp数据库类实例
 	Public Function [New]()
 		Set [New] = New EasyASP_db
 	End Function
@@ -210,6 +209,7 @@ Class EasyAsp_db
 	Public Function GetRecord(ByVal TableName,ByVal Condition,ByVal OrderField)
 		Set GetRecord = GRS(wGetRecord(TableName,Condition,OrderField))
 	End Function
+	'返回取记录集时生成的SQL语句
 	Public Function wGetRecord(ByVal TableName,ByVal Condition,ByVal OrderField)
 		Dim strSelect, FieldsList, ShowN, o, p
 		FieldsList = "" : ShowN = 0
@@ -235,9 +235,11 @@ Class EasyAsp_db
 		If OrderField <> "" Then strSelect = strSelect & " Order By " & OrderField
 		wGetRecord = strSelect
 	End Function
+	'GetRecord方法的缩写
 	Public Function GR(ByVal TableName,ByVal Condition,ByVal OrderField)
 		Set GR = GetRecord(TableName, Condition, OrderField)
 	End Function
+	'wGetRecord方法的缩写
 	Public Function wGR(ByVal TableName,ByVal Condition,ByVal OrderField)
 		wGR = wGetRecord(TableName, Condition, OrderField)
 	End Function
@@ -270,6 +272,7 @@ Class EasyAsp_db
 			Err.Clear
 		End If
 	End Function
+	'GetRecordBySQL方法的缩写
 	Public Function GRS(ByVal s)
 		Set GRS = GetRecordBySQL(s)
 	End Function
@@ -353,6 +356,7 @@ Class EasyAsp_db
 		strSelect = "Select * From [" & TableName & "] Where " & ValueToSql(TableName,Condition,1)
 		Set GetRecordDetail = GRS(strSelect)
 	End Function
+	'GetRecordDetail方法的缩写
 	Public Function GRD(ByVal TableName,ByVal Condition)
 		Set GRD = GetRecordDetail(TableName, Condition)
 	End Function
@@ -392,6 +396,7 @@ Class EasyAsp_db
 		End Select
 		Set GetRandRecord = GRS(sql)
 	End Function
+	'GetRandRecord方法的缩写
 	Public Function GRR(ByVal TableName,ByVal Condition)
 		Set GRR = GetRandRecord(TableName,Condition)
 	End Function
@@ -414,6 +419,7 @@ Class EasyAsp_db
 			AddRecord = 1
 		End If
 	End Function
+	'返回添加记录时生成的SQL语句
 	Public Function wAddRecord(ByVal TableName,ByVal ValueList)
 		Dim TempSQL, TempFiled, TempValue, o
 		o = Easp_Param(TableName) : If Easp.Has(o(1)) Then TableName = o(0)
@@ -422,13 +428,15 @@ Class EasyAsp_db
 		TempSQL = "Insert Into [" & TableName & "] (" & TempFiled & ") Values (" & TempValue & ")"
 		wAddRecord = TempSQL
 	End Function
+	'AddRecord方法的缩写
 	Public Function AR(ByVal TableName,ByVal ValueList)
 		AR = AddRecord(TableName,ValueList)
 	End Function
+	'wAddRecord方法的缩写
 	Public Function wAR(ByVal TableName,ByVal ValueList)
 		wAR = wAddRecord(TableName,ValueList)
 	End Function
-	'修改某一纪录
+	'根据条件更新一条或多条记录
 	Public Function UpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
 		'On Error Resume Next
 		Dim s : s = wUpdateRecord(TableName,Condition,ValueList)
@@ -441,6 +449,7 @@ Class EasyAsp_db
 		End If
 		UpdateRecord = 1
 	End Function
+	'返回更新记录时生成的SQL语句
 	Public Function wUpdateRecord(ByVal TableName,ByVal Condition,ByVal ValueList)
 		Dim TmpSQL
 		TmpSQL = "Update ["&TableName&"] Set "
@@ -448,13 +457,15 @@ Class EasyAsp_db
 		If Easp.Has(Condition) Then TmpSQL = TmpSQL & " Where " & ValueToSql(TableName,Condition,1)
 		wUpdateRecord = TmpSQL
 	End Function
+	'UpdateRecord方法的缩写
 	Public Function UR(ByVal TableName,ByVal Condition,ByVal ValueList)
 		UR = UpdateRecord(TableName, Condition, ValueList)
 	End Function
+	'wUpdateRecord方法的缩写
 	Public Function wUR(ByVal TableName,ByVal Condition,ByVal ValueList)
 		wUR = wUpdateRecord(TableName, Condition, ValueList)
 	End Function
-	'删除指定的纪录
+	'按条件删除指定的记录
 	Public Function DeleteRecord(ByVal TableName,ByVal Condition)
 		'On Error Resume Next
 		Dim s : s = wDeleteRecord(TableName,Condition)
@@ -467,6 +478,7 @@ Class EasyAsp_db
 		End If
 		DeleteRecord = 1
 	End Function
+	'返回删除记录时生成的SQL语句
 	Public Function wDeleteRecord(ByVal TableName,ByVal Condition)
 		Dim IDFieldName, IDValues, Sql, p : IDFieldName = "" : IDValues = ""
 		If Not isArray(Condition) Then
@@ -483,13 +495,15 @@ Class EasyAsp_db
 		Sql = "Delete From ["&TableName&"] Where " & Easp.IIF(IDFieldName="", ValueToSql(TableName,Condition,1), "["&IDFieldName&"] In (" & IDValues & ")")
 		wDeleteRecord = Sql
 	End Function
+	'DeleteRecord方法的缩写
 	Public Function DR(ByVal TableName,ByVal Condition)
 		DR = DeleteRecord(TableName, Condition)
 	End Function
+	'wDeleteRecord方法的缩写
 	Public Function wDR(ByVal TableName,ByVal Condition)
 		wDR = wDeleteRecord(TableName, Condition)
 	End Function
-	'从某一表中，根据一个条件获取一条记录的其他字段的值
+	'从某一表中根据条件获取某条记录的其他字段的值
 	Public Function ReadTable(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		'On Error Resume Next
 		Dim rs,Sql,arrTemp,arrStr,TempStr,i
@@ -512,6 +526,7 @@ Class EasyAsp_db
 		If Err.number <> 0 Then Easp.Error.Raise 23 : Err.Clear
 		ReadTable = TempStr
 	End Function
+	'ReadTable方法的缩写
 	Public Function RT(ByVal TableName,ByVal Condition,ByVal GetFieldNames)
 		RT = ReadTable(TableName, Condition, GetFieldNames)
 	End Function
@@ -586,6 +601,7 @@ Class EasyAsp_db
 		On Error Resume Next
 		ObjRs.close()
 		Set ObjRs = Nothing
+		Err.Clear
 	End Function
 	'执行指定的SQL语句,可返回记录集
 	Public Function Exec(ByVal s)
@@ -759,10 +775,11 @@ Class EasyAsp_db
 			Set GetPageRecord = rs
 		End If
 	End Function
+	'GetPageRecord方法的缩写
 	Public Function GPR(ByVal PageSetup, ByVal Condition)
 		Set GPR = GetPageRecord(PageSetup, Condition)
 	End Function
-	'生成分页导航链接
+	'即时生成分页导航链接
 	Public Function Pager(ByVal PagerHtml, ByRef PagerConfig)
 		'On Error Resume Next
 		Dim pList, pListStart, pListEnd, pFirst, pPrev, pNext, pLast

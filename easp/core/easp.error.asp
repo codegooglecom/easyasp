@@ -33,7 +33,7 @@ Class EasyAsp_Error
 	Public Property Let [Debug](ByVal b)
 		b_debug = b
 	End Property
-	'取已定义的错误信息
+	'设置或读取自定义的错误代码和错误信息
 	Public Default Property Get E(ByVal n)
 		If o_err.Exists(n) Then
 			E = o_err(n)
@@ -41,7 +41,6 @@ Class EasyAsp_Error
 			E = "未知错误"
 		End If
 	End Property
-	'自定义错误代码
 	Public Property Let E(ByVal n, ByVal s)
 		If Easp.Has(n) And Easp.Has(s) Then
 			If n > "" Then
@@ -49,53 +48,53 @@ Class EasyAsp_Error
 			End If
 		End If
 	End Property
-	'取最近发生错误的代码
+	'取最后一次发生错误的代码
 	Public Property Get LastError
 		LastError = i_errNum
 	End Property
-	'错误信息标题
+	'设置和读取错误信息标题
 	Public Property Get Title
 		Title = s_title
 	End Property
 	Public Property Let Title(ByVal s)
 		s_title = s
 	End Property
-	'自定义的错误信息
+	'设置和读取自定义的附加错误信息
 	Public Property Get Msg
 		Msg = s_msg
 	End Property
 	Public Property Let Msg(ByVal s)
 		s_msg = s
 	End Property
-	'是否自动转向
+	'设置和读取页面是否自动转向
 	Public Property Get [Redirect]
 		[Redirect] = b_redirect
 	End Property
 	Public Property Let [Redirect](ByVal b)
 		b_redirect = b
 	End Property
-	'自定义跳转页
+	'设置和读取发生错误后的跳转页地址
 	Public Property Get Url
 		Url = s_url
 	End Property
 	Public Property Let Url(ByVal s)
 		s_url = s
 	End Property
-	'自动跳转时间（秒）
+	'设置和读取自动跳转页面等待时间（秒）
 	Public Property Get Delay
 		Delay = i_delay / 1000
 	End Property
 	Public Property Let Delay(ByVal i)
 		i_delay = i * 1000
 	End Property
-	'自定义样式名称
+	'设置和读取显示错误信息DIV的CSS样式名称
 	Public Property Get ClassName
 		ClassName = s_css
 	End Property
 	Public Property Let ClassName(ByVal s)
 		s_css = s
 	End Property
-	'生成错误
+	'生成一个错误
 	Public Sub Raise(ByVal n)
 		If Easp.isN(n) Then Exit Sub
 		i_errNum = n
@@ -104,7 +103,7 @@ Class EasyAsp_Error
 		End If
 		s_msg = ""
 	End Sub
-	'抛出错误信息
+	'立即抛出一个错误信息
 	Public Sub Throw(ByVal msg)
 		If Left(msg,1) = ":" Then
 			If o_err.Exists(Mid(msg,2)) Then msg = o_err(Mid(msg,2))
