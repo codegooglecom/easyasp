@@ -59,11 +59,11 @@ Class EasyAsp_Upload
 		GetConn Easp.db.Conn
 	End Sub
 	
-	'属性：文件编码
+	'设置文件编码
 	Public Property Let CharSet(ByVal s)
 		s_charset = UCase(s)
 	End Property
-	'属性：数据库连接
+	'设置数据库连接对象
 	Public Property Let Conn(ByVal o)
 		GetConn o
 	End Property
@@ -84,46 +84,46 @@ Class EasyAsp_Upload
 			End If
 		End If
 	End Sub
-	'属性：进度条Json文件保位置：
+	'设置进度条Json文件保位置：
 	Public Property Let Key(ByVal s)
 		If Not b_useProgress Then Exit Property
 		If Easp.IsN(s) Then Easp.Error.Raise 79 : Exit Property
 		s_key = s
 		s_jsonPath = absPath(s_progressPath) & s & s_progExt
 	End Property
-	'属性：生成上传唯一KEY
+	'生成上传唯一KEY
 	Public Property Get GenKey
 		GenKey = "EASPUP-" & Easp.DateTime(Now,"ymmddhhiiss") & Easp.RandStr("-<16>:0123456789ABCDEF")
 	End Property
-	'属性：单个文件最大尺寸
+	'设置单个文件最大尺寸
 	Public Property Let FileMaxSize(ByVal n)
 		i_fileMaxSize = n * 1024
 	End Property
 	Public Property Get FileMaxSize
 		FileMaxSize = i_fileMaxSize / 1024
 	End Property
-	'属性：所有文件最大总尺寸
+	'设置文件最大总尺寸
 	Public Property Let TotalMaxSize(ByVal n)
 		i_totalMaxSize = n * 1024
 	End Property
 	Public Property Get TotalMaxSize
 		TotalMaxSize = i_totalMaxSize / 1024
 	End Property
-	'属性：允许上传的文件类型，用"|"分隔
+	'设置允许上传的文件类型，用"|"分隔
 	Public Property Let Allowed(ByVal s)
-		s_allowed = s
+		s_allowed = Replace(s,",","|")
 	End Property
 	Public Property Get Allowed
 		Allowed = s_allowed
 	End Property
-	'属性：禁止上传的文件类型，用"|"分隔
+	'设置禁止上传的文件类型，用"|"分隔
 	Public Property Let Denied(ByVal s)
-		s_denied = s
+		s_denied = Replace(s,",","|")
 	End Property
 	Public Property Get Denied
 		Denied = s_denied
 	End Property
-	'属性：文件上传后保存的路径(相对或绝对)
+	'设置文件上传后保存的路径
 	Public Property Let SavePath(ByVal s)
 		Dim Matches,Match,t
 		If Easp.Test(s,"<.+?>") Then
@@ -143,7 +143,7 @@ Class EasyAsp_Upload
 	Public Property Get SavePath
 		SavePath = absPath(s_savepath)
 	End Property
-	'属性：是否使用进度条
+	'设置是否使用进度条
 	Public Property Let UseProgress(ByVal b)
 		b_useProgress = b
 		If b Then 
@@ -151,7 +151,7 @@ Class EasyAsp_Upload
 			Set o_fso = New EasyAsp_Fso
 		End If
 	End Property
-	'属性：保存进度条临时文件的文件夹
+	'设置保存进度条临时文件的文件夹
 	Public Property Let ProgressPath(ByVal s)
 		If Easp.IsN(s) Then Exit Property
 		If Left(s,1)<>"/" Then Easp.Error.Raise 70 : Exit Property
@@ -162,21 +162,21 @@ Class EasyAsp_Upload
 	Public Property Get ProgressPath
 		ProgressPath = s_progressPath
 	End Property
-	'属性：取进度条临时文件的Web地址,js用
+	'获取进度条临时文件的Web地址
 	Public Function ProgressFile(ByVal key)
 		If Easp.Has(key) Then
 			ProgressFile = s_progressPath & key & s_progExt
 		End If
 	End Function
-	'属性：是否自动创建不存在的文件夹
+	'设置是否自动创建不存在的文件夹
 	Public Property Let AutoMD(ByVal b)
 		b_autoMD = b
 	End Property
-	'属性：是否重命名上传文件为随机文件名
+	'设置是否重命名上传文件为随机文件名
 	Public Property Let Random(ByVal b)
 		b_random = b
 	End Property
-	'属性：分块上传大小，单位K
+	'设置分块上传大小，单位K
 	Public Property Let BlockSize(ByVal i)
 		i_blockSize = Int(i) * 1024
 	End Property

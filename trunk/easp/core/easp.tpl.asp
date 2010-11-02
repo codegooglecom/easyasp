@@ -39,7 +39,7 @@ Class EasyAsp_Tpl
 		Set o_attr = Nothing
 	End Sub
 
-	'模板路径
+	'设置和读取静态模板文件路径
 	Public Property Get FilePath
 		FilePath = s_path
 	End Property
@@ -47,7 +47,7 @@ Class EasyAsp_Tpl
 		If Right(f,1)<>"/" Then f = f & "/"
 		s_path = f
 	End Property
-	'加载模板方法一
+	'加载模板文件
 	Public Property Let [File](ByVal f)
 		Load(f)
 	End Property
@@ -55,7 +55,7 @@ Class EasyAsp_Tpl
 	Public Property Let [Source](ByVal s)
 		LoadStr(s)
 	End Property
-	'标签的标识符
+	'设置和读取标签的标识符
 	Public Property Get TagMask
 		TagMask = s_m
 	End Property
@@ -74,14 +74,14 @@ Class EasyAsp_Tpl
 			Tag = ""
 		End If
 	End Property
-	'模板中是否可以执行ASP代码
+	'设置模板中是否可以执行ASP代码
 	Public Property Get AspEnable
 		AspEnable = b_asp
 	End Property
 	Public Property Let AspEnable(ByVal b)
 		b_asp = b
 	End Property
-	'如何处理未定义的标签
+	'设置如何处理未定义的标签
 	Public Property Get TagUnknown
 		TagUnknown = s_unknown
 	End Property
@@ -95,17 +95,17 @@ Class EasyAsp_Tpl
 				s_unknown = "keep"
 		End Select
 	End Property
-	'建新实例
+	'建新Easp模板类实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_Tpl
 	End Function
-	'取循环块的属性
+	'读取循环块的属性
 	Public Function Attr(ByVal s)
 		If Not o_attr.Exists(s) Then Exit Function
 		Attr = o_attr.Item(s)
 	End Function
 
-	'加载模板方法二
+	'加载静态模板文件
 	Public Sub Load(ByVal f)
 		s_html = LoadInc(s_path & f,"")
 		s_ohtml = s_html
@@ -117,7 +117,7 @@ Class EasyAsp_Tpl
 		s_ohtml = s
 		SetBlocks()
 	End Sub
-	'重新载入
+	'重新载入当前模板
 	Public Sub Reload()
 		o_tag.RemoveAll
 		o_blockdata.RemoveAll
@@ -128,11 +128,11 @@ Class EasyAsp_Tpl
 		s_html = s_ohtml
 		SetBlocks()
 	End Sub
-	'加载附加模板
+	'载入附加模板到标签
 	Public Sub TagFile(ByVal tag, ByVal f)
 		LoadToTag tag,0,f
 	End Sub
-	'从文本加载附加模板
+	'从文本加载附加模板到标签
 	Public Sub TagStr(ByVal tag, ByVal s)
 		LoadToTag tag,1,s
 	End Sub
@@ -151,7 +151,7 @@ Class EasyAsp_Tpl
 		End If
 		SetBlocks()
 	End Sub
-	'替换标签(默认方法)
+	'替换标签（默认方法）
 	Public Default Sub Assign(ByVal s, ByVal v)
 		Dim i,f
 		Select Case TypeName(v)
@@ -329,7 +329,7 @@ Class EasyAsp_Tpl
 		Set Matches = Nothing
 		GetHtml = s_html
 	End Function
-	'输出模板内容
+	'输出最终文件内容
 	Public Sub Show()
 		Easp.W GetHtml
 	End Sub

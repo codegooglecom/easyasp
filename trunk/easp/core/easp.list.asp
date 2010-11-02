@@ -34,18 +34,18 @@ Class EasyAsp_List
 		Set o_hash = Nothing
 	End Sub
 	
-	'建新实例
+	'建新Easp List类实例
 	Public Function [New]()
 		Set [New] = New EasyAsp_List
 		[New].IgnoreCase = Me.IgnoreCase
 	End Function
-	'建新数组实例
+	'建新Easp List数组实例
 	Public Function NewArray(ByVal a)
 		Set NewArray = New EasyAsp_List
 		NewArray.IgnoreCase = Me.IgnoreCase
 		NewArray.Data = a
 	End Function
-	'建新Hash实例
+	'建新Easp List Hash实例
 	Public Function NewHash(ByVal a)
 		Set NewHash = New EasyAsp_List
 		NewHash.IgnoreCase = Me.IgnoreCase
@@ -60,7 +60,7 @@ Class EasyAsp_List
 		IgnoreCase = (i_comp = 1)
 	End Property
 	
-	'设置某一项值
+	'设置和读取某一项值
 	Public Property Let At(ByVal n, ByVal v)
 		If Easp.IsN(n) Then Easp.Error.Raise 42 : Exit Property
 		If Easp.Test(n,"^\d+$") Then
@@ -85,8 +85,6 @@ Class EasyAsp_List
 			Easp.Error.Raise 43
 		End If
 	End Property
-	
-	'取某一项值
 	Public Default Property Get At(ByVal n)
 		If Easp.Test(n,"^\d+$") Then
 			If n < Size Then
@@ -111,22 +109,18 @@ Class EasyAsp_List
 		End If
 	End Property
 	
-	'设置源数组为简单数组
+	'设置源数组为普通数组或取出为普通数组
 	Public Property Let Data(ByVal a)
 		Data__ a, 0
 	End Property
-	
-	'取出为普通数组
 	Public Property Get Data
 		Data = a_list
 	End Property
 	
-	'设置源数组为哈希(Hash)表
+	'设置源数组为哈希(Hash)表或取出为普通数组
 	Public Property Let Hash(ByVal a)
 		Data__ a, 1
 	End Property
-	
-	'取出为普通数组(带Hash表转换)
 	Public Property Get Hash
 		Dim arr, i
 		arr = a_list
@@ -179,7 +173,7 @@ Class EasyAsp_List
 		End If
 	End Sub
 	
-	'映射关系
+	'设置或读取Hash映射关系字典
 	Public Property Let Maps(ByVal d)
 		If TypeName(d) = "Dictionary" Then CloneDic__ o_map, d
 	End Property
@@ -187,17 +181,17 @@ Class EasyAsp_List
 		Set Maps = o_map
 	End Property
 	
-	'长度
+	'返回数组的长度
 	Public Property Get Length
 		Length = Size
 	End Property
 	
-	'最大下标
+	'返回数组的最大下标
 	Public Property Get [End]
 		[End] = Size - 1
 	End Property
 	
-	'数组有效长度（非空值）
+	'返回数组的有效长度（非空值）
 	Public Property Get Count
 		Dim i,j : j = 0
 		For i = 0 To Size-1
@@ -206,17 +200,17 @@ Class EasyAsp_List
 		Count = j
 	End Property
 	
-	'获取第一个元素
+	'返回数组的第一个元素值
 	Public Property Get First
 		First = At(0)
 	End Property
 	
-	'获取最后一个元素
+	'返回数组的最后一个元素值
 	Public Property Get Last
 		Last = At([End])
 	End Property
 	
-	'获取最大元素
+	'返回数组中的最大值
 	Public Property Get Max
 		Dim i, v
 		v = At(0)
@@ -228,7 +222,7 @@ Class EasyAsp_List
 		Max = v
 	End Property
 	
-	'获取最小元素
+	'返回数组中的最小值
 	Public Property Get Min
 		Dim i, v
 		v = At(0)
@@ -252,12 +246,12 @@ Class EasyAsp_List
 		Serialize = tmp
 	End Property
 	
-	'是否包含某个下标
+	'检测是否包含某个下标
 	Public Function HasIndex(ByVal i)
 		HasIndex = Index(i) >= 0
 	End Function
 	
-	'取得下标数字
+	'返回Hash名称所在的下标数字
 	Public Function Index(ByVal i)
 		If isNumeric(i) Then
 			Index = Easp.IIF(i >= 0 And i <= [End], i, -1)
@@ -270,7 +264,7 @@ Class EasyAsp_List
 		End If
 	End Function
 	
-	'取数字下标的Hash名称
+	'返回数字下标的Hash名称
 	Public Function IndexHash(ByVal i)
 		If isNumeric(i) Then
 			IndexHash = Easp.IfThen(o_map.Exists(i), o_map(i))
@@ -306,41 +300,45 @@ Class EasyAsp_List
 		End If
 	End Function
 	
-	'添加一个元素到开头
+	'添加一个元素到数组开头
 	Public Sub UnShift(ByVal v)
 		Insert 0, v
 	End Sub
+	'添加一个元素到数组开头并返回新数组对象
 	Public Function UnShift_(ByVal v)
 		Set UnShift_ = Me.Clone
 		UnShift_.UnShift v
 	End Function
 	
-	'删除第一个元素
+	'删除数组第一个元素
 	Public Sub Shift
 		[Delete] 0
 	End Sub
+	'删除数组第一个元素并返回新数组对象
 	Public Function Shift_
 		Set Shift_ = Me.Clone
 		Shift_.Shift
 	End Function
 	
-	'添加一个元素到结尾
+	'添加一个元素到数组结尾
 	Public Sub Push(ByVal v)
 		ReDim Preserve a_list(Size)
 		a_list(Size) = v
 		Size = Size + 1
 	End Sub
+	'添加一个元素到数组结尾并返回新数组对象
 	Public Function Push_(ByVal v)
 		Set Push_ = Me.Clone
 		Push_.Push v
 	End Function
 	
-	'删除最后一个元素
+	'删除数组最后一个元素
 	Public Sub Pop
 		RemoveMap__ [End]
 		ReDim Preserve a_list([End]-1)
 		Size = Size - 1
 	End Sub
+	'删除数组最后一个元素并返回新数组对象
 	Public Function Pop_
 		Set Pop_ = Me.Clone
 		Pop_.Pop
@@ -364,7 +362,7 @@ Class EasyAsp_List
 		At(n) = At(i)
 	End Sub
 	
-	'在指定下标插入一个元素
+	'在指定下标插入一个元素或一个数组
 	Public Sub Insert(ByVal n, ByVal v)
 		Dim i,j
 		If n > [End] Then
@@ -402,20 +400,22 @@ Class EasyAsp_List
 			End If
 		End If
 	End Sub
+	'在指定下标插入一个元素或一个数组并返回新数组对象
 	Public Function Insert_(ByVal n, ByVal v)
 		Set Insert_ = Me.Clone
 		Insert_.Insert n, v
 	End Function
 	
-	'检测是否包含某元素
+	'检测数组中是否包含某个值
 	Public Function Has(ByVal v)
 		Has = (indexOf__(a_list, v) > -1)
 	End Function
 	
-	'检测元素在数组中的下标
+	'检测某个值在数组中的下标
 	Public Function IndexOf(ByVal v)
 		IndexOf = indexOf__(a_list, v)
 	End Function
+	'检测某个值在数组中的Hash名称
 	Public Function IndexOfHash(ByVal v)
 		Dim i : i = indexOf__(a_list, v)
 		If i = -1 Then IndexOfHash = Empty : Exit Function
@@ -498,12 +498,13 @@ Class EasyAsp_List
 			Pop
 		End If
 	End Sub
+	'删除一个或多个元素并返回新数组对象
 	Public Function Delete_(ByVal n)
 		Set Delete_ = Me.Clone
 		Delete_.Delete n
 	End Function
 
-	'移除重复元素只保留一个
+	'移除数组中的重复元素只保留一个
 	Public Sub Uniq()
 		Dim arr(),i,j : j = 0
 		ReDim arr(-1)
@@ -526,6 +527,7 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'移除数组中的重复元素只保留一个并返回新数组对象
 	Public Function Uniq_()
 		Set Uniq_ = Me.Clone
 		Uniq_.Uniq
@@ -538,7 +540,7 @@ Class EasyAsp_List
 		Next
 	End Sub
 	
-	'随机排序(洗牌)
+	'让数组随机排序(洗牌)
 	Public Sub Rand
 		Dim i, j, tmp, Ei, Ej, Ti, Tj
 		For i = 0 To [End]
@@ -568,12 +570,13 @@ Class EasyAsp_List
 			End If
 		Next
 	End Sub
+	'让数组随机排序并返回新数组对象
 	Public Function Rand_()
 		Set Rand_ = Me.Clone
 		Rand_.Rand
 	End Function
 	
-	'反向排列数组
+	'将数组倒序排列
 	Public Sub Reverse
 		Dim arr(),i,j : j = 0
 		ReDim arr([End])
@@ -590,6 +593,7 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'将数组倒序排列并返回新数组对象
 	Public Function Reverse_()
 		Set Reverse_ = Me.Clone
 		Reverse_.Reverse
@@ -599,6 +603,7 @@ Class EasyAsp_List
 	Public Sub Search(ByVal s)
 		Search__ s, True
 	End Sub
+	'搜索包含指定字符串的元素并返回新数组对象
 	Public Function Search_(ByVal s)
 		Set Search_ = Me.Clone
 		Search_.Search s
@@ -608,6 +613,7 @@ Class EasyAsp_List
 	Public Sub SearchNot(ByVal s)
 		Search__ s, False
 	End Sub
+	'搜索不包含指定字符串的元素并返回新数组对象
 	Public Function SearchNot_(ByVal s)
 		Set SearchNot_ = Me.Clone
 		SearchNot_.SearchNot s
@@ -624,7 +630,7 @@ Class EasyAsp_List
 		End If
 	End Sub
 	
-	'删除空元素
+	'删除数组中的空元素
 	Public Sub Compact
 		Dim arr(), i, j : j = 0
 		If o_hash.Count>0 Then o_hash.RemoveAll
@@ -643,19 +649,20 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'删除数组中的空元素并返回新数组对象
 	Public Function Compact_()
 		Set Compact_ = Me.Clone
 		Compact_.Compact
 	End Function
 	
-	'清空
+	'清空数组
 	Public Sub Clear
 		a_list = Array()
 		If o_map.Count>0 Then o_map.RemoveAll
 		Size = 0
 	End Sub
 	
-	'排序
+	'数组排序
 	Public Sub Sort
 		Dim arr
 		arr = a_list
@@ -666,6 +673,7 @@ Class EasyAsp_List
 			AddHash__ arr
 		End If
 	End Sub
+	'数组排序并返回新数组对象
 	Public Function Sort_()
 		Set Sort_ = Me.Clone
 		Sort_.Sort
@@ -718,7 +726,7 @@ Class EasyAsp_List
 		o_hash.RemoveAll
 	End Sub
 	
-	'按下标取List的一部分元素
+	'按下标取出部分元素而删除数组的其它元素
 	Public Sub Slice(ByVal s)
 		Dim a,i,j,k,x,y,arr
 		If o_hash.Count>0 Then o_hash.RemoveAll
@@ -773,21 +781,22 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
-	'按下标取List的一部分元素返回一个新的List对象
+	'按下标取出部分元素并返回新数组对象
 	Public Function Slice_(ByVal s)
 		Set Slice_ = Me.Clone
 		Slice_.Slice s
 	End Function
+	'按下标取出部分元素并返回新数组对象
 	Public Function [Get](ByVal s)
 		Set [Get] = Slice_(s)
 	End Function
 	
-	'联连字符串
+	'返回将数组元素用字符连接后的字符串
 	Public Function J(ByVal s)
 		J = Join(a_list, s)
 	End Function
 	
-	'转换成字符串（,号隔开）
+	'将数组转换成用逗号隔开的字符串
 	Public Function ToString()
 		ToString = J(",")
 	End Function
@@ -807,19 +816,20 @@ Class EasyAsp_List
 	'=============
 	'以下是迭代处理部分
 	'=============
-	'按元素值进行迭代操作并返回新值
-	'意思是依次对数组中的元素调用某个方法进行处理并将处理后的值替换到数组
+	'按元素值进行迭代操作并返回新值到数组
 	Public Sub Map(ByVal f)
+	'意思是依次对数组中的元素调用某个方法进行处理并将处理后的值替换到数组
 		Map__ f, 0
 	End Sub
+	'按元素值进行迭代操作并返回新数组对象
 	Public Function Map_(ByVal f)
 		Set Map_ = Me.Clone
 		Map_.Map f
 	End Function
 	
 	'按元素值进行迭代操作
-	'意思是依次把数组中的元素作用参数调用某个方法
 	Public Sub [Each](ByVal f)
+	'意思是依次把数组中的元素作用参数调用某个方法
 		Map__ f, 1
 	End Sub
 	Private Sub Map__(ByVal f, ByVal t)
@@ -869,6 +879,7 @@ Class EasyAsp_List
 	Public Sub [Select](ByVal f)
 		Select__ f, 0
 	End Sub
+	'用所有符合表达式条件的元素组成新数组对象
 	Public Function Select_(ByVal f)
 		Set Select_ = Me.Clone
 		Select_.Select f
@@ -909,6 +920,7 @@ Class EasyAsp_List
 	Public Sub Reject(ByVal f)
 		Select__ f, 1
 	End Sub
+	'用所有不符合表达式条件的元素组成新数组对象
 	Public Function Reject_(ByVal f)
 		Set Reject_ = Me.Clone
 		Reject_.Reject f
@@ -934,6 +946,7 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'选择符合正则表达式的元素并返回新数组对象
 	Public Function Grep_(ByVal g)
 		Set Grep_ = Me.Clone
 		Grep_.Grep g
@@ -943,6 +956,7 @@ Class EasyAsp_List
 	Public Sub SortBy(ByVal f)
 		Map f : Sort
 	End Sub
+	'按元素值进行迭代处理后排序并返回新数组对象
 	Public Function SortBy_(ByVal f)
 		Set SortBy_ = Me.Clone
 		SortBy_.SortBy f
@@ -960,6 +974,7 @@ Class EasyAsp_List
 			Insert Size, arr
 		Next
 	End Sub
+	'把一个数组重复多次并返回新数组对象
 	Public Function Times_(ByVal t)
 		Set Times_ = Me.Clone
 		Times_.Times t
@@ -997,6 +1012,7 @@ Class EasyAsp_List
 				Insert Size, o.Data
 		End If
 	End Sub
+	'把一个数组拼接到另一个数组最后并返回新数组对象
 	Public Function Splice_(ByVal o)
 		Set Splice_ = Me.Clone
 		Splice_.Splice o
@@ -1008,6 +1024,7 @@ Class EasyAsp_List
 		Splice o
 		Uniq
 	End Sub
+	'把两个数组合并并返回新数组对象
 	Public Function Merge_(ByVal o)
 		Set Merge_ = Me.Clone
 		Merge_.Merge o
@@ -1068,6 +1085,7 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'取出在两个数组中都存在的元素并返回新数组对象
 	Public Function Inter_(ByVal o)
 		Set Inter_ = Me.Clone
 		Inter_.Inter o
@@ -1101,6 +1119,7 @@ Class EasyAsp_List
 		CloneDic__ o_map, o_hash
 		o_hash.RemoveAll
 	End Sub
+	'取数组差集并返回新数组对象
 	Public Function Diff_(ByVal o)
 		Set Diff_ = Me.Clone
 		Diff_.Diff o
@@ -1137,7 +1156,7 @@ Class EasyAsp_List
 		End If
 	End Function
 	
-	'是否包含数组
+	'检测一个数组是否是本数组的子集
 	Public Function Son(ByVal o)
 		If Not isArray(o) And Not isList(o) Then Easp.Error.Raise 44 : Exit Function
 		Son = True

@@ -29,7 +29,7 @@ Class EasyAsp_JSON
 	Private Sub Class_Terminate
 		Set Collection = Nothing
 	End Sub
-	'建新实例
+	'建新Easp JSON类实例
 	Public Function [New](ByVal k)
 		Set [New] = New EasyASP_JSON
 		Select Case LCase(k)
@@ -42,7 +42,7 @@ Class EasyAsp_JSON
 		Counter = Count
 		Count = Count + 1
 	End Property
-	'赋值，值可以是Easp的Json对象
+	'设置和读取JSON项的值（值可以是Easp的Json对象）
 	Public Property Let Pair(p, v)
 		If IsNull(p) Then p = Counter
 		If vartype(v) = 9 Then
@@ -55,6 +55,7 @@ Class EasyAsp_JSON
 				Collection(p) = v
 		End If
 	End Property
+	'
 	Public Default Property Get Pair(p)
 		If IsNull(p) Then p = Count - 1
 		If IsObject(Collection(p)) Then
@@ -63,15 +64,15 @@ Class EasyAsp_JSON
 			Pair = Collection(p)
 		End If
 	End Property
-	'清除所有项
+	'清除所有JSON项
 	Public Sub Clean
 		Collection.RemoveAll
 	End Sub
-	'删除某一值
+	'删除某一JSON项值
 	Public Sub Remove(vProp)
 		Collection.Remove vProp
 	End Sub
-	'将目标转化Json字符串
+	'将数据转化Json字符串
 	Public Function toJSON(vPair)
 		Select Case VarType(vPair)
 			Case 1
@@ -123,7 +124,7 @@ Class EasyAsp_JSON
 	Public Property Get jsString
 		jsString = toJSON(Me)
 	End Property
-	'输出为Json文件
+	'输出为Json格式文件
 	Public Sub Flush
 		Response.Clear()
 		Response.Charset = "UTF-8"
