@@ -7,7 +7,7 @@
 '## Author      :   Coldstone(coldstone[at]qq.com)
 '## Update Date :   2010/03/23 23:24:30
 '## Description :   Request XMLHttp Data in EasyASP
-'## http://msdn.microsoft.com/en-us/library/ms535874(VS.85).aspx
+'## 
 '######################################################################
 Class EasyAsp_Http
 	Public Url, Method, CharSet, Async, User, Password, Html, Headers, Body, Text, SaveRandom
