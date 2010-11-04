@@ -183,7 +183,7 @@ Class EasyAsp_Upload
 	'私有方法：取目录绝对路径
 	Private Function absPath(ByVal s)
 		If Easp.IsN(s) Then s = "."
-		s = Easp.IIF(Instr(s,":")=2, s, Server.MapPath(s))
+		If Instr(s,":") <> 2 Then s = Server.MapPath(s)
 		If Right(s,1)<>"\" Then s = s & "\"
 		absPath = s
 	End Function
@@ -204,7 +204,7 @@ Class EasyAsp_Upload
 			End If
 		End If
 	End Function
-	'初始化，开始上传：
+	'开始上传本地数据：
 	Public Sub StartUpload
 		If TypeName(o_db.Conn) <> "Connection" Then
 				GetConn Easp.db.Conn
