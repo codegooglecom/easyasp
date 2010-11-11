@@ -167,6 +167,7 @@ Class EasyAsp
 	Sub WNF(ByVal s) : WN s : Response.Flush() : End Sub
 	Sub WNH(ByVal s) : WN HtmlEncode(s) : End Sub
 	Sub WE(ByVal s) : W s : Set Easp = Nothing : Response.End() : End Sub
+	Sub WT(ByVal s) : W "<span style=""background-color:#FF3;color:blue;margin-right:10px;"">"&s&"</span>" : End Sub
 	'格式化字符串（首下标为1）
 	Function Str(ByVal s, ByVal v)
 		Str = FormatString(s, v, 1)
