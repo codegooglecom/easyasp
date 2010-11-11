@@ -90,6 +90,7 @@ Class EasyAsp_Tpl
 			Case "1", "remove"
 				s_unknown = "remove"
 			Case "2", "comment"
+				'转成注释慎用，如果是html标签的属性值内有标签转为注释可能引发html标签错误
 				s_unknown = "comment"
 			Case Else
 				s_unknown = "keep"
@@ -285,15 +286,20 @@ Class EasyAsp_Tpl
 	'获取最终html
 	Public Function GetHtml()
 		s_html = LogicReplace(s_html)
-		Dim Matches, Match, n, b
+		Dim Matches, Match, n, f, f0, b
 		'替换标签
-		Set Matches = Easp.RegMatch(s_html, s_ms & "(.+?)" & s_me)
+		Set Matches = Easp.RegMatch(s_html, s_ms & "([^:]+?)?(:.+?)?" & s_me)
 		'Easp.WN "rule:" & s_ms & "(.+?)" & s_me
 		For Each Match In Matches
 			n = Match.SubMatches(0)
-			'Easp.WN "match:" & Match.Value
+			f = Match.SubMatches(1)
+			f0 = Easp.IIF(Easp.Has(f),"{0"&f&"}","{0}")
+			'Easp.WT f0
+			'Easp.WN "match://" & Match.Value & "//"
 			If o_tag.Exists(n) Then
-				s_html = Replace(s_html, Match.Value, o_tag.Item(n))
+				'Easp.WT f0
+				s_html = Replace(s_html, Match.Value, Easp.Format(f0,o_tag.Item(n)))
+				's_html = Replace(s_html, Match.Value, o_tag.Item(n))
 				'Easp.WN "match_tag:" & Match.Value
 				'Easp.WN "match_dic:" & o_tag.Item(n)
 			End If
@@ -492,19 +498,21 @@ Class EasyAsp_Tpl
 	'更新循环块标签
 	Private Function UpdateBlockTag(ByVal s)
 		s = LogicReplace(s)
-		Dim Matches, Match, data, rule
-		Set Matches = Easp.RegMatch(s, s_ms & "(.+?)" & s_me)
+		Dim Matches, Match, data, rule, f, f0
+		Set Matches = Easp.RegMatch(s, s_ms & "([^:]+?)?(:.+?)?" & s_me)
 		For Each Match In Matches
 			'取标签名
 			data = Match.SubMatches(0)
+			f = Match.SubMatches(1)
+			f0 = Easp.IIF(Easp.Has(f),"{0"&f&"}","{0}")
 			'如果此标签有替换值
 			If o_tag.Exists(data) Then
-				rule = Match.Value
+				rule = Match.Value			
 				'替换标签为相应的值
 				If Easp.isN(o_tag.Item(data)) Then
 					s = Replace(s, rule, "")
 				Else
-					s = Replace(s, rule, o_tag.Item(data))
+					s = Replace(s, rule, Easp.Format(f0,o_tag.Item(data)))
 				End If
 			End If
 		Next
