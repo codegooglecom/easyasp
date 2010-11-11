@@ -129,7 +129,7 @@ Class EasyAsp_Error
 		If t = 1 Then
 			If Err.Number<>0 Then
 				s = s & "	<ul class=""dev"">" & vbCrLf
-				s = s & "		<li class=""info"">以下信息针对开发者：</li>" & vbCrLf
+				s = s & "		<li class=""info"">以下信息针对开发者s：</li>" & vbCrLf
 				s = s & "		<li>错误代码：0x" & Hex(Err.Number) & "</li>" & vbCrLf
 				s = s & "		<li>错误描述：" & Err.Description & "</li>" & vbCrLf
 				s = s & "		<li>错误来源：" & Err.Source & "</li>" & vbCrLf
