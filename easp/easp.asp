@@ -160,27 +160,13 @@ Class EasyAsp
 	End Function
 	
 	'输出字符串(简易断点调试)
-	Sub W(ByVal s)
-		Response.Write(s)
-	End Sub
-	Sub WC(ByVal s)
-		W(s & VbCrLf)
-	End Sub
-	Sub WF(ByVal s)
-		W s
-		Response.Flush()
-	End Sub
-	Sub WNH(ByVal s)
-		WN HtmlEncode(s)
-	End Sub
-	Sub WN(ByVal s)
-		W(s & "<br />" & VbCrLf)
-	End Sub
-	Sub WE(ByVal s)
-		W(s)
-		Set Easp = Nothing
-		Response.End()
-	End Sub
+	Sub W(ByVal s) : Response.Write(s) : End Sub
+	Sub WC(ByVal s) : W(s & VbCrLf) : End Sub
+	Sub WF(ByVal s) : W s : Response.Flush() : End Sub
+	Sub WN(ByVal s) : W s & "<br />" & VbCrLf : End Sub
+	Sub WNF(ByVal s) : WN s : Response.Flush() : End Sub
+	Sub WNH(ByVal s) : WN HtmlEncode(s) : End Sub
+	Sub WE(ByVal s) : W s : Set Easp = Nothing : Response.End() : End Sub
 	'格式化字符串（首下标为1）
 	Function Str(ByVal s, ByVal v)
 		Str = FormatString(s, v, 1)
@@ -248,22 +234,25 @@ Class EasyAsp
 	Private Function FormatReplace(ByVal s, ByVal t, ByVal v)
 		Dim tmp,rule,ru,kind,matches,match
 		v = IfHas(v,"")
-		rule = "\{" & t & "(:((N[,\(%]?(\d+)?)|(D[^\}]+)|(E[^\}]+)|U|L))\}"
+		rule = "\{" & t & "(:((N[,\(%]?(\d+)?)|(D[^\}]+)|(E[^\}]+)|U|L|\d+([^\}]+)?))\}"
 		If Test(s,rule) Then
 			Set matches = RegMatch(s,rule)
 			For Each match In matches
 				kind = RegReplace(match.Value, rule, "$2")
-				ru = "{"&t&":"&kind&"}"
+				ru = match.Value
 				Select Case Left(kind,1)
+					'截取字符串
+					Case "1","2","3","4","5","6","7","8","9"
+						s = Replace(s, ru, CutStr(v,regReplace(kind,"^(\d+)(.+)?$","$1:$2")))
 					'数字
 					Case "N"
 						If isNumeric(v) Then
 							Dim style,group,parens,percent,deci
-							style = RegReplace(kind,"N([,\(%])?(\d+)?","$1")
+							style = RegReplace(kind,"^N([,\(%])?(\d+)?$","$1")
 							If style = "," Then group = -1
 							If style = "(" Then parens = -1
 							If style = "%" Then percent = -1
-							deci = RegReplace(kind,"N([,\(%])?(\d+)?","$2")
+							deci = RegReplace(kind,"^N([,\(%])?(\d+)?$","$2")
 							If IsN(style) And IsN(deci) Then
 								s = Replace(s, ru, IIF(Instr(Cstr(v),".")>0 And v<1,"0" & v,v),1,-1,1)
 							Else
@@ -651,10 +640,10 @@ Class EasyAsp
 			R = Request.ServerVariables(s)
 		ElseIf Has(Request.ClientCertificate(s)) Then
 			R = Request.ClientCertificate(s)
-		ElseIf Has(Request.BinaryRead(s)) Then
-			R = Request.BinaryRead(s)
-		Else
+		Else'If IsN(Request(s)) Then
 			R = Empty
+		'Else
+		'	R = Request.BinaryRead(s)
 		End If
 	End Function
 	'安全获取值新版

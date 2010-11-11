@@ -177,9 +177,9 @@ Class EasyAsp_Xml
 	End Function
 	
 	'根对象
-	Public Property Get Root
+	Public Function Root
 		Set Root = NewNode(Dom)
-	End Property
+	End Function
 	
 	'建立新的Easp Xml对象
 	Public Function [New]()
@@ -314,7 +314,7 @@ Class Easp_Xml_Node
 	End Property
 	
 	'取集合中的某一项
-	Public Default Property Get Item(ByVal n)
+	Public Default Function Item(ByVal n)
 		'如果是集合就取其中下标对应子项
 		If IsNodes Then
 			Set Item = [New](o_node(n))
@@ -325,17 +325,17 @@ Class Easp_Xml_Node
 			Easp.Error.Msg = "(不是有效的XML元素集合对象&lt;"&TypeName(o_node)&"&gt;)"
 			Easp.Error.Raise 97
 		End If
-	End Property
+	End Function
 	
 	'=======Xml元素属性（自身属性）======
 	'是否是元素节点
-	Public Property Get IsNode
+	Public Function IsNode
 		IsNode = TypeName(o_node) = "IXMLDOMElement"
-	End Property
+	End Function
 	'是否是元素集合
-	Public Property Get IsNodes
+	Public Function IsNodes
 		IsNodes = TypeName(o_node) = "IXMLDOMSelection"
-	End Property
+	End Function
 	'(可读可写)
 	'属性设置
 	Public Property Let Attr(ByVal s, ByVal v)
@@ -441,23 +441,26 @@ Class Easp_Xml_Node
 	
 	'=======Xml元素属性（返回新节点元素）======
 	'根元素
-	Public Property Get Root
-		If Not IsNode Then Exit Property
-		Set Root = [New](o_node.OwnerDocument)
-	End property
+	Public Function Root
+		If IsNode Then
+			Set Root = [New](o_node.OwnerDocument)
+		Else
+			Set Root = [New](o_node(0).OwnerDocument)
+		End If
+	End Function
 	'父元素
-	Public Property Get Parent
-		If Not IsNode Then Exit Property
+	Public Function Parent
+		If Not IsNode Then Exit Function
 		Set Parent = [New](o_node.parentNode)
-	End property
+	End Function
 	'子元素
-	Public Property Get Child(ByVal n)
-		If Not IsNode Then Exit Property
+	Public Function Child(ByVal n)
+		If Not IsNode Then Exit Function
 		Set Child = [New](o_node.ChildNodes(n))
-	End property
+	End Function
 	'上一同级元素
-	Public Property Get Prev
-		If Not IsNode Then Exit Property
+	Public Function Prev
+		If Not IsNode Then Exit Function
 		Dim o
 		Set o = o_node.PreviousSibling
 		Do While True
@@ -471,10 +474,10 @@ Class Easp_Xml_Node
 			Easp.Error.Msg = "(没有上一同级元素)"
 			Easp.Error.Raise 96
 		End If
-	End property
+	End Function
 	'下一同级元素
-	Public Property Get [Next]
-		If Not IsNode Then Exit Property
+	Public Function [Next]
+		If Not IsNode Then Exit Function
 		Dim o
 		Set o = o_node.NextSibling
 		Do While True
@@ -488,23 +491,23 @@ Class Easp_Xml_Node
 			Easp.Error.Msg = "(没有下一同级元素)"
 			Easp.Error.Raise 96
 		End If
-	End property
+	End Function
 	'第一个元素
-	Public Property Get First
-		If Not IsNode Then Exit Property
+	Public Function First
+		If Not IsNode Then Exit Function
 		Set First = [New](o_node.FirstChild)
-	End Property
+	End Function
 	'最后一个元素
-	Public Property Get Last
-		If Not IsNode Then Exit Property
+	Public Function Last
+		If Not IsNode Then Exit Function
 		Set Last = [New](o_node.LastChild)
-	End Property
+	End Function
 	
 	'=======Xml元素方法======
 	'(查找)
 	'是否有某属性
 	Public Function HasAttr(ByVal s)
-		If Not IsNode Then Exit Function
+		If Not IsNode Then HasAttr = False : Exit Function
 		Dim oattr
 		Set oattr = o_node.Attributes.GetNamedItem(s)
 		HasAttr = Not oattr Is Nothing
@@ -512,7 +515,7 @@ Class Easp_Xml_Node
 	End Function
 	'是否有子节点
 	Public Function HasChild()
-		If Not IsNode Then Exit Function
+		If Not IsNode Then HasChild = False : Exit Function
 		HasChild = o_node.hasChildNodes()
 	End Function
 	'查找子元素
