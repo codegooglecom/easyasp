@@ -5,7 +5,7 @@
 '## Feature     :   EasyAsp Exception Class
 '## Version     :   v2.2 Alpha
 '## Author      :   Coldstone(coldstone[at]qq.com)
-'## Update Date :   2010/01/26 16:08:30
+'## Update Date :   2010/11/13 22:01:30
 '## Description :   Deal with the EasyAsp Exception
 '##
 '######################################################################
@@ -35,6 +35,7 @@ Class EasyAsp_Error
 	End Property
 	'设置或读取自定义的错误代码和错误信息
 	Public Default Property Get E(ByVal n)
+		If IsNumeric(n) Then n = CLng(n)
 		If o_err.Exists(n) Then
 			E = o_err(n)
 		Else
@@ -44,6 +45,7 @@ Class EasyAsp_Error
 	Public Property Let E(ByVal n, ByVal s)
 		If Easp.Has(n) And Easp.Has(s) Then
 			If n > "" Then
+				If IsNumeric(n) Then n = CLng(n)
 				o_err(n) = s
 			End If
 		End If
@@ -106,7 +108,9 @@ Class EasyAsp_Error
 	'立即抛出一个错误信息
 	Public Sub Throw(ByVal msg)
 		If Left(msg,1) = ":" Then
-			If o_err.Exists(Mid(msg,2)) Then msg = o_err(Mid(msg,2))
+			msg = Mid(msg,2)
+			If isNumeric(msg) Then msg = CLng(msg)
+			If o_err.Exists(msg) Then msg = o_err(msg)
 		End If
 		Easp.W ShowMsg(msg,0)
 	End Sub
